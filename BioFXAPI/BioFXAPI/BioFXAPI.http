@@ -1,0 +1,6 @@
+@BioFXAPI_HostAddress = http://localhost:5160
+
+GET {{BioFXAPI_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

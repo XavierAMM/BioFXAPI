@@ -1,0 +1,88 @@
+{
+  "Version": 1,
+  "WorkspaceRootPath": "C:\\Users\\xmanc\\OneDrive\\Desktop\\Bio-fx proyecto\\Funcionalidad login\\Backend\\BioFXAPI\\",
+  "Documents": [
+    {
+      "AbsoluteMoniker": "D:0:0:{1C47A8D9-43A9-45F2-BC86-DCBFEC64E4C5}|BioFXAPI\\BioFXAPI.csproj|c:\\users\\xmanc\\onedrive\\desktop\\bio-fx proyecto\\funcionalidad login\\backend\\biofxapi\\biofxapi\\appsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}",
+      "RelativeMoniker": "D:0:0:{1C47A8D9-43A9-45F2-BC86-DCBFEC64E4C5}|BioFXAPI\\BioFXAPI.csproj|solutionrelative:biofxapi\\appsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{1C47A8D9-43A9-45F2-BC86-DCBFEC64E4C5}|BioFXAPI\\BioFXAPI.csproj|c:\\users\\xmanc\\onedrive\\desktop\\bio-fx proyecto\\funcionalidad login\\backend\\biofxapi\\biofxapi\\appsettings.development.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}",
+      "RelativeMoniker": "D:0:0:{1C47A8D9-43A9-45F2-BC86-DCBFEC64E4C5}|BioFXAPI\\BioFXAPI.csproj|solutionrelative:biofxapi\\appsettings.development.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{1C47A8D9-43A9-45F2-BC86-DCBFEC64E4C5}|BioFXAPI\\BioFXAPI.csproj|c:\\users\\xmanc\\onedrive\\desktop\\bio-fx proyecto\\funcionalidad login\\backend\\biofxapi\\biofxapi\\services\\emailservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{1C47A8D9-43A9-45F2-BC86-DCBFEC64E4C5}|BioFXAPI\\BioFXAPI.csproj|solutionrelative:biofxapi\\services\\emailservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{1C47A8D9-43A9-45F2-BC86-DCBFEC64E4C5}|BioFXAPI\\BioFXAPI.csproj|c:\\users\\xmanc\\onedrive\\desktop\\bio-fx proyecto\\funcionalidad login\\backend\\biofxapi\\biofxapi\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{1C47A8D9-43A9-45F2-BC86-DCBFEC64E4C5}|BioFXAPI\\BioFXAPI.csproj|solutionrelative:biofxapi\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    }
+  ],
+  "DocumentGroupContainers": [
+    {
+      "Orientation": 0,
+      "VerticalTabListWidth": 256,
+      "DocumentGroups": [
+        {
+          "DockedWidth": 200,
+          "SelectedChildIndex": 3,
+          "Children": [
+            {
+              "$type": "Document",
+              "DocumentIndex": 3,
+              "Title": "Program.cs",
+              "DocumentMoniker": "C:\\Users\\xmanc\\OneDrive\\Desktop\\Bio-fx proyecto\\Funcionalidad login\\Backend\\BioFXAPI\\BioFXAPI\\Program.cs",
+              "RelativeDocumentMoniker": "BioFXAPI\\Program.cs",
+              "ToolTip": "C:\\Users\\xmanc\\OneDrive\\Desktop\\Bio-fx proyecto\\Funcionalidad login\\Backend\\BioFXAPI\\BioFXAPI\\Program.cs",
+              "RelativeToolTip": "BioFXAPI\\Program.cs",
+              "ViewState": "AgIAAFkAAAAAAAAAAAAYwGYAAAAYAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-09-18T20:48:36.106Z",
+              "IsPinned": true
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "appsettings.Development.json",
+              "DocumentMoniker": "C:\\Users\\xmanc\\OneDrive\\Desktop\\Bio-fx proyecto\\Funcionalidad login\\Backend\\BioFXAPI\\BioFXAPI\\appsettings.Development.json",
+              "RelativeDocumentMoniker": "BioFXAPI\\appsettings.Development.json",
+              "ToolTip": "C:\\Users\\xmanc\\OneDrive\\Desktop\\Bio-fx proyecto\\Funcionalidad login\\Backend\\BioFXAPI\\BioFXAPI\\appsettings.Development.json",
+              "RelativeToolTip": "BioFXAPI\\appsettings.Development.json",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001642|",
+              "WhenOpened": "2025-09-19T16:16:47.278Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "EmailService.cs",
+              "DocumentMoniker": "C:\\Users\\xmanc\\OneDrive\\Desktop\\Bio-fx proyecto\\Funcionalidad login\\Backend\\BioFXAPI\\BioFXAPI\\Services\\EmailService.cs",
+              "RelativeDocumentMoniker": "BioFXAPI\\Services\\EmailService.cs",
+              "ToolTip": "C:\\Users\\xmanc\\OneDrive\\Desktop\\Bio-fx proyecto\\Funcionalidad login\\Backend\\BioFXAPI\\BioFXAPI\\Services\\EmailService.cs",
+              "RelativeToolTip": "BioFXAPI\\Services\\EmailService.cs",
+              "ViewState": "AgIAAAsAAAAAAAAAAAAAwAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-09-18T21:41:43.835Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "appsettings.json",
+              "DocumentMoniker": "C:\\Users\\xmanc\\OneDrive\\Desktop\\Bio-fx proyecto\\Funcionalidad login\\Backend\\BioFXAPI\\BioFXAPI\\appsettings.json",
+              "RelativeDocumentMoniker": "BioFXAPI\\appsettings.json",
+              "ToolTip": "C:\\Users\\xmanc\\OneDrive\\Desktop\\Bio-fx proyecto\\Funcionalidad login\\Backend\\BioFXAPI\\BioFXAPI\\appsettings.json",
+              "RelativeToolTip": "BioFXAPI\\appsettings.json",
+              "ViewState": "AgIAAAMAAAAAAAAAAAAAAA8AAAAVAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001642|",
+              "WhenOpened": "2025-09-18T20:01:09.668Z",
+              "EditorCaption": ""
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
