@@ -180,18 +180,6 @@ namespace BioFXAPI.Controllers
                 new { Email = email }, connection);
         }
 
-        private async Task SendVerificationEmail(string email, string token)
-        {
-            try
-            {
-                await _emailService.SendVerificationEmailAsync(email, token);
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Error al enviar correo: {ex.Message}");
-            }
-        }
-
         private string GenerateSecureToken()
         {
             var tokenData = new byte[32];

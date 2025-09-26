@@ -270,6 +270,49 @@
         }
       }
     },
+    "/api/DebugEmail/send-simple": {
+      "post": {
+        "tags": [
+          "DebugEmail"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SimpleEmailRequest"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SimpleEmailRequest"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/SimpleEmailRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/DebugEmail/test-different-recipients": {
+      "post": {
+        "tags": [
+          "DebugEmail"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
     "/api/Password/forgot": {
       "post": {
         "tags": [
@@ -527,6 +570,30 @@
       "get": {
         "tags": [
           "Promociones"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/SmtpAuth/test-auth": {
+      "post": {
+        "tags": [
+          "SmtpAuth"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/SmtpAuth/test-combinations": {
+      "post": {
+        "tags": [
+          "SmtpAuth"
         ],
         "responses": {
           "200": {
@@ -897,6 +964,16 @@
             "nullable": true
           },
           "newPassword": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "SimpleEmailRequest": {
+        "type": "object",
+        "properties": {
+          "email": {
             "type": "string",
             "nullable": true
           }

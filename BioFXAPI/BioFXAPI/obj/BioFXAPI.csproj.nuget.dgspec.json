@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\xmanc\\OneDrive\\Desktop\\Bio-fx proyecto\\Funcionalidad login\\Backend\\BioFXAPI\\BioFXAPI\\BioFXAPI.csproj": {}
+    "C:\\Users\\xmanc\\OneDrive\\Desktop\\BioFXAPI-Github\\BioFXAPI\\BioFXAPI\\BioFXAPI.csproj": {}
   },
   "projects": {
-    "C:\\Users\\xmanc\\OneDrive\\Desktop\\Bio-fx proyecto\\Funcionalidad login\\Backend\\BioFXAPI\\BioFXAPI\\BioFXAPI.csproj": {
+    "C:\\Users\\xmanc\\OneDrive\\Desktop\\BioFXAPI-Github\\BioFXAPI\\BioFXAPI\\BioFXAPI.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\xmanc\\OneDrive\\Desktop\\Bio-fx proyecto\\Funcionalidad login\\Backend\\BioFXAPI\\BioFXAPI\\BioFXAPI.csproj",
+        "projectUniqueName": "C:\\Users\\xmanc\\OneDrive\\Desktop\\BioFXAPI-Github\\BioFXAPI\\BioFXAPI\\BioFXAPI.csproj",
         "projectName": "BioFXAPI",
-        "projectPath": "C:\\Users\\xmanc\\OneDrive\\Desktop\\Bio-fx proyecto\\Funcionalidad login\\Backend\\BioFXAPI\\BioFXAPI\\BioFXAPI.csproj",
+        "projectPath": "C:\\Users\\xmanc\\OneDrive\\Desktop\\BioFXAPI-Github\\BioFXAPI\\BioFXAPI\\BioFXAPI.csproj",
         "packagesPath": "C:\\Users\\xmanc\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\xmanc\\OneDrive\\Desktop\\Bio-fx proyecto\\Funcionalidad login\\Backend\\BioFXAPI\\BioFXAPI\\obj\\",
+        "outputPath": "C:\\Users\\xmanc\\OneDrive\\Desktop\\BioFXAPI-Github\\BioFXAPI\\BioFXAPI\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
@@ -77,6 +77,20 @@
             "Microsoft.Data.SqlClient": {
               "target": "Package",
               "version": "[6.1.1, )"
+            },
+            "Microsoft.EntityFrameworkCore": {
+              "target": "Package",
+              "version": "[9.0.9, )"
+            },
+            "Microsoft.EntityFrameworkCore.Design": {
+              "include": "Runtime, Build, Native, ContentFiles, Analyzers, BuildTransitive",
+              "suppressParent": "All",
+              "target": "Package",
+              "version": "[9.0.9, )"
+            },
+            "Microsoft.EntityFrameworkCore.SqlServer": {
+              "target": "Package",
+              "version": "[9.0.9, )"
             },
             "MimeKit": {
               "target": "Package",

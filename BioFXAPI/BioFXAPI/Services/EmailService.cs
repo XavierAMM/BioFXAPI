@@ -1,7 +1,7 @@
 ﻿using MailKit.Net.Smtp;
 using MailKit.Security;
 using MimeKit;
-using Microsoft.Extensions.Configuration;
+using System.Diagnostics;
 
 namespace BioFXAPI.Services
 {
@@ -13,8 +13,11 @@ namespace BioFXAPI.Services
         private readonly string _senderPassword;
         private readonly bool _enableSsl;
 
-        public EmailService(IConfiguration configuration)
+        private readonly ILogger<EmailService> _logger;
+
+        public EmailService(IConfiguration configuration, ILogger<EmailService> logger)
         {
+            _logger = logger;
             var emailSettings = configuration.GetSection("EmailSettings");
             _smtpServer = emailSettings["SmtpServer"];
             _smtpPort = int.Parse(emailSettings["SmtpPort"]);
@@ -43,29 +46,28 @@ namespace BioFXAPI.Services
                 message.To.Add(new MailboxAddress("", recipientEmail));
                 message.Subject = "Verificación de su cuenta BioFX";
 
-                var encodedToken = System.Web.HttpUtility.UrlEncode(verificationToken);
-                var encodedEmail = System.Web.HttpUtility.UrlEncode(recipientEmail);
-
+                // SIN URL ENCODE - usar valores directos
                 var bodyBuilder = new BodyBuilder();
+
                 bodyBuilder.HtmlBody = $@"
-                <h2>¡Bienvenido a BioFX!</h2>
-                <p>Por favor verifique su correo electrónico haciendo clic al URL a continuación:</p>
-                <p><a href='https://localhost:7177/api/account/verify-email?token={encodedToken}&email={encodedEmail}'>Verificar correo electrónico</a></p>
-                <p>Este URL expirará en 24 horas.</p>
-                <br>
-                <p>Si no creó esta cuenta, ignore este mensaje.</p>
-            ";
+            <h2>¡Bienvenido a BioFX!</h2>
+            <p>Por favor verifique su correo electrónico haciendo clic al URL a continuación:</p>
+            <p><a href='http://18.219.238.164/api/account/verify-email?token={verificationToken}&email={recipientEmail}'>Verificar correo electrónico</a></p>
+            <p>Este URL expirará en 24 horas.</p>
+            <br>
+            <p>Si no creó esta cuenta, ignore este mensaje.</p>
+        ";
 
                 bodyBuilder.TextBody = $@"
-                ¡Bienvenido a BioFX!
-                
-                Por favor verifique su correo electrónico haciendo clic al URL a continuación:
-                https://localhost:7177/api/account/verify-email?token={verificationToken}&email={recipientEmail}
-                
-                Este URL expirará en 24 horas.
-                
-                Si no creó esta cuenta, ignore este mensaje.
-            ";
+            ¡Bienvenido a BioFX!
+            
+            Por favor verifique su correo electrónico haciendo clic al URL a continuación:
+            http://18.219.238.164/api/account/verify-email?token={verificationToken}&email={recipientEmail}
+            
+            Este URL expirará en 24 horas.
+            
+            Si no creó esta cuenta, ignore este mensaje.
+        ";
 
                 message.Body = bodyBuilder.ToMessageBody();
 
@@ -77,10 +79,12 @@ namespace BioFXAPI.Services
                     await client.SendAsync(message);
                     await client.DisconnectAsync(true);
                 }
+
+                _logger.LogInformation("✅ Email de verificación enviado exitosamente");
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error enviando email de verificación: {ex.Message}");
+                _logger.LogError($"❌ Error en SendVerificationEmailAsync2: {ex.Message}");
                 throw;
             }
         }
