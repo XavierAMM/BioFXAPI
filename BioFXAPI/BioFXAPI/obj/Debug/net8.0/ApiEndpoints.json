@@ -153,32 +153,6 @@
     "ReturnTypes": []
   },
   {
-    "ContainingType": "BioFXAPI.Controllers.DebugEmailController",
-    "Method": "SendSimpleTestEmail",
-    "RelativePath": "api/DebugEmail/send-simple",
-    "HttpMethod": "POST",
-    "IsController": true,
-    "Order": 0,
-    "Parameters": [
-      {
-        "Name": "request",
-        "Type": "BioFXAPI.Controllers.DebugEmailController\u002BSimpleEmailRequest",
-        "IsRequired": true
-      }
-    ],
-    "ReturnTypes": []
-  },
-  {
-    "ContainingType": "BioFXAPI.Controllers.DebugEmailController",
-    "Method": "TestDifferentRecipients",
-    "RelativePath": "api/DebugEmail/test-different-recipients",
-    "HttpMethod": "POST",
-    "IsController": true,
-    "Order": 0,
-    "Parameters": [],
-    "ReturnTypes": []
-  },
-  {
     "ContainingType": "BioFXAPI.Controllers.PasswordController",
     "Method": "ForgotPassword",
     "RelativePath": "api/Password/forgot",
@@ -336,26 +310,6 @@
     "Method": "GetPromociones",
     "RelativePath": "api/Promociones",
     "HttpMethod": "GET",
-    "IsController": true,
-    "Order": 0,
-    "Parameters": [],
-    "ReturnTypes": []
-  },
-  {
-    "ContainingType": "BioFXAPI.Controllers.SmtpAuthController",
-    "Method": "TestSmtpAuthentication",
-    "RelativePath": "api/SmtpAuth/test-auth",
-    "HttpMethod": "POST",
-    "IsController": true,
-    "Order": 0,
-    "Parameters": [],
-    "ReturnTypes": []
-  },
-  {
-    "ContainingType": "BioFXAPI.Controllers.SmtpAuthController",
-    "Method": "TestDifferentCombinations",
-    "RelativePath": "api/SmtpAuth/test-combinations",
-    "HttpMethod": "POST",
     "IsController": true,
     "Order": 0,
     "Parameters": [],

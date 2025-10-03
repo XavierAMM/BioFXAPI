@@ -16,6 +16,8 @@
         public List<int> Promocionados { get; set; } = new List<int>();
         public int Descuento { get; set; } = 0;
         public string Disclaimer { get; set; }
+        public int Stock { get; set; } = 0;
+        public int StockReservado { get; set; } = 0;
         public bool Activo { get; set; } = true;
         public DateTime CreadoEl { get; set; } = DateTime.UtcNow;
         public DateTime ActualizadoEl { get; set; } = DateTime.UtcNow;

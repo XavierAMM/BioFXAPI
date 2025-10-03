@@ -143,11 +143,11 @@ namespace BioFXAPI.Controllers
                     // Insertar producto
                     var insertQuery = @"INSERT INTO Producto 
                         (Codigo, Disponible, Nombre, Precio, Imagen, Logo, Descripcion, 
-                         CategoriaId, Desc_Principal, Desc_Otros, Descuento, Disclaimer, Activo)
+                         CategoriaId, Desc_Principal, Desc_Otros, Descuento, Disclaimer, Activo, Stock, StockReservado)
                         OUTPUT INSERTED.Id
                         VALUES (@Codigo, @Disponible, @Nombre, @Precio, @Imagen, @Logo, 
                                 @Descripcion, @CategoriaId, @Desc_Principal, @Desc_Otros, 
-                                @Descuento, @Disclaimer, @Activo)";
+                                @Descuento, @Disclaimer, @Activo, @Stock, @StockReservado)";
 
                     var productoId = await connection.ExecuteScalarAsync<int>(insertQuery, producto, transaction);
 
@@ -210,7 +210,7 @@ namespace BioFXAPI.Controllers
                         Precio = @Precio, Imagen = @Imagen, Logo = @Logo, Descripcion = @Descripcion,
                         CategoriaId = @CategoriaId, Desc_Principal = @Desc_Principal, 
                         Desc_Otros = @Desc_Otros, Descuento = @Descuento, Disclaimer = @Disclaimer,
-                        ActualizadoEl = GETUTCDATE()
+                        ActualizadoEl = GETUTCDATE(), Stock = @Stock, StockReservado = @StockReservado
                         WHERE Id = @Id";
 
                     producto.Id = id;
