@@ -1,0 +1,32 @@
+﻿using Dapper;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using System.Data.SqlClient;
+
+namespace BioFXAPI.Controllers
+{
+    [ApiController]
+    [Route("api/[controller]")]
+    [Authorize]
+    public class OrderItemsController : ControllerBase
+    {
+        private readonly string _cs;
+        public OrderItemsController(IConfiguration cfg) => _cs = cfg.GetConnectionString("DefaultConnection");
+
+        [HttpGet("{orderId:int}")]
+        public async Task<IActionResult> List(int orderId)
+        {
+            using var con = new SqlConnection(_cs);
+            await con.OpenAsync();
+
+            var items = await con.QueryAsync<dynamic>(
+                @"SELECT oi.Id, oi.ProductoId, p.Nombre, oi.Cantidad, oi.PrecioUnitario, oi.Subtotal
+                  FROM OrderItem oi INNER JOIN Producto p ON p.Id=oi.ProductoId
+                  WHERE oi.OrderId=@Id AND oi.Activo=1
+                  ORDER BY oi.Id",
+                new { Id = orderId });
+
+            return Ok(items);
+        }
+    }
+}
