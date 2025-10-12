@@ -20,8 +20,14 @@ namespace BioFXAPI.Controllers
             await con.OpenAsync();
 
             var items = await con.QueryAsync<dynamic>(
-                @"SELECT oi.Id, oi.ProductoId, p.Nombre, oi.Cantidad, oi.PrecioUnitario, oi.Subtotal
-                  FROM OrderItem oi INNER JOIN Producto p ON p.Id=oi.ProductoId
+                @"SELECT oi.Id,
+                         oi.ProductId,
+                         p.Nombre,
+                         oi.Quantity,
+                         oi.UnitPrice,
+                         oi.TotalPrice
+                  FROM OrderItem oi
+                  INNER JOIN Producto p ON p.Id=oi.ProductId
                   WHERE oi.OrderId=@Id AND oi.Activo=1
                   ORDER BY oi.Id",
                 new { Id = orderId });

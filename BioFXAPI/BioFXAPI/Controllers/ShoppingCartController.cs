@@ -3,74 +3,73 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Data.SqlClient;
 using System.Security.Claims;
+using System.Linq;
 
 namespace BioFXAPI.Controllers
 {
-    [ApiController]
-    [Route("api/[controller]")]
-    [Authorize]
-    public class ShoppingCartController : ControllerBase
-    {
-        private readonly string _connectionString;
+	[ApiController]
+	[Route("api/[controller]")]
+	[Authorize]
+	public class ShoppingCartController : ControllerBase
+	{
+		private readonly string _cs;
+		public ShoppingCartController(IConfiguration cfg) => _cs = cfg.GetConnectionString("DefaultConnection");
 
-        public ShoppingCartController(IConfiguration configuration)
-        {
-            _connectionString = configuration.GetConnectionString("DefaultConnection");
-        }
+		[HttpGet("mine")]
+		public async Task<IActionResult> GetOrCreateMyCart()
+		{
+			var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+			using var con = new SqlConnection(_cs);
+			await con.OpenAsync();
 
-        // Obtiene o crea el carrito activo del usuario
-        [HttpGet("mine")]
-        public async Task<IActionResult> GetOrCreateMyCart()
-        {
-            var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
-            using var con = new SqlConnection(_connectionString);
-            await con.OpenAsync();
+			var cartId = await con.ExecuteScalarAsync<int?>(
+				"SELECT TOP 1 Id FROM ShoppingCart WHERE UserId=@UserId AND Activo=1 ORDER BY Id DESC",
+				new { UserId = userId });
 
-            var cartId = await con.ExecuteScalarAsync<int?>(
-                "SELECT TOP 1 Id FROM ShoppingCart WHERE UsuarioId=@UserId AND Activo=1 ORDER BY Id DESC",
-                new { UserId = userId });
+			if (!cartId.HasValue)
+			{
+				cartId = await con.ExecuteScalarAsync<int>(
+					@"INSERT INTO ShoppingCart(UserId, CreadoEl, ActualizadoEl, Activo)
+                      OUTPUT INSERTED.Id VALUES(@UserId, SYSDATETIME(), SYSDATETIME(), 1)",
+					new { UserId = userId });
+			}
 
-            if (!cartId.HasValue)
-            {
-                cartId = await con.ExecuteScalarAsync<int>(
-                    @"INSERT INTO ShoppingCart(UsuarioId, Activo, CreadoEl, ActualizadoEl)
-                      OUTPUT INSERTED.Id VALUES(@UserId,1,GETUTCDATE(),GETUTCDATE())",
-                    new { UserId = userId });
-            }
-
-            var items = await con.QueryAsync<dynamic>(
-                @"SELECT ci.Id, ci.ProductoId, p.Nombre, ci.Cantidad, ci.PrecioUnitario, 
-                         (ci.Cantidad*ci.PrecioUnitario) AS Subtotal
+			var items = await con.QueryAsync<dynamic>(
+				@"SELECT ci.Id,
+                         ci.ProductId,
+                         p.Nombre,
+                         p.Precio AS UnitPrice,
+                         ci.Quantity,
+                         (ci.Quantity * p.Precio) AS Subtotal
                   FROM CartItem ci
-                  INNER JOIN Producto p ON p.Id=ci.ProductoId
-                  WHERE ci.CartId=@CartId AND ci.Activo=1",
-                new { CartId = cartId });
+                  INNER JOIN Producto p ON p.Id = ci.ProductId
+                  WHERE ci.CartId = @CartId AND ci.Activo = 1",
+				new { CartId = cartId });
 
-            var total = items.Sum(i => (decimal)i.Subtotal);
+			var total = items.Any() ? items.Sum(i => (decimal)i.Subtotal) : 0m;
 
-            return Ok(new { CartId = cartId, Items = items, Total = total, Currency = "USD" });
-        }
+			return Ok(new { CartId = cartId, Items = items, Total = total, Currency = "USD" });
+		}
 
-        // Vacía el carrito activo
-        [HttpPost("clear")]
-        public async Task<IActionResult> ClearMyCart()
-        {
-            var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
-            using var con = new SqlConnection(_connectionString);
-            await con.OpenAsync();
+		[HttpPost("clear")]
+		public async Task<IActionResult> ClearMyCart()
+		{
+			var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+			using var con = new SqlConnection(_cs);
+			await con.OpenAsync();
 
-            var cartId = await con.ExecuteScalarAsync<int?>(
-                "SELECT TOP 1 Id FROM ShoppingCart WHERE UsuarioId=@UserId AND Activo=1 ORDER BY Id DESC",
-                new { UserId = userId });
+			var cartId = await con.ExecuteScalarAsync<int?>(
+				"SELECT TOP 1 Id FROM ShoppingCart WHERE UserId=@UserId AND Activo=1 ORDER BY Id DESC",
+				new { UserId = userId });
 
-            if (!cartId.HasValue) return Ok(new { message = "Carrito ya vacío." });
+			if (!cartId.HasValue) return Ok(new { message = "Carrito ya vacío." });
 
-            await con.ExecuteAsync(
-                @"UPDATE CartItem SET Activo=0, ActualizadoEl=GETUTCDATE() WHERE CartId=@CartId;
-                  UPDATE ShoppingCart SET ActualizadoEl=GETUTCDATE() WHERE Id=@CartId;",
-                new { CartId = cartId });
+			await con.ExecuteAsync(
+				@"UPDATE CartItem SET Activo=0 WHERE CartId=@CartId;
+                  UPDATE ShoppingCart SET ActualizadoEl=SYSDATETIME() WHERE Id=@CartId;",
+				new { CartId = cartId });
 
-            return Ok(new { message = "Carrito vaciado." });
-        }
-    }
+			return Ok(new { message = "Carrito vaciado." });
+		}
+	}
 }
