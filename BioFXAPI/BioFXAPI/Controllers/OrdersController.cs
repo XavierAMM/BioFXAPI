@@ -95,6 +95,11 @@ namespace BioFXAPI.Controllers
                 new { Id = orderId });
             if (order == default) return NotFound(new { message = "Orden no encontrada." });
 
+            var status = await con.ExecuteScalarAsync<string>(
+                "SELECT Status FROM [Order] WHERE Id=@Id AND Activo=1", new { Id = orderId });
+            if (string.Equals(status, "PAID", StringComparison.OrdinalIgnoreCase))
+                return BadRequest(new { message = "La orden ya está pagada." });
+
             // Idempotencia por Transaction pendiente
             var pendingTx = await con.QueryFirstOrDefaultAsync<(int RequestId, string ProcessUrl)>(
                 @"SELECT TOP 1 RequestId, ProcessUrl

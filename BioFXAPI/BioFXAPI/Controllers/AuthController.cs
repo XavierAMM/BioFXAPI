@@ -57,6 +57,19 @@ namespace BioFXAPI.Controllers
             }
         }
 
+        [HttpPost("logout")]
+        public IActionResult Logout()
+        {
+            Response.Cookies.Delete("biofx_auth", new CookieOptions
+            {
+                Path = "/",
+                Secure = true,
+                //SameSite = SameSiteMode.Lax
+                SameSite = SameSiteMode.None
+            });
+            return Ok(new { Message = "Logout exitoso." });
+        }
+
         #region Métodos Privados de Helper
         private async Task<LoginResult> ValidateLoginAttemptAsync(string email, string password, string ipAddress)
         {
@@ -166,13 +179,27 @@ namespace BioFXAPI.Controllers
             // Generar token JWT
             var token = GenerateJwtToken(new User { Id = userData.UserId, Email = email });
 
-            // ✅ Devolver respuesta enriquecida con fecha de creación
+            Response.Cookies.Append(
+                "biofx_auth",
+                token,
+                new CookieOptions
+                {
+                    HttpOnly = true,
+                    Secure = true,
+                    //SameSite = SameSiteMode.Lax,
+                    SameSite = SameSiteMode.None,
+                    Path = "/",
+                    Expires = DateTimeOffset.UtcNow.AddHours(24)
+                }
+            );
+
+
             return Ok(new LoginResponse
             {
                 Message = "Inicio de sesión satisfactorio.",
                 UserId = userData.UserId,
                 Email = email,
-                Token = token,
+                //Token = token,
                 Persona = personaData,
                 FechaCreacion = fechaCreacion,
                 EsAdministrador = userData.EsAdministrador
@@ -207,7 +234,6 @@ namespace BioFXAPI.Controllers
                 Telefono = reader.IsDBNull(2) ? null : reader.GetString(2)
             };
         }
-
 
         private string GenerateJwtToken(User user)
         {

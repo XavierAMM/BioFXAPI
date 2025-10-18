@@ -101,6 +101,16 @@
     "ReturnTypes": []
   },
   {
+    "ContainingType": "BioFXAPI.Controllers.AuthController",
+    "Method": "Logout",
+    "RelativePath": "api/Auth/logout",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
     "ContainingType": "BioFXAPI.Controllers.CartItemsController",
     "Method": "UpdateQty",
     "RelativePath": "api/CartItems/{itemId}",
