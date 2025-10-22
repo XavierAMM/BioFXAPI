@@ -20,22 +20,30 @@ namespace BioFXAPI.Controllers
         [HttpGet("mi-perfil")]
         public async Task<IActionResult> GetMiPerfil()
         {
-            // Obtener userId del token JWT
-            var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value);
+            // userId desde el JWT
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrWhiteSpace(userIdClaim)) return Unauthorized();
+            var userId = int.Parse(userIdClaim);
 
             try
             {
                 using var connection = new SqlConnection(_connectionString);
                 await connection.OpenAsync();
 
-                var query = @"SELECT Id, Nombre, Apellido, Telefono, UsuarioId, Activo, CreadoEl, ActualizadoEl
-                              FROM Persona WHERE UsuarioId = @UsuarioId AND Activo = 1";
+                // Persona + Email del usuario
+                var query = @"
+            SELECT 
+                p.Id, p.Nombre, p.Apellido, p.Telefono, 
+                p.UsuarioId, p.Activo, p.CreadoEl, p.ActualizadoEl,
+                u.Email
+            FROM Persona AS p
+            INNER JOIN Usuario AS u ON u.Id = p.UsuarioId
+            WHERE p.UsuarioId = @UsuarioId AND p.Activo = 1";
 
                 using var command = new SqlCommand(query, connection);
                 command.Parameters.AddWithValue("@UsuarioId", userId);
 
                 using var reader = await command.ExecuteReaderAsync();
-
                 if (!await reader.ReadAsync())
                     return NotFound(new { message = "Datos personales no encontrados." });
 
@@ -48,7 +56,8 @@ namespace BioFXAPI.Controllers
                     UsuarioId = reader.GetInt32(4),
                     Activo = reader.GetBoolean(5),
                     CreadoEl = reader.GetDateTime(6),
-                    ActualizadoEl = reader.GetDateTime(7)
+                    ActualizadoEl = reader.GetDateTime(7),
+                    Email = reader.GetString(8)
                 };
 
                 return Ok(persona);
@@ -58,6 +67,7 @@ namespace BioFXAPI.Controllers
                 return StatusCode(500, new { error = "Error de base de datos", details = ex.Message });
             }
         }
+
 
         [HttpPut("actualizar")]
         public async Task<IActionResult> Actualizar([FromBody] PersonaUpdateRequest request)
