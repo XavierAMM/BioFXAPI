@@ -1,7 +1,8 @@
 using BioFXAPI.Services;
-using Microsoft.OpenApi.Models;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi.Models;
 using System.Text;
 
 
@@ -65,6 +66,13 @@ builder.Services.AddCors(options =>
     });
 });
 
+builder.Services.AddRateLimiter(o =>
+    o.AddFixedWindowLimiter("api", s => {
+        s.PermitLimit = 60;
+        s.Window = TimeSpan.FromMinutes(1);
+        s.QueueLimit = 0;
+    }));
+
 var emailSettings = builder.Configuration.GetSection("EmailSettings");
 if (string.IsNullOrEmpty(emailSettings["SmtpServer"]))
 {
@@ -108,13 +116,27 @@ builder.Services.AddHealthChecks();
 
 var app = builder.Build();
 app.UseHealthChecks("/health");
+if (!app.Environment.IsDevelopment())
+{
+    app.UseHsts();
+}
 
 if (app.Environment.IsDevelopment()) { app.UseSwagger(); app.UseSwaggerUI(); }
 
 app.UseHttpsRedirection();
+app.UseRateLimiter();
+app.Use(async (ctx, next) =>
+{
+    ctx.Response.Headers["X-Content-Type-Options"] = "nosniff";
+    ctx.Response.Headers["X-Frame-Options"] = "DENY";
+    ctx.Response.Headers["Referrer-Policy"] = "no-referrer";
+    await next();
+});
+
 app.UseCors("Frontend");
 app.UseAuthentication();
 app.UseAuthorization();
-app.MapControllers();
+app.MapControllers().RequireRateLimiting("api");
+
 
 app.Run();

@@ -52,7 +52,7 @@ namespace BioFXAPI.Services
                 bodyBuilder.HtmlBody = $@"
             <h2>¡Bienvenido a BioFX!</h2>
             <p>Por favor verifique su correo electrónico haciendo clic al URL a continuación:</p>
-            <p><a href='http://18.190.129.102/api/account/verify-email?token={verificationToken}&email={recipientEmail}'>Verificar correo electrónico</a></p>
+            <p><a href='https://api.biofx.com.ec/api/account/verify-email?token={verificationToken}&email={recipientEmail}'>Verificar correo electrónico</a></p>
             <p>Este URL expirará en 24 horas.</p>
             <br>
             <p>Si no creó esta cuenta, ignore este mensaje.</p>
@@ -62,7 +62,7 @@ namespace BioFXAPI.Services
             ¡Bienvenido a BioFX!
             
             Por favor verifique su correo electrónico haciendo clic al URL a continuación:
-            http://18.190.129.102/api/account/verify-email?token={verificationToken}&email={recipientEmail}
+            https://api.biofx.com.ec/api/account/verify-email?token={verificationToken}&email={recipientEmail}
             
             Este URL expirará en 24 horas.
             
@@ -109,7 +109,7 @@ namespace BioFXAPI.Services
                     <div style='background-color: #f8f9fa; padding: 20px; border-radius: 5px; margin: 20px 0;'>
                         <p>Haga clic en el siguiente botón para crear una nueva contraseña:</p>
                         <p style='text-align: center; margin: 25px 0;'>
-                            <a href='http://18.190.129.102/reset-password/reset-password.html?token={encodedToken}&email={encodedEmail}' 
+                            <a href='https://api.biofx.com.ec/reset-password/reset-password.html?token={encodedToken}&email={encodedEmail}' 
                                 style='background-color: #2c9c8a; color: white; padding: 12px 24px; 
                                         text-decoration: none; border-radius: 5px; font-weight: bold; 
                                         display: inline-block;'>
@@ -136,7 +136,7 @@ namespace BioFXAPI.Services
                 Hemos recibido una solicitud para restablecer su contraseña.
 
                 Para restablecer su contraseña, visite el siguiente enlace:
-                http://18.190.129.102/reset-password/reset-password.html?token={encodedToken}&email={encodedEmail}
+                https://api.biofx.com.ec/reset-password/reset-password.html?token={encodedToken}&email={encodedEmail}
 
                 Este enlace expirará en 1 hora.
 
