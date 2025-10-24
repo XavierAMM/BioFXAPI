@@ -25,7 +25,7 @@ namespace BioFXAPI.Controllers
                 await connection.OpenAsync();
 
                 var query = @"SELECT * FROM Testimonios WHERE Activo = 1 ORDER BY CreadoEl DESC";
-                var testimonios = await connection.QueryAsync<Testimonio>(query);
+                var testimonios = await connection.QueryAsync<Testimonios>(query);
 
                 return Ok(testimonios);
             }
@@ -44,7 +44,7 @@ namespace BioFXAPI.Controllers
                 await connection.OpenAsync();
 
                 var query = "SELECT * FROM Testimonios WHERE Id = @Id AND Activo = 1";
-                var testimonio = await connection.QueryFirstOrDefaultAsync<Testimonio>(query, new { Id = id });
+                var testimonio = await connection.QueryFirstOrDefaultAsync<Testimonios>(query, new { Id = id });
 
                 if (testimonio == null)
                     return NotFound(new { message = "Testimonio no encontrado." });
@@ -58,7 +58,7 @@ namespace BioFXAPI.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> CrearTestimonio([FromBody] Testimonio testimonio)
+        public async Task<IActionResult> CrearTestimonio([FromBody] Testimonios testimonio)
         {
             try
             {
@@ -68,7 +68,7 @@ namespace BioFXAPI.Controllers
                 var query = @"INSERT INTO Testimonios 
                             (Nombre, Testimonio, Imagen, Valoracion, Activo, CreadoEl, ActualizadoEl)
                             OUTPUT INSERTED.Id
-                            VALUES (@Nombre, @TestimonioTexto, @Imagen, @Valoracion, 1, GETUTCDATE(), GETUTCDATE())";
+                            VALUES (@Nombre, @Testimonio, @Imagen, @Valoracion, 1, GETUTCDATE(), GETUTCDATE())";
 
                 var testimonioId = await connection.ExecuteScalarAsync<int>(query, testimonio);
 
@@ -85,7 +85,7 @@ namespace BioFXAPI.Controllers
         }
 
         [HttpPut("{id}")]
-        public async Task<IActionResult> ActualizarTestimonio(int id, [FromBody] Testimonio testimonio)
+        public async Task<IActionResult> ActualizarTestimonio(int id, [FromBody] Testimonios testimonio)
         {
             try
             {

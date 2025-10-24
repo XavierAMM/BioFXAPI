@@ -15,6 +15,9 @@ namespace BioFXAPI.Models
         public string ImagenAlineacion { get; set; }
         public string Fondo { get; set; }
 
+        public string Background { get; set; }
+        public string TextoPosicion { get; set; }
+
         public string ColorTexto { get; set; }
         public bool Activa { get; set; }
         public DateTime FechaInicio { get; set; }
