@@ -1,7 +1,11 @@
 ﻿using BioFXAPI.Models;
+using Dapper;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Data.SqlClient;
-using Dapper;
+using System.Linq;            
+using System.Collections.Generic; 
+
 
 namespace BioFXAPI.Controllers
 {
@@ -16,6 +20,7 @@ namespace BioFXAPI.Controllers
             _connectionString = configuration.GetConnectionString("DefaultConnection");
         }
 
+        [AllowAnonymous]
         [HttpGet]
         public async Task<IActionResult> GetProductos()
         {
@@ -25,29 +30,53 @@ namespace BioFXAPI.Controllers
                 await connection.OpenAsync();
 
                 // Consulta modificada para incluir información de categoría
-                var query = @"
-                    SELECT 
-                        p.*, 
-                        c.Descripcion as CategoriaDescripcion
-                    FROM Producto p
-                    INNER JOIN Categoria c ON p.CategoriaId = c.Id
-                    WHERE p.Activo = 1 
-                    ORDER BY p.Nombre";
+                var productos = (await connection.QueryAsync<Producto>(@"
+                    SELECT *
+                    FROM Producto
+                    WHERE Activo = 1
+                    ORDER BY Nombre")).ToList();
 
-                var productos = await connection.QueryAsync<Producto>(query);
-
-                // Para cada producto, obtener los IDs de productos promocionados
-                foreach (var producto in productos)
+                // Cargar categorías de todos
+                var ids = productos.Select(x => x.Id).ToArray();
+                if (ids.Length > 0)
                 {
-                    var promocionadosQuery = @"SELECT PromocionadoId FROM ProductoPromocionado 
-                                              WHERE ProductoId = @ProductoId AND Activo = 1";
-                    var promocionados = await connection.QueryAsync<int>(promocionadosQuery,
-                        new { ProductoId = producto.Id });
+                    var catRows = await connection.QueryAsync<(int ProductoId, int CategoriaId, string Descripcion)>(@"
+                        SELECT cp.ProductoId, c.Id AS CategoriaId, c.Descripcion
+                        FROM CategoriasProductos cp
+                        INNER JOIN Categoria c ON c.Id = cp.CategoriaId
+                        WHERE cp.Activo = 1 AND cp.ProductoId IN @ids", new { ids });
 
-                    producto.Promocionados = promocionados.ToList();
+                    // Mapear
+                    var byProd = catRows.GroupBy(r => r.ProductoId);
+                    foreach (var g in byProd)
+                    {
+                        var p = productos.FirstOrDefault(x => x.Id == g.Key);
+                        if (p != null)
+                        {
+                            p.Categorias = g
+                                .Select(r => new CategoriaProducto { ProductoId = g.Key, CategoriaId = r.CategoriaId })
+                                .ToList();
+                        }
+                    }
+                }
+
+                // Promocionados:
+                if (ids.Length > 0)
+                {
+                    var promoRows = await connection.QueryAsync<(int ProductoId, int PromocionadoId)>(@"
+                        SELECT ProductoId, PromocionadoId
+                        FROM ProductoPromocionado
+                        WHERE Activo = 1 AND ProductoId IN @ids", new { ids });
+
+                    var promoByProd = promoRows.GroupBy(r => r.ProductoId)
+                                               .ToDictionary(g => g.Key, g => g.Select(x => x.PromocionadoId).ToList());
+
+                    foreach (var p in productos)
+                        p.Promocionados = promoByProd.TryGetValue(p.Id, out var lista) ? lista : new List<int>();
                 }
 
                 return Ok(productos);
+
             }
             catch (SqlException ex)
             {
@@ -55,6 +84,7 @@ namespace BioFXAPI.Controllers
             }
         }
 
+        [AllowAnonymous]
         [HttpGet("{id}")]
         public async Task<IActionResult> GetProducto(int id)
         {
@@ -63,28 +93,33 @@ namespace BioFXAPI.Controllers
                 using var connection = new SqlConnection(_connectionString);
                 await connection.OpenAsync();
 
-                var query = @"
-                    SELECT 
-                        p.*, 
-                        c.Descripcion as CategoriaDescripcion
-                    FROM Producto p
-                    INNER JOIN Categoria c ON p.CategoriaId = c.Id
-                    WHERE p.Id = @Id AND p.Activo = 1";
+                var producto = await connection.QueryFirstOrDefaultAsync<Producto>(@"
+                    SELECT *
+                    FROM Producto
+                    WHERE Id = @Id AND Activo = 1", new { Id = id });
 
-                var producto = await connection.QueryFirstOrDefaultAsync<Producto>(query, new { Id = id });
+                if (producto == null) return NotFound(new { message = "Producto no encontrado." });
 
-                if (producto == null)
-                    return NotFound(new { message = "Producto no encontrado." });
+                // Categorías
+                var catRows = await connection.QueryAsync<(int CategoriaId, string Descripcion)>(@"
+                    SELECT c.Id AS CategoriaId, c.Descripcion
+                    FROM CategoriasProductos cp
+                    INNER JOIN Categoria c ON c.Id = cp.CategoriaId
+                    WHERE cp.Activo = 1 AND cp.ProductoId = @Id", new { Id = id });
 
-                // Obtener IDs de productos promocionados
-                var promocionadosQuery = @"SELECT PromocionadoId FROM ProductoPromocionado 
-                                          WHERE ProductoId = @ProductoId AND Activo = 1";
-                var promocionados = await connection.QueryAsync<int>(promocionadosQuery,
-                    new { ProductoId = id });
+                producto.Categorias = catRows
+                    .Select(r => new CategoriaProducto { ProductoId = id, CategoriaId = r.CategoriaId })
+                    .ToList();
 
+                // Promocionados
+                var promocionados = await connection.QueryAsync<int>(@"
+                    SELECT PromocionadoId
+                    FROM ProductoPromocionado
+                    WHERE ProductoId = @ProductoId AND Activo = 1", new { ProductoId = id });
                 producto.Promocionados = promocionados.ToList();
 
                 return Ok(producto);
+
             }
             catch (SqlException ex)
             {
@@ -92,6 +127,7 @@ namespace BioFXAPI.Controllers
             }
         }
 
+        [AllowAnonymous]
         [HttpGet("categoria/{categoriaId}")]
         public async Task<IActionResult> GetProductosPorCategoria(int categoriaId)
         {
@@ -100,28 +136,50 @@ namespace BioFXAPI.Controllers
                 using var connection = new SqlConnection(_connectionString);
                 await connection.OpenAsync();
 
-                var query = @"
-                    SELECT 
-                        p.*, 
-                        c.Descripcion as CategoriaDescripcion
+                var productos = (await connection.QueryAsync<Producto>(@"
+                    SELECT p.*
                     FROM Producto p
-                    INNER JOIN Categoria c ON p.CategoriaId = c.Id
-                    WHERE p.CategoriaId = @CategoriaId AND p.Activo = 1 
-                    ORDER BY p.Nombre";
+                    INNER JOIN CategoriasProductos cp ON cp.ProductoId = p.Id AND cp.Activo = 1
+                    WHERE cp.CategoriaId = @CategoriaId AND p.Activo = 1
+                    ORDER BY p.Nombre", new { CategoriaId = categoriaId })).ToList();
 
-                var productos = await connection.QueryAsync<Producto>(query, new { CategoriaId = categoriaId });
-
-                foreach (var producto in productos)
+                // Cargar categorías
+                var ids = productos.Select(x => x.Id).ToArray();
+                if (ids.Length > 0)
                 {
-                    var promocionadosQuery = @"SELECT PromocionadoId FROM ProductoPromocionado 
-                                              WHERE ProductoId = @ProductoId AND Activo = 1";
-                    var promocionados = await connection.QueryAsync<int>(promocionadosQuery,
-                        new { ProductoId = producto.Id });
+                    var catRows = await connection.QueryAsync<(int ProductoId, int CategoriaId, string Descripcion)>(@"
+                        SELECT cp.ProductoId, c.Id AS CategoriaId, c.Descripcion
+                        FROM CategoriasProductos cp
+                        INNER JOIN Categoria c ON c.Id = cp.CategoriaId
+                        WHERE cp.Activo = 1 AND cp.ProductoId IN @ids", new { ids });
 
-                    producto.Promocionados = promocionados.ToList();
+                    foreach (var g in catRows.GroupBy(r => r.ProductoId))
+                    {
+                        var p = productos.FirstOrDefault(x => x.Id == g.Key);
+                        if (p != null)
+                        {
+                            p.Categorias = g.Select(r => new CategoriaProducto { ProductoId = g.Key, CategoriaId = r.CategoriaId }).ToList();
+                        }
+                    }
+                }
+
+                // Promocionados
+                if (ids.Length > 0)
+                {
+                    var promoRows = await connection.QueryAsync<(int ProductoId, int PromocionadoId)>(@"
+                        SELECT ProductoId, PromocionadoId
+                        FROM ProductoPromocionado
+                        WHERE Activo = 1 AND ProductoId IN @ids", new { ids });
+
+                    var promoByProd = promoRows.GroupBy(r => r.ProductoId)
+                                               .ToDictionary(g => g.Key, g => g.Select(x => x.PromocionadoId).ToList());
+
+                    foreach (var p in productos)
+                        p.Promocionados = promoByProd.TryGetValue(p.Id, out var lista) ? lista : new List<int>();
                 }
 
                 return Ok(productos);
+
             }
             catch (SqlException ex)
             {
@@ -129,54 +187,55 @@ namespace BioFXAPI.Controllers
             }
         }
 
+        [Authorize]
         [HttpPost]
-        public async Task<IActionResult> CrearProducto([FromBody] Producto producto)
+        public async Task<IActionResult> CrearProducto([FromBody] ProductoUpsertDto dto)
         {
             try
             {
                 using var connection = new SqlConnection(_connectionString);
                 await connection.OpenAsync();
 
-                using var transaction = connection.BeginTransaction();
+                using var tx = connection.BeginTransaction();
                 try
                 {
-                    // Insertar producto
-                    var insertQuery = @"INSERT INTO Producto 
-                        (Codigo, Disponible, Nombre, Precio, Imagen, Logo, Descripcion, 
-                         CategoriaId, Desc_Principal, Desc_Otros, Descuento, Disclaimer, Activo, Stock, StockReservado)
+                    var insertQuery = @"
+                        INSERT INTO Producto
+                        (Codigo, Disponible, Nombre, Precio, Imagen, Logo, Descripcion,
+                         Desc_Principal, Desc_Otros, Descuento, Disclaimer, Activo,
+                         Stock, StockReservado, Contraindicaciones)
                         OUTPUT INSERTED.Id
-                        VALUES (@Codigo, @Disponible, @Nombre, @Precio, @Imagen, @Logo, 
-                                @Descripcion, @CategoriaId, @Desc_Principal, @Desc_Otros, 
-                                @Descuento, @Disclaimer, @Activo, @Stock, @StockReservado)";
+                        VALUES
+                        (@Codigo, @Disponible, @Nombre, @Precio, @Imagen, @Logo, @Descripcion,
+                         @Desc_Principal, @Desc_Otros, @Descuento, @Disclaimer, @Activo,
+                         @Stock, @StockReservado, @Contraindicaciones)";
 
-                    var productoId = await connection.ExecuteScalarAsync<int>(insertQuery, producto, transaction);
+                    var productoId = await connection.ExecuteScalarAsync<int>(insertQuery, dto, tx);
 
-                    // Insertar productos promocionados
-                    if (producto.Promocionados != null && producto.Promocionados.Any())
+                    // Categorías
+                    if (dto.CategoriaIds?.Any() == true)
                     {
-                        var promocionadosQuery = @"INSERT INTO ProductoPromocionado 
-                            (ProductoId, PromocionadoId, Activo)
-                            VALUES (@ProductoId, @PromocionadoId, 1)";
-
-                        foreach (var promocionadoId in producto.Promocionados)
-                        {
-                            await connection.ExecuteAsync(promocionadosQuery,
-                                new { ProductoId = productoId, PromocionadoId = promocionadoId },
-                                transaction);
-                        }
+                        await connection.ExecuteAsync(@"
+                            INSERT INTO CategoriasProductos (ProductoId, CategoriaId, Activo)
+                            VALUES (@ProductoId, @CategoriaId, 1)",
+                            dto.CategoriaIds.Select(id => new { ProductoId = productoId, CategoriaId = id }), tx);
                     }
 
-                    transaction.Commit();
-
-                    return Ok(new
+                    // Promocionados
+                    if (dto.Promocionados?.Any() == true)
                     {
-                        message = "Producto creado exitosamente.",
-                        id = productoId
-                    });
+                        await connection.ExecuteAsync(@"
+                            INSERT INTO ProductoPromocionado (ProductoId, PromocionadoId, Activo)
+                            VALUES (@ProductoId, @PromocionadoId, 1)",
+                            dto.Promocionados.Select(pid => new { ProductoId = productoId, PromocionadoId = pid }), tx);
+                    }
+
+                    tx.Commit();
+                    return Ok(new { message = "Producto creado.", id = productoId });
                 }
                 catch
                 {
-                    transaction.Rollback();
+                    tx.Rollback();
                     throw;
                 }
             }
@@ -186,65 +245,91 @@ namespace BioFXAPI.Controllers
             }
         }
 
+        [Authorize]
         [HttpPut("{id}")]
-        public async Task<IActionResult> ActualizarProducto(int id, [FromBody] Producto producto)
+        public async Task<IActionResult> ActualizarProducto(int id, [FromBody] ProductoUpsertDto dto)
         {
             try
             {
                 using var connection = new SqlConnection(_connectionString);
                 await connection.OpenAsync();
 
-                using var transaction = connection.BeginTransaction();
+                using var tx = connection.BeginTransaction();
                 try
                 {
-                    // Verificar si el producto existe
-                    var checkQuery = "SELECT COUNT(*) FROM Producto WHERE Id = @Id AND Activo = 1";
-                    var count = await connection.ExecuteScalarAsync<int>(checkQuery, new { Id = id }, transaction);
+                    var exists = await connection.ExecuteScalarAsync<int>(
+                        "SELECT COUNT(*) FROM Producto WHERE Id=@Id AND Activo=1",
+                        new { Id = id }, tx);
+                    if (exists == 0) return NotFound(new { message = "Producto no encontrado." });
 
-                    if (count == 0)
-                        return NotFound(new { message = "Producto no encontrado." });
+                    var updateQuery = @"
+                        UPDATE Producto SET 
+                            Codigo=@Codigo, Disponible=@Disponible, Nombre=@Nombre,
+                            Precio=@Precio, Imagen=@Imagen, Logo=@Logo, Descripcion=@Descripcion,
+                            Desc_Principal=@Desc_Principal, Desc_Otros=@Desc_Otros,
+                            Descuento=@Descuento, Disclaimer=@Disclaimer,
+                            Contraindicaciones=@Contraindicaciones,
+                            Stock=@Stock, StockReservado=@StockReservado,
+                            ActualizadoEl = GETUTCDATETIME()
+                        WHERE Id=@Id";
 
-                    // Actualizar producto
-                    var updateQuery = @"UPDATE Producto SET 
-                        Codigo = @Codigo, Disponible = @Disponible, Nombre = @Nombre, 
-                        Precio = @Precio, Imagen = @Imagen, Logo = @Logo, Descripcion = @Descripcion,
-                        CategoriaId = @CategoriaId, Desc_Principal = @Desc_Principal, 
-                        Desc_Otros = @Desc_Otros, Descuento = @Descuento, Disclaimer = @Disclaimer,
-                        ActualizadoEl = GETUTCDATE(), Stock = @Stock, StockReservado = @StockReservado
-                        WHERE Id = @Id";
-
-                    producto.Id = id;
-                    await connection.ExecuteAsync(updateQuery, producto, transaction);
-
-                    // Eliminar promocionados existentes
-                    var deletePromocionadosQuery = @"UPDATE ProductoPromocionado SET Activo = 0, 
-                                                   ActualizadoEl = GETUTCDATE()
-                                                   WHERE ProductoId = @ProductoId";
-                    await connection.ExecuteAsync(deletePromocionadosQuery,
-                        new { ProductoId = id }, transaction);
-
-                    // Insertar nuevos productos promocionados
-                    if (producto.Promocionados != null && producto.Promocionados.Any())
+                    await connection.ExecuteAsync(updateQuery, new
                     {
-                        var insertPromocionadosQuery = @"INSERT INTO ProductoPromocionado 
-                            (ProductoId, PromocionadoId, Activo)
-                            VALUES (@ProductoId, @PromocionadoId, 1)";
+                        Id = id,
+                        dto.Codigo,
+                        dto.Disponible,
+                        dto.Nombre,
+                        dto.Precio,
+                        dto.Imagen,
+                        dto.Logo,
+                        dto.Descripcion,
+                        dto.Desc_Principal,
+                        dto.Desc_Otros,
+                        dto.Descuento,
+                        dto.Disclaimer,
+                        dto.Contraindicaciones,
+                        dto.Stock,
+                        dto.StockReservado
+                    }, tx);
 
-                        foreach (var promocionadoId in producto.Promocionados)
-                        {
-                            await connection.ExecuteAsync(insertPromocionadosQuery,
-                                new { ProductoId = id, PromocionadoId = promocionadoId },
-                                transaction);
-                        }
+                    // Reset de categorías actuales
+                    await connection.ExecuteAsync(@"
+                        UPDATE CategoriasProductos
+                        SET Activo = 0, ActualizadoEl = GETUTCDATETIME()
+                        WHERE ProductoId = @Id AND Activo = 1", new { Id = id }, tx);
+
+                    if (dto.CategoriaIds?.Any() == true)
+                    {
+                        await connection.ExecuteAsync(@"
+                            MERGE CategoriasProductos AS T
+                            USING (SELECT @ProductoId AS ProductoId, @CategoriaId AS CategoriaId) AS S
+                            ON T.ProductoId = S.ProductoId AND T.CategoriaId = S.CategoriaId
+                            WHEN MATCHED THEN
+                                UPDATE SET Activo = 1, ActualizadoEl = GETUTCDATETIME()
+                            WHEN NOT MATCHED THEN
+                                INSERT (ProductoId, CategoriaId, Activo) VALUES (S.ProductoId, S.CategoriaId, 1);",
+                            dto.CategoriaIds.Select(cid => new { ProductoId = id, CategoriaId = cid }), tx);
                     }
 
-                    transaction.Commit();
+                    // Promocionados: desactivar e insertar
+                    await connection.ExecuteAsync(@"
+                        UPDATE ProductoPromocionado SET Activo = 0, ActualizadoEl = GETUTCDATETIME()
+                        WHERE ProductoId = @Id", new { Id = id }, tx);
 
-                    return Ok(new { message = "Producto actualizado exitosamente." });
+                    if (dto.Promocionados?.Any() == true)
+                    {
+                        await connection.ExecuteAsync(@"
+                            INSERT INTO ProductoPromocionado (ProductoId, PromocionadoId, Activo)
+                            VALUES (@ProductoId, @PromocionadoId, 1)",
+                            dto.Promocionados.Select(pid => new { ProductoId = id, PromocionadoId = pid }), tx);
+                    }
+
+                    tx.Commit();
+                    return Ok(new { message = "Producto actualizado." });
                 }
                 catch
                 {
-                    transaction.Rollback();
+                    tx.Rollback();
                     throw;
                 }
             }
@@ -254,6 +339,7 @@ namespace BioFXAPI.Controllers
             }
         }
 
+        [Authorize]
         [HttpDelete("{id}")]
         public async Task<IActionResult> EliminarProducto(int id)
         {
@@ -262,26 +348,51 @@ namespace BioFXAPI.Controllers
                 using var connection = new SqlConnection(_connectionString);
                 await connection.OpenAsync();
 
-                // Soft delete del producto
-                var query = @"UPDATE Producto SET Activo = 0, ActualizadoEl = GETUTCDATE()
-                             WHERE Id = @Id";
-                var affectedRows = await connection.ExecuteAsync(query, new { Id = id });
+                var affected = await connection.ExecuteAsync(@"
+                    UPDATE Producto SET Activo = 0, ActualizadoEl = GETUTCDATETIME()
+                    WHERE Id = @Id", new { Id = id });
 
-                if (affectedRows == 0)
-                    return NotFound(new { message = "Producto no encontrado." });
+                if (affected == 0) return NotFound(new { message = "Producto no encontrado." });
 
-                // También desactivar las relaciones de promoción
-                var promocionadosQuery = @"UPDATE ProductoPromocionado SET Activo = 0, 
-                                         ActualizadoEl = GETUTCDATE()
-                                         WHERE ProductoId = @ProductoId OR PromocionadoId = @ProductoId";
-                await connection.ExecuteAsync(promocionadosQuery, new { ProductoId = id });
+                await connection.ExecuteAsync(@"
+                    UPDATE ProductoPromocionado
+                    SET Activo = 0, ActualizadoEl = GETUTCDATETIME()
+                    WHERE ProductoId = @Id OR PromocionadoId = @Id", new { Id = id });
 
-                return Ok(new { message = "Producto eliminado exitosamente." });
+                await connection.ExecuteAsync(@"
+                    UPDATE CategoriasProductos
+                    SET Activo = 0, ActualizadoEl = GETUTCDATETIME()
+                    WHERE ProductoId = @Id", new { Id = id });
+
+                return Ok(new { message = "Producto eliminado." });
             }
             catch (SqlException ex)
             {
                 return StatusCode(500, new { error = "Error de base de datos", details = ex.Message });
             }
         }
+
     }
+
+    public class ProductoUpsertDto
+    {
+        public string Codigo { get; set; }
+        public bool Disponible { get; set; } = true;
+        public string Nombre { get; set; }
+        public decimal Precio { get; set; }
+        public string Imagen { get; set; }
+        public string Logo { get; set; }
+        public string Descripcion { get; set; }
+        public string Desc_Principal { get; set; }
+        public string Desc_Otros { get; set; }
+        public int Descuento { get; set; } = 0;
+        public string Disclaimer { get; set; }
+        public string Contraindicaciones { get; set; }
+        public int Stock { get; set; } = 0;
+        public int StockReservado { get; set; } = 0;
+        public bool Activo { get; set; } = true;
+        public List<int> Promocionados { get; set; } = new();
+        public List<int> CategoriaIds { get; set; } = new(); // NUEVO
+    }
+
 }
