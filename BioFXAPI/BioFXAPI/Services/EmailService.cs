@@ -1,4 +1,5 @@
-﻿using MailKit.Net.Smtp;
+﻿using MailKit;
+using MailKit.Net.Smtp;
 using MailKit.Security;
 using MimeKit;
 using System.Diagnostics;
@@ -44,30 +45,80 @@ namespace BioFXAPI.Services
                 var message = new MimeMessage();
                 message.From.Add(new MailboxAddress("BioFX", _senderEmail));
                 message.To.Add(new MailboxAddress("", recipientEmail));
-                message.Subject = "Verificación de su cuenta BioFX";
+                message.Subject = "Activa tu cuenta – BioFX";
 
-                // SIN URL ENCODE - usar valores directos
+                var tokenEnc = Uri.EscapeDataString(verificationToken);
+                var emailEnc = Uri.EscapeDataString(recipientEmail);
+                var verifyUrl = $"https://api.biofx.com.ec/api/account/verify-email?token={tokenEnc}&email={emailEnc}";
+
                 var bodyBuilder = new BodyBuilder();
 
                 bodyBuilder.HtmlBody = $@"
-            <h2>¡Bienvenido a BioFX!</h2>
-            <p>Por favor verifique su correo electrónico haciendo clic al URL a continuación:</p>
-            <p><a href='https://api.biofx.com.ec/api/account/verify-email?token={verificationToken}&email={recipientEmail}'>Verificar correo electrónico</a></p>
-            <p>Este URL expirará en 24 horas.</p>
-            <br>
-            <p>Si no creó esta cuenta, ignore este mensaje.</p>
-        ";
+                  <div style='display:none;max-height:0;overflow:hidden;color:transparent;opacity:0;'>
+                    Verifica tu correo para activar tu cuenta en BioFX.
+                  </div>
+                  <div style=""font-family: Arial, Helvetica, sans-serif; background:#f5f7f8; padding:24px 0;"">
+                    <div style=""max-width:600px;margin:0 auto;background:#ffffff;border-radius:8px;
+                                box-shadow:0 1px 3px rgba(0,0,0,0.06);overflow:hidden;"">
+                      <div style=""padding:24px 24px 0 24px;border-bottom:1px solid #e8eef0"">
+                        <h1 style=""margin:0;font-size:22px;line-height:28px;color:#0b3b34;"">¡Bienvenido a BioFX!</h1>
+                        <p style=""margin:8px 0 0 0;color:#4b5b5b;font-size:14px;line-height:20px;"">
+                          Solo falta un paso para activar tu cuenta.
+                        </p>
+                      </div>
 
+                      <div style=""padding:24px;"">
+                        <p style=""margin:0 0 16px 0;color:#2a3a3a;font-size:14px;line-height:22px;"">
+                          Verifica tu correo haciendo clic en el siguiente botón:
+                        </p>
+
+                        <div style=""text-align:center;margin:24px 0 28px 0;"">
+                          <a href=""{verifyUrl}""
+                             style=""background:#2c9c8a;color:#ffffff;text-decoration:none;
+                                    padding:12px 24px;border-radius:6px;font-weight:bold;
+                                    display:inline-block;font-size:15px;"">
+                            Verificar correo
+                          </a>
+                        </div>
+
+                        <p style=""margin:0 0 12px 0;color:#6b7a7a;font-size:12px;line-height:18px;"">
+                          Si el botón no funciona, copia y pega este enlace en tu navegador:
+                        </p>
+                        <p style=""margin:0 0 20px 0;word-break:break-all;font-size:12px;line-height:18px;color:#2a3a3a;"">
+                          <a href=""{verifyUrl}"" style=""color:#2c9c8a;text-decoration:underline;"">{verifyUrl}</a>
+                        </p>
+
+                        <div style=""background:#f8f9fa;border:1px solid #e8eef0;border-radius:6px;padding:12px 14px;margin-top:8px;"">
+                          <p style=""margin:0;color:#627070;font-size:12px;line-height:18px;"">
+                            <strong>Vigencia:</strong> este enlace expira en <strong>24 horas</strong>.
+                          </p>
+                        </div>
+                      </div>
+
+                      <div style=""padding:18px 24px;border-top:1px solid #e8eef0;color:#7a8a8a;font-size:12px;line-height:18px;"">
+                        <p style=""margin:0 0 8px 0;"">
+                          Si no creaste esta cuenta, puedes ignorar este mensaje.
+                        </p>
+                        <p style=""margin:0;color:#97a6a6;"">
+                          © {DateTime.UtcNow.Year} BioFX Medical
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                ";
+
+                // Texto plano
                 bodyBuilder.TextBody = $@"
-            ¡Bienvenido a BioFX!
-            
-            Por favor verifique su correo electrónico haciendo clic al URL a continuación:
-            https://api.biofx.com.ec/api/account/verify-email?token={verificationToken}&email={recipientEmail}
-            
-            Este URL expirará en 24 horas.
-            
-            Si no creó esta cuenta, ignore este mensaje.
-        ";
+                Bienvenido a BioFX
+
+                Solo falta un paso para activar tu cuenta. Abre este enlace:
+                {verifyUrl}
+
+                Vigencia: el enlace expira en 24 horas.
+
+                Si no creaste esta cuenta, ignora este mensaje.
+                © {DateTime.UtcNow.Year} BioFX Medical
+                ";
 
                 message.Body = bodyBuilder.ToMessageBody();
 
@@ -75,6 +126,9 @@ namespace BioFXAPI.Services
                 {
                     client.Timeout = 30000;
                     await client.ConnectAsync(_smtpServer, _smtpPort, GetSecureSocketOption());
+                    if (string.IsNullOrWhiteSpace(_senderPassword))
+                        throw new InvalidOperationException("EmailSettings:SenderPassword no está configurado.");
+
                     await client.AuthenticateAsync(_senderEmail, _senderPassword);
                     await client.SendAsync(message);
                     await client.DisconnectAsync(true);
@@ -88,6 +142,7 @@ namespace BioFXAPI.Services
                 throw;
             }
         }
+
 
         public async Task SendPasswordResetEmailAsync(string recipientEmail, string resetToken)
         {
@@ -150,8 +205,13 @@ namespace BioFXAPI.Services
 
             using (var client = new SmtpClient())
             {
-                await client.ConnectAsync(_smtpServer, _smtpPort, GetSecureSocketOption());
+                client.Timeout = 30000;
+                await client.ConnectAsync(_smtpServer, _smtpPort, GetSecureSocketOption()); // 465=SslOnConnect, 587=StartTls
+                if (string.IsNullOrWhiteSpace(_senderPassword))
+                    throw new InvalidOperationException("EmailSettings:SenderPassword no está configurado.");
+
                 await client.AuthenticateAsync(_senderEmail, _senderPassword);
+
                 await client.SendAsync(message);
                 await client.DisconnectAsync(true);
             }
@@ -193,5 +253,26 @@ namespace BioFXAPI.Services
             await client.SendAsync(message);
             await client.DisconnectAsync(true);
         }
+
+        public async Task SendSimpleEmailAsync(string to, string subject, string body)
+        {
+            var message = new MimeMessage();
+            message.From.Add(new MailboxAddress("BioFX", _senderEmail));
+            message.To.Add(new MailboxAddress("", to));
+            message.Subject = subject;
+
+            var builder = new BodyBuilder { TextBody = body, HtmlBody = $"<pre>{System.Net.WebUtility.HtmlEncode(body)}</pre>" };
+            message.Body = builder.ToMessageBody();
+
+            using var client = new SmtpClient(new ProtocolLogger(Console.OpenStandardError()));
+            client.Timeout = 30000;
+            await client.ConnectAsync(_smtpServer, _smtpPort, GetSecureSocketOption());
+            if (string.IsNullOrWhiteSpace(_senderPassword))
+                throw new InvalidOperationException("EmailSettings:SenderPassword no está configurado.");
+            await client.AuthenticateAsync(_senderEmail, _senderPassword);
+            await client.SendAsync(message);
+            await client.DisconnectAsync(true);
+        }
+
     }
 }

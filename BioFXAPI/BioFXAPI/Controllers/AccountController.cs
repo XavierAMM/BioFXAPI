@@ -14,13 +14,17 @@ namespace BioFXAPI.Controllers
         private readonly string _connectionString;
         private readonly PasswordService _passwordService;
         private readonly EmailService _emailService;
+        private readonly ILogger<AccountController> _logger;
 
-        public AccountController(IConfiguration configuration, PasswordService passwordService, EmailService emailService)
+        public AccountController(IConfiguration configuration, PasswordService passwordService, EmailService emailService, ILogger<AccountController> logger)
         {
             _connectionString = configuration.GetConnectionString("DefaultConnection");
             _passwordService = passwordService;
             _emailService = emailService;
+            _logger = logger;
         }
+
+        public record TestEmailRequest(string To, string Subject, string Body);
 
         [HttpPost("register")]
         public async Task<IActionResult> Register([FromBody] RegisterRequest request)
@@ -61,17 +65,21 @@ namespace BioFXAPI.Controllers
 
                     transaction.Commit();
 
-                    _ = Task.Run(async () =>
+                    try
                     {
-                        try
+                        await _emailService.SendVerificationEmailAsync(request.Email, emailToken);
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex, "Error enviando email de verificación a {Email}", request.Email);
+                        return StatusCode(500, new
                         {
-                            await _emailService.SendVerificationEmailAsync(request.Email, emailToken);
-                        }
-                        catch (Exception ex)
-                        {
-                            
-                        }
-                    });
+                            message = "Fallo al enviar correo",
+                            details = ex.Message,
+                            stack = ex.StackTrace
+                        });
+                    }
+
 
                     return Ok(new
                     {
@@ -336,5 +344,26 @@ namespace BioFXAPI.Controllers
             }
         }
 
+        [AllowAnonymous]
+        [HttpPost("test-email")]
+        public async Task<IActionResult> TestEmail([FromBody] TestEmailRequest req)
+        {
+            if (string.IsNullOrWhiteSpace(req?.To))
+                return BadRequest(new { message = "Falta 'To'." });
+
+            try
+            {
+                await _emailService.SendSimpleEmailAsync(req.To,
+                    string.IsNullOrWhiteSpace(req.Subject) ? "Prueba BioFX" : req.Subject,
+                    string.IsNullOrWhiteSpace(req.Body) ? "Hola" : req.Body);
+
+                return Ok(new { message = "Correo de prueba enviado." });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Fallo envío de prueba a {To}", req.To);
+                return StatusCode(500, new { error = "Fallo SMTP", details = ex.Message });
+            }
+        }
     }
 }
