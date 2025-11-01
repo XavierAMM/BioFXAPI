@@ -90,7 +90,7 @@ namespace BioFXAPI.Services
 
                         <div style=""background:#f8f9fa;border:1px solid #e8eef0;border-radius:6px;padding:12px 14px;margin-top:8px;"">
                           <p style=""margin:0;color:#627070;font-size:12px;line-height:18px;"">
-                            <strong>Vigencia:</strong> este enlace expira en <strong>24 horas</strong>.
+                            <strong>Vigencia:</strong> este enlace expira en <strong>15 minutos</strong>.
                           </p>
                         </div>
                       </div>
@@ -114,7 +114,7 @@ namespace BioFXAPI.Services
                 Solo falta un paso para activar tu cuenta. Abre este enlace:
                 {verifyUrl}
 
-                Vigencia: el enlace expira en 24 horas.
+                Vigencia: el enlace expira en 15 minutos.
 
                 Si no creaste esta cuenta, ignora este mensaje.
                 © {DateTime.UtcNow.Year} BioFX Medical

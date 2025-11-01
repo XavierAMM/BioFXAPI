@@ -100,6 +100,32 @@ namespace BioFXAPI.Controllers
             }
         }
 
+        [HttpGet("verify-email")]
+        public async Task<IActionResult> VerifyEmail([FromQuery] string token, [FromQuery] string email)
+        {
+            String url = "https://biofx.com.ec/";
+            //String url = "http://127.0.0.1:5500/";
+            try
+            {
+                
+                using var connection = new SqlConnection(_connectionString);
+                await connection.OpenAsync();
+
+                if (!await IsValidEmailToken(email, token, connection))
+                    return Redirect(url+ "verify-email/verify-email.html?status=invalid");
+
+                VerifyUserEmail(email, connection);
+
+                return Redirect(url+"verify-email/verify-email.html?status=ok");
+            }
+            catch
+            {
+                return Redirect(url+"verify-email/verify-email.html?status=error");
+            }
+        }
+
+
+
         #region Métodos Privados
         private async Task InsertDatosFacturacionAsync(int usuarioId, SqlConnection connection, SqlTransaction transaction)
         {
@@ -116,7 +142,7 @@ namespace BioFXAPI.Controllers
             var query = @"INSERT INTO Usuario (email, contrasenaHash, creadoEl, emailConfirmado, 
                   tokenVerificacionEmail, expiracionTokenVerificacion, Activo) 
                   OUTPUT INSERTED.id 
-                  VALUES (@Email, @PasswordHash, GETUTCDATE(), 0, @Token, DATEADD(hour, 24, GETUTCDATE()), 1)";
+                  VALUES (@Email, @PasswordHash, GETUTCDATE(), 0, @Token, DATEADD(minute, 15, GETUTCDATE()), 1)";
 
             using var command = new SqlCommand(query, connection, transaction);
             command.Parameters.AddWithValue("@Email", email);
@@ -141,30 +167,12 @@ namespace BioFXAPI.Controllers
         }
         #endregion
 
-        [HttpGet("verify-email")]
-        public async Task<IActionResult> VerifyEmail([FromQuery] string token, [FromQuery] string email)
-        {
-            try
-            {
-                using var connection = new SqlConnection(_connectionString);
-                connection.Open();
-
-                if (!await IsValidEmailToken(email, token, connection))
-                    return BadRequest(new { message = "Token de verificación inválido o expirado." });
-
-                VerifyUserEmail(email, connection);
-                return Ok(new { message = "Correo verificado satisfactoriamente." });
-            }
-            catch (SqlException ex)
-            {
-                return StatusCode(500, new { error = "Error de base de datos.", details = ex.Message });
-            }
-        }
+        
 
         #region Métodos Privados
         private async Task<bool> EmailExists(string email, SqlConnection connection)
         {
-            var query = "SELECT 1 FROM Usuario WHERE email = @Email AND Activo = 1";
+            var query = "SELECT 1 FROM Usuario WHERE email = @Email";
             using var command = new SqlCommand(query, connection);
             command.Parameters.AddWithValue("@Email", email);
             return (await command.ExecuteScalarAsync()) != null;
