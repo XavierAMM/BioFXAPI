@@ -44,12 +44,27 @@ namespace BioFXAPI.Controllers
 
 			var auth = JsonSerializer.Serialize(new { auth = new { login = _cfg["PlacetoPay:Login"], tranKey, nonce, seed } });
 
-			var resp = await _http.PostAsync($"api/session/{r.RequestId}", new StringContent(auth, Encoding.UTF8, "application/json"));
-			var payload = await resp.Content.ReadAsStringAsync();
-			if (!resp.IsSuccessStatusCode) return StatusCode((int)resp.StatusCode, payload);
+            using var con = new SqlConnection(_cs);
+            await con.OpenAsync();
+            var pUrl = await con.ExecuteScalarAsync<string>(
+                "SELECT ProcessUrl FROM [Transaction] WHERE RequestId=@Rid AND Activo=1",
+                new { Rid = r.RequestId });
 
-			using var con = new SqlConnection(_cs);
-			await con.OpenAsync();
+            var baseUri = new Uri(_cfg["PlacetoPay:BaseUrl"]);
+            if (!string.IsNullOrWhiteSpace(pUrl))
+            {
+                var u = new Uri(pUrl);
+                baseUri = new Uri($"{u.Scheme}://{u.Host}/");
+            }
+
+            using var http = new HttpClient { BaseAddress = baseUri };
+            http.DefaultRequestHeaders.Accept.ParseAdd("application/json");
+
+            var resp = await http.PostAsync($"api/session/{r.RequestId}",
+                new StringContent(auth, Encoding.UTF8, "application/json"));
+
+            var payload = await resp.Content.ReadAsStringAsync();
+			if (!resp.IsSuccessStatusCode) return StatusCode((int)resp.StatusCode, payload);
 
 			var txRow = await con.QueryFirstOrDefaultAsync<(int Id, int OrderId, string Status)>(
 				"SELECT Id, OrderId, Status FROM [Transaction] WHERE RequestId=@Rid AND Activo=1",
@@ -58,7 +73,7 @@ namespace BioFXAPI.Controllers
 			if (txRow == default) return Ok(new { requestId = r.RequestId, raw = JsonDocument.Parse(payload).RootElement });
 
 			using var doc = JsonDocument.Parse(payload);
-			var status = doc.RootElement.GetProperty("status").GetProperty("status").GetString();
+            var status = doc.RootElement.GetProperty("status").GetProperty("status").GetString();
             var mapped = status switch
             {
                 "APPROVED" or "OK" => "PAID",

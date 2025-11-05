@@ -102,12 +102,21 @@ namespace BioFXAPI.Controllers
 
             // Idempotencia por Transaction pendiente
             var pendingTx = await con.QueryFirstOrDefaultAsync<(int RequestId, string ProcessUrl)>(
-                @"SELECT TOP 1 RequestId, ProcessUrl
-                  FROM [Transaction]
-                  WHERE OrderId=@Id AND Activo=1 AND Status='PENDING'
-                  ORDER BY Id DESC",
-                new { Id = orderId });
-            if (pendingTx != default) return Ok(new { requestId = pendingTx.RequestId, processUrl = pendingTx.ProcessUrl });
+            @"SELECT TOP 1 RequestId, ProcessUrl
+              FROM [Transaction]
+              WHERE OrderId=@Id AND Activo=1 AND Status='PENDING'
+              ORDER BY Id DESC",
+            new { Id = orderId });
+
+            bool sameHost = false;
+            if (pendingTx != default && !string.IsNullOrWhiteSpace(pendingTx.ProcessUrl))
+            {
+                var pu = new Uri(pendingTx.ProcessUrl);
+                var bu = new Uri(_cfg["PlacetoPay:BaseUrl"]);
+                sameHost = string.Equals(pu.Host, bu.Host, StringComparison.OrdinalIgnoreCase);
+            }
+            if (pendingTx != default && sameHost)
+                return Ok(new { requestId = pendingTx.RequestId, processUrl = pendingTx.ProcessUrl });
 
             var seed = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:sszzz",System.Globalization.CultureInfo.InvariantCulture);
 
@@ -125,6 +134,7 @@ namespace BioFXAPI.Controllers
             var ip = HttpContext.Connection.RemoteIpAddress?.ToString();
             if (string.IsNullOrWhiteSpace(ip)) ip = "127.0.0.1";
 
+            var notificationUrl = _cfg["PlacetoPay:NotificationUrl"]; 
             var body = new
             {
                 locale = "es_EC",
@@ -138,10 +148,11 @@ namespace BioFXAPI.Controllers
                         currency = (order.Currency ?? "USD").Trim().ToUpperInvariant(),
                         total = order.TotalAmount
                     }
-            //amount = new { currency = "USD", total = order.TotalAmount }
-        },
-                expiration = DateTime.UtcNow.AddMinutes(int.Parse(_cfg["PlacetoPay:TimeoutMinutes"]!)).ToString("yyyy-MM-ddTHH:mm:sszzz"),
+                },
+                expiration = DateTime.UtcNow.AddMinutes(int.Parse(_cfg["PlacetoPay:TimeoutMinutes"]!))
+                             .ToString("yyyy-MM-ddTHH:mm:sszzz"),
                 returnUrl = req.ReturnUrl,
+                notificationUrl,                
                 ipAddress = ip,
                 userAgent = Request.Headers["User-Agent"].ToString()
             };
@@ -195,8 +206,22 @@ namespace BioFXAPI.Controllers
                 auth = new { login = _cfg["PlacetoPay:Login"], tranKey, nonce, seed }
             });
 
-            var resp = await _http.PostAsync($"api/session/{txRow.RequestId}",
+            var pUrl = await con.ExecuteScalarAsync<string>(
+                "SELECT TOP 1 ProcessUrl FROM [Transaction] WHERE Id=@TxId",
+                new { TxId = txRow.Id });
+
+            var baseUri = _http.BaseAddress!;
+            if (!string.IsNullOrWhiteSpace(pUrl))
+            {
+                var u = new Uri(pUrl);
+                baseUri = new Uri($"{u.Scheme}://{u.Host}/");
+            }
+            using var http = new HttpClient { BaseAddress = baseUri };
+            http.DefaultRequestHeaders.Accept.ParseAdd("application/json");
+
+            var resp = await http.PostAsync($"api/session/{txRow.RequestId}",
                 new StringContent(authJson, Encoding.UTF8, "application/json"));
+
             var payload = await resp.Content.ReadAsStringAsync();
             if (!resp.IsSuccessStatusCode) return StatusCode((int)resp.StatusCode, payload);
 
@@ -207,9 +232,10 @@ namespace BioFXAPI.Controllers
                 "APPROVED" or "OK" => "PAID",
                 "PENDING" or "PENDING_PAYMENT" or "PENDING_VALIDATION" => "PENDING",
                 "REJECTED" or "FAILED" => "REJECTED",
-                "EXPIRED" => "EXPIRED",
+                "EXPIRED" => "EXPIRED",   
                 _ => "PENDING"
             };
+
 
             using var dbtx = con.BeginTransaction();
 
