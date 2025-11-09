@@ -46,6 +46,7 @@ namespace BioFXAPI.Controllers
 
             using var con = new SqlConnection(_cs);
             await con.OpenAsync();
+
             var pUrl = await con.ExecuteScalarAsync<string>(
                 "SELECT ProcessUrl FROM [Transaction] WHERE RequestId=@Rid AND Activo=1",
                 new { Rid = r.RequestId });

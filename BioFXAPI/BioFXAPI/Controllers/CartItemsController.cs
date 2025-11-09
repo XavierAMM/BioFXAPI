@@ -60,43 +60,57 @@ namespace BioFXAPI.Controllers
 			return Ok(new { message = "Item agregado." });
 		}
 
-		[HttpPut("{itemId}")]
-		public async Task<IActionResult> UpdateQty(int itemId, [FromBody] UpdateQtyRequest req)
-		{
-			if (req.Quantity <= 0) return BadRequest(new { message = "Cantidad inválida." });
+        [HttpPut("{itemId}")]
+        public async Task<IActionResult> UpdateQty(int itemId, [FromBody] UpdateQtyRequest req)
+        {
+            if (req.Quantity <= 0) return BadRequest(new { message = "Cantidad inválida." });
+            var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
 
-			using var con = new SqlConnection(_cs);
-			await con.OpenAsync();
+            using var con = new SqlConnection(_cs);
+            await con.OpenAsync();
 
-			var p = await con.QueryFirstOrDefaultAsync<(int ProductId, int Stock)>(
-				@"SELECT ci.ProductId, p.Stock
-                  FROM CartItem ci INNER JOIN Producto p ON p.Id=ci.ProductId
-                  WHERE ci.Id=@Id AND ci.Activo=1",
-				new { Id = itemId });
+            var owned = await con.ExecuteScalarAsync<int>(
+                @"SELECT COUNT(1)
+				  FROM CartItem ci
+				  INNER JOIN ShoppingCart sc ON sc.Id = ci.CartId
+				  WHERE ci.Id=@Id AND sc.UserId=@Uid AND ci.Activo=1 AND sc.Activo=1",
+                new { Id = itemId, Uid = userId });
+            if (owned == 0) return Forbid();
 
-			if (p == default) return NotFound(new { message = "Item no encontrado." });
-			if (p.Stock < req.Quantity) return BadRequest(new { message = "Stock insuficiente." });
+            var p = await con.QueryFirstOrDefaultAsync<(int ProductId, int Stock)>(
+                @"SELECT ci.ProductId, p.Stock
+				  FROM CartItem ci INNER JOIN Producto p ON p.Id=ci.ProductId
+				  WHERE ci.Id=@Id AND ci.Activo=1", new { Id = itemId });
+            if (p == default) return NotFound(new { message = "Item no encontrado." });
+            if (p.Stock < req.Quantity) return BadRequest(new { message = "Stock insuficiente." });
 
-			await con.ExecuteAsync(
-				"UPDATE CartItem SET Quantity=@Qty WHERE Id=@Id AND Activo=1",
-				new { Qty = req.Quantity, Id = itemId });
+            await con.ExecuteAsync("UPDATE CartItem SET Quantity=@Qty WHERE Id=@Id AND Activo=1",
+                new { Qty = req.Quantity, Id = itemId });
 
-			return Ok(new { message = "Cantidad actualizada." });
-		}
+            return Ok(new { message = "Cantidad actualizada." });
+        }
 
-		[HttpDelete("{itemId}")]
-		public async Task<IActionResult> Remove(int itemId)
-		{
-			using var con = new SqlConnection(_cs);
-			await con.OpenAsync();
-			var rows = await con.ExecuteAsync(
-				"UPDATE CartItem SET Activo=0 WHERE Id=@Id",
-				new { Id = itemId });
-			if (rows == 0) return NotFound(new { message = "Item no encontrado." });
-			return Ok(new { message = "Item eliminado." });
-		}
+        [HttpDelete("{itemId}")]
+        public async Task<IActionResult> Remove(int itemId)
+        {
+            var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+            using var con = new SqlConnection(_cs);
+            await con.OpenAsync();
 
-		public record AddItemRequest(int ProductId, int Quantity);
+            var owned = await con.ExecuteScalarAsync<int>(
+                @"SELECT COUNT(1)
+          FROM CartItem ci
+          INNER JOIN ShoppingCart sc ON sc.Id = ci.CartId
+          WHERE ci.Id=@Id AND sc.UserId=@Uid AND ci.Activo=1 AND sc.Activo=1",
+                new { Id = itemId, Uid = userId });
+            if (owned == 0) return Forbid();
+
+            var rows = await con.ExecuteAsync("UPDATE CartItem SET Activo=0 WHERE Id=@Id", new { Id = itemId });
+            if (rows == 0) return NotFound(new { message = "Item no encontrado." });
+            return Ok(new { message = "Item eliminado." });
+        }
+
+        public record AddItemRequest(int ProductId, int Quantity);
 		public record UpdateQtyRequest(int Quantity);
 	}
 }

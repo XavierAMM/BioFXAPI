@@ -2,9 +2,10 @@
 using Dapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System.Data.SqlClient;
-using System.Linq;            
 using System.Collections.Generic; 
+using System.Data.SqlClient;
+using System.Linq;
+using System.Security.Claims;
 
 
 namespace BioFXAPI.Controllers
@@ -18,6 +19,13 @@ namespace BioFXAPI.Controllers
         public ProductosController(IConfiguration configuration)
         {
             _connectionString = configuration.GetConnectionString("DefaultConnection");
+        }
+
+        private async Task<bool> IsAdmin(SqlConnection con, int userId)
+        {
+            return await con.ExecuteScalarAsync<int>(
+                "SELECT CASE WHEN esAdministrador=1 THEN 1 ELSE 0 END FROM Usuario WHERE Id=@Id AND Activo=1",
+                new { Id = userId }) == 1;
         }
 
         [AllowAnonymous]
@@ -196,6 +204,9 @@ namespace BioFXAPI.Controllers
                 using var connection = new SqlConnection(_connectionString);
                 await connection.OpenAsync();
 
+                var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+                if (!await IsAdmin(connection, userId)) return Forbid();
+
                 using var tx = connection.BeginTransaction();
                 try
                 {
@@ -253,6 +264,9 @@ namespace BioFXAPI.Controllers
             {
                 using var connection = new SqlConnection(_connectionString);
                 await connection.OpenAsync();
+
+                var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+                if (!await IsAdmin(connection, userId)) return Forbid();
 
                 using var tx = connection.BeginTransaction();
                 try
@@ -347,6 +361,9 @@ namespace BioFXAPI.Controllers
             {
                 using var connection = new SqlConnection(_connectionString);
                 await connection.OpenAsync();
+
+                var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+                if (!await IsAdmin(connection, userId)) return Forbid();
 
                 var affected = await connection.ExecuteAsync(@"
                     UPDATE Producto SET Activo = 0, ActualizadoEl = GETUTCDATETIME()

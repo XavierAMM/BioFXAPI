@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Data.SqlClient;
+using System.Security.Claims;
 
 namespace BioFXAPI.Controllers
 {
@@ -14,23 +15,23 @@ namespace BioFXAPI.Controllers
         public OrderItemsController(IConfiguration cfg) => _cs = cfg.GetConnectionString("DefaultConnection");
 
         [HttpGet("{orderId:int}")]
-        public async Task<IActionResult> List(int orderId)
+        public async Task<IActionResult> List(int orderId)        
         {
             using var con = new SqlConnection(_cs);
             await con.OpenAsync();
 
+            var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+            var isMine = await con.ExecuteScalarAsync<int>(
+                "SELECT COUNT(1) FROM [Order] WHERE Id=@Id AND UserId=@Uid AND Activo=1",
+                new { Id = orderId, Uid = userId });
+            if (isMine == 0) return Forbid();
+
             var items = await con.QueryAsync<dynamic>(
-                @"SELECT oi.Id,
-                         oi.ProductId,
-                         p.Nombre,
-                         oi.Quantity,
-                         oi.UnitPrice,
-                         oi.TotalPrice
+                @"SELECT oi.Id, oi.ProductId, p.Nombre, oi.Quantity, oi.UnitPrice, oi.TotalPrice
                   FROM OrderItem oi
                   INNER JOIN Producto p ON p.Id=oi.ProductId
                   WHERE oi.OrderId=@Id AND oi.Activo=1
-                  ORDER BY oi.Id",
-                new { Id = orderId });
+                  ORDER BY oi.Id", new { Id = orderId });
 
             return Ok(items);
         }

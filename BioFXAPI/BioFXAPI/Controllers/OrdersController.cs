@@ -90,6 +90,12 @@ namespace BioFXAPI.Controllers
             using var con = new SqlConnection(_cs);
             await con.OpenAsync();
 
+            var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+            var isMine = await con.ExecuteScalarAsync<int>(
+                "SELECT COUNT(1) FROM [Order] WHERE Id=@Id AND UserId=@Uid AND Activo=1",
+                new { Id = orderId, Uid = userId });
+            if (isMine == 0) return Forbid();
+
             var order = await con.QueryFirstOrDefaultAsync<(decimal TotalAmount, string Currency, string Reference, string Description)>(
                 "SELECT TotalAmount, Currency, Reference, Description FROM [Order] WHERE Id=@Id AND Activo=1",
                 new { Id = orderId });
@@ -134,7 +140,11 @@ namespace BioFXAPI.Controllers
             var ip = HttpContext.Connection.RemoteIpAddress?.ToString();
             if (string.IsNullOrWhiteSpace(ip)) ip = "127.0.0.1";
 
-            var notificationUrl = _cfg["PlacetoPay:NotificationUrl"]; 
+            var notificationUrl = _cfg["PlacetoPay:NotificationUrl"];
+            var buyer = await con.QueryFirstOrDefaultAsync<(string Nombre, string Apellido, string Email, string Telefono)>(
+                @"SELECT TOP 1 Nombre, Apellido, Email, Telefono FROM Persona WHERE UsuarioId=
+                  (SELECT UserId FROM [Order] WHERE Id=@Id)", new { Id = orderId });
+
             var body = new
             {
                 locale = "es_EC",
@@ -143,10 +153,13 @@ namespace BioFXAPI.Controllers
                 {
                     reference = order.Reference,
                     description = order.Description,
-                    amount = new
+                    amount = new { currency = (order.Currency ?? "USD").Trim().ToUpperInvariant(), total = order.TotalAmount },
+                    buyer = new
                     {
-                        currency = (order.Currency ?? "USD").Trim().ToUpperInvariant(),
-                        total = order.TotalAmount
+                        name = buyer.Nombre,
+                        surname = buyer.Apellido,
+                        email = buyer.Email,
+                        mobile = buyer.Telefono
                     }
                 },
                 expiration = DateTime.UtcNow.AddMinutes(int.Parse(_cfg["PlacetoPay:TimeoutMinutes"]!))
@@ -181,12 +194,17 @@ namespace BioFXAPI.Controllers
             using var con = new SqlConnection(_cs);
             await con.OpenAsync();
 
+            var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+            var isMine = await con.ExecuteScalarAsync<int>(
+                "SELECT COUNT(1) FROM [Order] WHERE Id=@Id AND UserId=@Uid AND Activo=1",
+                new { Id = orderId, Uid = userId });
+            if (isMine == 0) return Forbid();
+
             var txRow = await con.QueryFirstOrDefaultAsync<(int Id, int RequestId, string Status)>(
                 @"SELECT TOP 1 Id, RequestId, Status
                   FROM [Transaction]
                   WHERE OrderId=@Id AND Activo=1
-                  ORDER BY Id DESC",
-                new { Id = orderId });
+                  ORDER BY Id DESC", new { Id = orderId });
             if (txRow == default) return BadRequest(new { message = "Orden sin transacción." });
 
             var seed = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:sszzz",System.Globalization.CultureInfo.InvariantCulture);
