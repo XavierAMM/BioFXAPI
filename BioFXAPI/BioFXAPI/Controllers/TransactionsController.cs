@@ -122,6 +122,57 @@ namespace BioFXAPI.Controllers
             return Ok(new { orderId = txRow.OrderId, status = mapped });
 		}
 
-		public record RefreshRequest(int RequestId);
+
+        [Authorize]
+        [HttpPost("cancel-by-request")]
+        public async Task<IActionResult> CancelByRequest([FromBody] RefreshRequest r)
+        {
+            using var con = new SqlConnection(_cs);
+            await con.OpenAsync();
+
+            // 1) Buscar orden por requestId
+            var orderId = await con.ExecuteScalarAsync<int?>(
+                "SELECT TOP 1 OrderId FROM [Transaction] WHERE RequestId=@Rid AND Activo=1 ORDER BY Id DESC",
+                new { Rid = r.RequestId });
+            if (orderId is null) return NotFound(new { message = "Transacción no encontrada." });
+
+            // 2) Dueño
+            var userId = int.Parse(User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)!.Value);
+            var isMine = await con.ExecuteScalarAsync<int>(
+                "SELECT COUNT(1) FROM [Order] WHERE Id=@Id AND UserId=@Uid AND Activo=1",
+                new { Id = orderId.Value, Uid = userId });
+            if (isMine == 0) return Forbid();
+
+            // 3) Estado actual
+            var last = await con.QueryFirstOrDefaultAsync<(int TxId, string Status)>(
+                @"SELECT TOP 1 Id, Status FROM [Transaction]
+          WHERE OrderId=@Id AND Activo=1 ORDER BY Id DESC",
+                new { Id = orderId.Value });
+            if (last == default) return BadRequest(new { message = "Orden sin transacción." });
+            if (string.Equals(last.Status, "PAID", StringComparison.OrdinalIgnoreCase))
+                return BadRequest(new { message = "La orden ya está pagada." });
+
+            // 4) Cancelación local + liberar reserva
+            using var tx = con.BeginTransaction();
+
+            await con.ExecuteAsync(@"
+        UPDATE p
+        SET p.StockReservado = CASE WHEN p.StockReservado >= oi.Quantity THEN p.StockReservado - oi.Quantity ELSE 0 END,
+            p.ActualizadoEl = GETUTCDATETIME()
+        FROM Producto p INNER JOIN OrderItem oi ON oi.ProductId = p.Id
+        WHERE oi.OrderId = @OrderId;", new { OrderId = orderId.Value }, tx);
+
+            await con.ExecuteAsync(@"
+        UPDATE [Order] SET Status='CANCELLED', ActualizadoEl=GETUTCDATETIME() WHERE Id=@Id;
+        UPDATE [Transaction] SET Status='CANCELLED', ActualizadoEl=GETUTCDATETIME()
+        WHERE OrderId=@Id AND Activo=1;", new { Id = orderId.Value }, tx);
+
+            tx.Commit();
+            return Ok(new { orderId = orderId.Value, status = "CANCELLED" });
+        }
+
+
+
+        public record RefreshRequest(int RequestId);
 	}
 }

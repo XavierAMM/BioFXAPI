@@ -61,7 +61,9 @@ builder.Services.AddCors(options =>
             .WithOrigins(allowedOrigins)
             .AllowAnyHeader()
             .AllowAnyMethod()
-            .AllowCredentials();
+            .AllowCredentials()
+            .SetPreflightMaxAge(TimeSpan.FromHours(1));
+
     });
 });
 
@@ -72,11 +74,6 @@ builder.Services.AddRateLimiter(options =>
         s.PermitLimit = 60;
         s.Window = TimeSpan.FromMinutes(1);
         s.QueueLimit = 0;
-    });
-
-    options.AddFixedWindowLimiter("api", o =>
-    {
-        o.PermitLimit = 60; o.Window = TimeSpan.FromMinutes(1); o.QueueLimit = 0;
     });
 
     options.AddFixedWindowLimiter("StrictLogin", o =>
@@ -154,6 +151,11 @@ if (!app.Environment.IsDevelopment())
 if (app.Environment.IsDevelopment()) { app.UseSwagger(); app.UseSwaggerUI(); }
 
 app.UseHttpsRedirection();
+app.UseCors("Frontend");
+app.UseWhen(ctx => !HttpMethods.IsOptions(ctx.Request.Method), branch =>
+{
+    branch.UseRateLimiter();
+});
 app.UseRateLimiter();
 app.Use(async (ctx, next) =>
 {
@@ -162,8 +164,6 @@ app.Use(async (ctx, next) =>
     ctx.Response.Headers["Referrer-Policy"] = "no-referrer";
     await next();
 });
-
-app.UseCors("Frontend");
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers().RequireRateLimiting("api");

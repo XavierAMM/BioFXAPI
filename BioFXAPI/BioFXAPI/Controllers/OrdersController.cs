@@ -90,6 +90,7 @@ namespace BioFXAPI.Controllers
             return Ok(new { OrderId = orderId, OrderNumber = orderNumber, Reference = reference, Total = total, Currency = "USD" });
         }
 
+        
         [HttpPost("{orderId:int}/placetopay/session")]
         public async Task<IActionResult> CreatePlacetoPaySession(int orderId, [FromBody] ReturnUrlRequest req)
         {
@@ -295,6 +296,114 @@ namespace BioFXAPI.Controllers
             dbtx.Commit();
             return Ok(new { orderId, status = mapped });
         }
+
+        [Authorize]
+        [HttpPost("{orderId:int}/cancel")]
+        public async Task<IActionResult> CancelPendingSession(int orderId)
+        {
+            using var con = new SqlConnection(_cs);
+            await con.OpenAsync();
+
+            // 1) Dueño
+            var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+            var isMine = await con.ExecuteScalarAsync<int>(
+                "SELECT COUNT(1) FROM [Order] WHERE Id=@Id AND UserId=@Uid AND Activo=1",
+                new { Id = orderId, Uid = userId });
+            if (isMine == 0) return Forbid();
+
+            // 2) Última transacción
+            var last = await con.QueryFirstOrDefaultAsync<(int TxId, int? RequestId, string Status)>(
+                @"SELECT TOP 1 Id, RequestId, Status
+          FROM [Transaction] WHERE OrderId=@Id AND Activo=1 ORDER BY Id DESC",
+                new { Id = orderId });
+            if (last == default) return BadRequest(new { message = "Orden sin transacción." });
+            if (string.Equals(last.Status, "PAID", StringComparison.OrdinalIgnoreCase))
+                return BadRequest(new { message = "La orden ya está pagada." });
+
+            // 3) Reconsulta rápida a P2P si hay requestId
+            if (last.RequestId is int rid && rid > 0)
+            {
+                // auth
+                var seed = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:sszzz", System.Globalization.CultureInfo.InvariantCulture);
+                var nonceBytes = RandomNumberGenerator.GetBytes(16);
+                var nonce = Convert.ToBase64String(nonceBytes);
+                var secret = _cfg["PlacetoPay:SecretKey"]!.Trim();
+                var input = new byte[nonceBytes.Length + Encoding.UTF8.GetByteCount(seed + secret)];
+                Buffer.BlockCopy(nonceBytes, 0, input, 0, nonceBytes.Length);
+                Encoding.UTF8.GetBytes(seed + secret, 0, seed.Length + secret.Length, input, nonceBytes.Length);
+                var tranKey = Convert.ToBase64String(SHA256.HashData(input));
+                var authJson = JsonSerializer.Serialize(new { auth = new { login = _cfg["PlacetoPay:Login"], tranKey, nonce, seed } });
+
+                // baseUri según ProcessUrl
+                var pUrl = await con.ExecuteScalarAsync<string>("SELECT TOP 1 ProcessUrl FROM [Transaction] WHERE Id=@TxId", new { TxId = last.TxId });
+                var baseUri = _http.BaseAddress!;
+                if (!string.IsNullOrWhiteSpace(pUrl))
+                {
+                    var u = new Uri(pUrl);
+                    baseUri = new Uri($"{u.Scheme}://{u.Host}/");
+                }
+                using var http = new HttpClient { BaseAddress = baseUri };
+                http.DefaultRequestHeaders.Accept.ParseAdd("application/json");
+
+                var resp = await http.PostAsync($"api/session/{rid}", new StringContent(authJson, Encoding.UTF8, "application/json"));
+                if (resp.IsSuccessStatusCode)
+                {
+                    var payload = await resp.Content.ReadAsStringAsync();
+                    using var doc = JsonDocument.Parse(payload);
+                    var gw = doc.RootElement.GetProperty("status").GetProperty("status").GetString();
+                    if (gw is "APPROVED" or "OK")
+                        return StatusCode(409, new { message = "La sesión fue aprobada por la pasarela." });
+                }
+            }
+
+            // 4) Cancelación local y liberar reserva
+            using var tx = con.BeginTransaction();
+
+            await con.ExecuteAsync(@"
+        UPDATE p
+        SET p.StockReservado = CASE WHEN p.StockReservado >= oi.Quantity THEN p.StockReservado - oi.Quantity ELSE 0 END,
+            p.ActualizadoEl = GETUTCDATETIME()
+        FROM Producto p INNER JOIN OrderItem oi ON oi.ProductId = p.Id
+        WHERE oi.OrderId = @OrderId;", new { OrderId = orderId }, tx);
+
+            await con.ExecuteAsync(@"
+        UPDATE [Order] SET Status='CANCELLED', ActualizadoEl=GETUTCDATETIME() WHERE Id=@Id;
+        UPDATE [Transaction] SET Status='CANCELLED', ActualizadoEl=GETUTCDATETIME()
+        WHERE OrderId=@Id AND Activo=1;", new { Id = orderId }, tx);
+
+            tx.Commit();
+            return Ok(new { orderId, status = "CANCELLED" });
+        }
+
+
+        [Authorize]
+        [HttpPost("{orderId:int}/placetopay/retry")]
+        public async Task<IActionResult> RetryPlacetoPaySession(int orderId, [FromBody] ReturnUrlRequest req)
+        {
+            using var con = new SqlConnection(_cs);
+            await con.OpenAsync();
+
+            var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+            var mine = await con.ExecuteScalarAsync<int>(
+                "SELECT COUNT(1) FROM [Order] WHERE Id=@Id AND UserId=@Uid AND Activo=1",
+                new { Id = orderId, Uid = userId });
+            if (mine == 0) return Forbid();
+
+            var txRow = await con.QueryFirstOrDefaultAsync<(string Status, DateTime CreadoEl)>(
+                "SELECT TOP 1 Status, CreadoEl FROM [Transaction] WHERE OrderId=@Id AND Activo=1 ORDER BY Id DESC",
+                new { Id = orderId });
+
+            if (txRow.Status.Equals("PAID", StringComparison.OrdinalIgnoreCase))
+                return BadRequest(new { message = "La orden ya está pagada." });
+
+            var tooOld = (DateTime.UtcNow - txRow.CreadoEl).TotalMinutes > 15;
+            if (!(tooOld || txRow.Status.Equals("EXPIRED", StringComparison.OrdinalIgnoreCase) || txRow.Status.Equals("REJECTED", StringComparison.OrdinalIgnoreCase)))
+                return BadRequest(new { message = "La sesión actual aún es válida." });
+
+            // Reutiliza tu POST api/session (CreatePlacetoPaySession) y devuelve { processUrl, requestId }
+            return await CreatePlacetoPaySession(orderId, req);
+        }
+
 
         public record CreateOrderRequest(string? Reference, string? Description);
         public record ReturnUrlRequest(string ReturnUrl);
