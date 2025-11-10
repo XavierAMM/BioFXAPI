@@ -1,7 +1,8 @@
-﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
-using BioFXAPI.Models;
+﻿using BioFXAPI.Models;
 using BioFXAPI.Services;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.IdentityModel.Tokens;
 using System.Data.SqlClient;
 using System.IdentityModel.Tokens.Jwt;
@@ -26,6 +27,7 @@ namespace BioFXAPI.Controllers
             _configuration = configuration;
         }
 
+        [EnableRateLimiting("StrictLogin")]
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] LoginRequest request)
         {
@@ -189,7 +191,8 @@ namespace BioFXAPI.Controllers
                     //SameSite = SameSiteMode.Lax,
                     SameSite = SameSiteMode.None,
                     Path = "/",
-                    Expires = DateTimeOffset.UtcNow.AddHours(24)
+                    Expires = DateTimeOffset.UtcNow.AddHours(24),
+                    MaxAge = TimeSpan.FromHours(24)
                 }
             );
 

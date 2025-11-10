@@ -26,8 +26,8 @@ namespace BioFXAPI.Controllers
 		}
 
 		[HttpPost("refresh-by-request")]
-		[AllowAnonymous]
-		public async Task<IActionResult> RefreshByRequestId([FromBody] RefreshRequest r)
+        [Authorize]
+        public async Task<IActionResult> RefreshByRequestId([FromBody] RefreshRequest r)
 		{
 			var seed = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:sszzz",System.Globalization.CultureInfo.InvariantCulture);
 
@@ -67,13 +67,19 @@ namespace BioFXAPI.Controllers
             var payload = await resp.Content.ReadAsStringAsync();
 			if (!resp.IsSuccessStatusCode) return StatusCode((int)resp.StatusCode, payload);
 
-			var txRow = await con.QueryFirstOrDefaultAsync<(int Id, int OrderId, string Status)>(
-				"SELECT Id, OrderId, Status FROM [Transaction] WHERE RequestId=@Rid AND Activo=1",
+            var txRow = await con.QueryFirstOrDefaultAsync<(int Id, int OrderId, string Status)>(
+				"SELECT TOP 1 Id, OrderId, Status FROM [Transaction] WHERE RequestId=@Rid AND Activo=1 ORDER BY Id DESC",
 				new { Rid = r.RequestId });
+            if (txRow == default) return NotFound(new { message = "No existe transacción." });
 
-			if (txRow == default) return Ok(new { requestId = r.RequestId, raw = JsonDocument.Parse(payload).RootElement });
+            // propietario
+            var userId = int.Parse(User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)!.Value);
+            var isMine = await con.ExecuteScalarAsync<int>(
+                "SELECT COUNT(1) FROM [Order] WHERE Id=@Id AND UserId=@Uid AND Activo=1",
+                new { Id = txRow.OrderId, Uid = userId });
+            if (isMine == 0) return Forbid();
 
-			using var doc = JsonDocument.Parse(payload);
+            using var doc = JsonDocument.Parse(payload);
             var status = doc.RootElement.GetProperty("status").GetProperty("status").GetString();
             var mapped = status switch
             {
@@ -86,24 +92,34 @@ namespace BioFXAPI.Controllers
 
             using var dbtx = con.BeginTransaction();
 
-			if (!string.Equals(txRow.Status, "PAID", StringComparison.OrdinalIgnoreCase) && mapped == "PAID")
-			{
-				await con.ExecuteAsync(@"
-                    UPDATE p
-                    SET p.Stock = p.Stock - oi.Quantity, p.ActualizadoEl = SYSDATETIME()
-                    FROM Producto p
-                    INNER JOIN OrderItem oi ON oi.ProductId = p.Id
-                    WHERE oi.OrderId = @OrderId;",
-					new { OrderId = txRow.OrderId }, dbtx);
-			}
+            if (!string.Equals(txRow.Status, "PAID", StringComparison.OrdinalIgnoreCase) && mapped == "PAID")
+            {
+                await con.ExecuteAsync(@"
+                UPDATE p
+                SET p.Stock = p.Stock - oi.Quantity,
+                    p.StockReservado = CASE WHEN p.StockReservado >= oi.Quantity THEN p.StockReservado - oi.Quantity ELSE 0 END,
+                    p.ActualizadoEl = GETUTCDATETIME()
+                FROM Producto p INNER JOIN OrderItem oi ON oi.ProductId = p.Id
+                WHERE oi.OrderId = @OrderId;", new { OrderId = txRow.OrderId }, dbtx);
+            }
+            else if (mapped == "REJECTED" || mapped == "EXPIRED")
+            {
+                await con.ExecuteAsync(@"
+                UPDATE p
+                SET p.StockReservado = CASE WHEN p.StockReservado >= oi.Quantity THEN p.StockReservado - oi.Quantity ELSE 0 END,
+                    p.ActualizadoEl = GETUTCDATETIME()
+                FROM Producto p INNER JOIN OrderItem oi ON oi.ProductId = p.Id
+                WHERE oi.OrderId = @OrderId;", new { OrderId = txRow.OrderId }, dbtx);
+            }
 
-			await con.ExecuteAsync(
-				@"UPDATE [Order] SET Status=@E, ActualizadoEl=SYSDATETIME() WHERE Id=@OrderId;
-                  UPDATE [Transaction] SET Status=@E, ActualizadoEl=SYSDATETIME() WHERE Id=@TxId;",
-				new { OrderId = txRow.OrderId, E = mapped, TxId = txRow.Id }, dbtx);
+            await con.ExecuteAsync(
+                @"UPDATE [Order] SET Status=@E, ActualizadoEl=GETUTCDATETIME() WHERE Id=@Id;
+                UPDATE [Transaction] SET Status=@E, ActualizadoEl=GETUTCDATETIME() WHERE Id=@TxId;",
+                new { Id = txRow.OrderId, E = mapped, TxId = txRow.Id }, dbtx);
 
-			dbtx.Commit();
-			return Ok(new { orderId = txRow.OrderId, status = mapped });
+            dbtx.Commit();
+
+            return Ok(new { orderId = txRow.OrderId, status = mapped });
 		}
 
 		public record RefreshRequest(int RequestId);

@@ -59,14 +59,14 @@ namespace BioFXAPI.Controllers
             var orderId = await con.ExecuteScalarAsync<int>(
                 @"INSERT INTO [Order](UserId, OrderNumber, Reference, Description, TotalAmount, TaxAmount, Currency, Status, CreadoEl, ActualizadoEl, Activo)
                   OUTPUT INSERTED.Id
-                  VALUES(@Uid, @OrderNumber, @Reference, @Desc, @Total, @Tax, 'USD', 'PENDING', SYSDATETIME(), SYSDATETIME(), 1)",
+                  VALUES(@Uid, @OrderNumber, @Reference, @Desc, @Total, @Tax, 'USD', 'PENDING', GETUTCDATETIME(), GETUTCDATETIME(), 1)",
                 new { Uid = userId, OrderNumber = orderNumber, Reference = reference, Desc = req.Description ?? "Compra BioFX", Total = total, Tax = tax }, tx);
 
             foreach (var it in items)
             {
                 await con.ExecuteAsync(
                     @"INSERT INTO OrderItem(OrderId, ProductId, Quantity, UnitPrice, TotalPrice, CreadoEl, Activo)
-                      VALUES(@Oid, @Pid, @Qty, @Price, @Sub, SYSDATETIME(), 1)",
+                      VALUES(@Oid, @Pid, @Qty, @Price, @Sub, GETUTCDATETIME(), 1)",
                     new
                     {
                         Oid = orderId,
@@ -75,7 +75,16 @@ namespace BioFXAPI.Controllers
                         Price = it.UnitPrice,
                         Sub = it.Quantity * it.UnitPrice
                     }, tx);
+
+                await con.ExecuteAsync(
+                    @"UPDATE Producto
+                      SET StockReservado = COALESCE(StockReservado,0) + @Qty, ActualizadoEl = GETUTCDATETIME()
+                      WHERE Id = @Pid", new { Pid = it.ProductId, Qty = it.Quantity }, tx);
             }
+
+            await con.ExecuteAsync(
+                "UPDATE CartItem SET Activo=0, ActualizadoEl=GETUTCDATETIME() WHERE CartId=@Cart AND Activo=1",
+                new { Cart = cartId }, tx);
 
             tx.Commit();
             return Ok(new { OrderId = orderId, OrderNumber = orderNumber, Reference = reference, Total = total, Currency = "USD" });
@@ -182,7 +191,7 @@ namespace BioFXAPI.Controllers
 
             await con.ExecuteAsync(
                 @"INSERT INTO [Transaction](OrderId, RequestId, InternalReference, ProcessUrl, Status, Reason, Message, PaymentMethod, PaymentMethodName, IssuerName, Refunded, RefundedAmount, CreadoEl, ActualizadoEl, Activo)
-                  VALUES(@OrderId, @RequestId, NULL, @ProcessUrl, 'PENDING', NULL, NULL, NULL, NULL, NULL, 0, NULL, SYSDATETIME(), SYSDATETIME(), 1)",
+                  VALUES(@OrderId, @RequestId, NULL, @ProcessUrl, 'PENDING', NULL, NULL, NULL, NULL, NULL, 0, NULL, GETUTCDATETIME(), GETUTCDATETIME(), 1)",
                 new { OrderId = orderId, RequestId = requestId, ProcessUrl = processUrl });
 
             return Ok(new { requestId, processUrl });
@@ -261,18 +270,27 @@ namespace BioFXAPI.Controllers
             if (!string.Equals(txRow.Status, "PAID", StringComparison.OrdinalIgnoreCase) && mapped == "PAID")
             {
                 await con.ExecuteAsync(@"
-                    UPDATE p
-                    SET p.Stock = p.Stock - oi.Quantity, p.ActualizadoEl = SYSDATETIME()
-                    FROM Producto p
-                    INNER JOIN OrderItem oi ON oi.ProductId = p.Id
-                    WHERE oi.OrderId = @OrderId;",
-                    new { OrderId = orderId }, dbtx);
+                UPDATE p
+                SET p.Stock = p.Stock - oi.Quantity,
+                    p.StockReservado = CASE WHEN p.StockReservado >= oi.Quantity THEN p.StockReservado - oi.Quantity ELSE 0 END,
+                    p.ActualizadoEl = GETUTCDATETIME()
+                FROM Producto p INNER JOIN OrderItem oi ON oi.ProductId = p.Id
+                WHERE oi.OrderId = @OrderId;", new { OrderId = orderId }, dbtx);
+            }
+            else if (mapped == "REJECTED" || mapped == "EXPIRED")
+            {
+                await con.ExecuteAsync(@"
+                UPDATE p
+                SET p.StockReservado = CASE WHEN p.StockReservado >= oi.Quantity THEN p.StockReservado - oi.Quantity ELSE 0 END,
+                    p.ActualizadoEl = GETUTCDATETIME()
+                FROM Producto p INNER JOIN OrderItem oi ON oi.ProductId = p.Id
+                WHERE oi.OrderId = @OrderId;", new { OrderId = orderId }, dbtx);
             }
 
             await con.ExecuteAsync(
-                @"UPDATE [Order] SET Status=@E, ActualizadoEl=SYSDATETIME() WHERE Id=@Id;
-                  UPDATE [Transaction] SET Status=@E, ActualizadoEl=SYSDATETIME() WHERE Id=@TxId;",
-                new { Id = orderId, E = mapped, TxId = txRow.Id }, dbtx);
+                @"UPDATE [Order] SET Status=@E, ActualizadoEl=GETUTCDATETIME() WHERE Id=@Id;
+                  UPDATE [Transaction] SET Status=@E, ActualizadoEl=GETUTCDATETIME() WHERE Id=@TxId;",
+                            new { Id = orderId, E = mapped, TxId = txRow.Id }, dbtx);
 
             dbtx.Commit();
             return Ok(new { orderId, status = mapped });

@@ -44,8 +44,6 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         };
     });
 
-
-
 builder.Services.AddAuthorization();
 
 
@@ -67,12 +65,34 @@ builder.Services.AddCors(options =>
     });
 });
 
-builder.Services.AddRateLimiter(o =>
-    o.AddFixedWindowLimiter("api", s => {
+builder.Services.AddRateLimiter(options =>
+{
+    options.AddFixedWindowLimiter("api", s =>
+    {
         s.PermitLimit = 60;
         s.Window = TimeSpan.FromMinutes(1);
         s.QueueLimit = 0;
-    }));
+    });
+
+    options.AddFixedWindowLimiter("api", o =>
+    {
+        o.PermitLimit = 60; o.Window = TimeSpan.FromMinutes(1); o.QueueLimit = 0;
+    });
+
+    options.AddFixedWindowLimiter("StrictLogin", o =>
+    {
+        o.PermitLimit = 5; // 5 intentos/min
+        o.Window = TimeSpan.FromMinutes(1);
+        o.QueueLimit = 0;
+    });
+
+    options.AddFixedWindowLimiter("StrictPasswordOps", o =>
+    {
+        o.PermitLimit = 3; // 3 req/min
+        o.Window = TimeSpan.FromMinutes(1);
+        o.QueueLimit = 0;
+    });
+});
 
 var emailSettings = builder.Configuration.GetSection("EmailSettings");
 if (string.IsNullOrEmpty(emailSettings["SmtpServer"]))

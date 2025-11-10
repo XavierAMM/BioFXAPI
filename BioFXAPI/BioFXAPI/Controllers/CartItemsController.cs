@@ -30,7 +30,7 @@ namespace BioFXAPI.Controllers
 			if (!cartId.HasValue)
 				cartId = await con.ExecuteScalarAsync<int>(
 					@"INSERT INTO ShoppingCart(UserId, CreadoEl, ActualizadoEl, Activo)
-                      OUTPUT INSERTED.Id VALUES(@UserId, SYSDATETIME(), SYSDATETIME(), 1)",
+                      OUTPUT INSERTED.Id VALUES(@UserId, GETUTCDATETIME(), GETUTCDATETIME(), 1)",
 					new { UserId = userId });
 
 			var prod = await con.QueryFirstOrDefaultAsync<(decimal Precio, bool Disponible, int Stock)>(
@@ -53,7 +53,7 @@ namespace BioFXAPI.Controllers
 			{
 				await con.ExecuteAsync(
 					@"INSERT INTO CartItem(CartId, ProductId, Quantity, AgregadoEl, Activo)
-                      VALUES(@CartId, @Pid, @Qty, SYSDATETIME(), 1)",
+                      VALUES(@CartId, @Pid, @Qty, GETUTCDATETIME(), 1)",
 					new { CartId = cartId, Pid = req.ProductId, Qty = req.Quantity });
 			}
 

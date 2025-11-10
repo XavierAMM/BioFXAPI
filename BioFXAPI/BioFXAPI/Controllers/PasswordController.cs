@@ -1,6 +1,7 @@
 ﻿using BioFXAPI.Models;
 using BioFXAPI.Services;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using System.Data.SqlClient;
 
 namespace BioFXAPI.Controllers
@@ -20,6 +21,7 @@ namespace BioFXAPI.Controllers
             _emailService = emailService;
         }
 
+        [EnableRateLimiting("StrictPasswordOps")]
         [HttpPost("forgot")]
         public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordRequest request)
         {
@@ -49,6 +51,7 @@ namespace BioFXAPI.Controllers
             }
         }
 
+        [EnableRateLimiting("StrictPasswordOps")]
         [HttpPost("reset")]
         public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordRequest request)
         {
