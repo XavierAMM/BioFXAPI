@@ -85,7 +85,7 @@ namespace BioFXAPI.Controllers
                     await conErr.OpenAsync();
                     await conErr.ExecuteAsync(
                         @"INSERT INTO WebhookLog(RequestId, Payload, Signature, Status, Processed, CreadoEl, ActualizadoEl, Activo)
-                          VALUES(@RequestId, @Payload, @Signature, 'INVALID_SIGNATURE', 0, GETUTCDATETIME(), GETUTCDATETIME(), 1)",
+                          VALUES(@RequestId, @Payload, @Signature, 'INVALID_SIGNATURE', 0, GETUTCDATE(), GETUTCDATE(), 1)",
                                 new { RequestId = (int?)null, Payload = body, Signature = signatureHeader });
 
                     return Unauthorized(new { message = "Invalid signature" });
@@ -117,7 +117,7 @@ namespace BioFXAPI.Controllers
             var logId = await con.ExecuteScalarAsync<int>(
              @"INSERT INTO WebhookLog(RequestId, Payload, Signature, Status, Processed, CreadoEl, ActualizadoEl, Activo)
                OUTPUT INSERTED.Id
-               VALUES(@RequestId, @Payload, @Signature, 'RECEIVED', 0, GETUTCDATETIME(), GETUTCDATETIME(), 1)",
+               VALUES(@RequestId, @Payload, @Signature, 'RECEIVED', 0, GETUTCDATE(), GETUTCDATE(), 1)",
                      new { RequestId = requestId > 0 ? requestId : (int?)null, Payload = body, Signature = signatureHeader });
 
             if (requestId > 0)
@@ -129,13 +129,13 @@ namespace BioFXAPI.Controllers
                 {
                     var r = await http.PostAsync($"{apiBase}/api/Transactions/refresh-by-request", content);
                     await con.ExecuteAsync(
-                      "UPDATE WebhookLog SET Status=@S, Processed=@P, ActualizadoEl=GETUTCDATETIME() WHERE Id=@Id",
+                      "UPDATE WebhookLog SET Status=@S, Processed=@P, ActualizadoEl=GETUTCDATE() WHERE Id=@Id",
                       new { S = r.IsSuccessStatusCode ? "PROCESSED" : "ERROR", P = r.IsSuccessStatusCode ? 1 : 0, Id = logId });
                 }
                 catch
                 {
                     await con.ExecuteAsync(
-                      "UPDATE WebhookLog SET Status='ERROR', Processed=0, ActualizadoEl=GETUTCDATETIME() WHERE Id=@Id",
+                      "UPDATE WebhookLog SET Status='ERROR', Processed=0, ActualizadoEl=GETUTCDATE() WHERE Id=@Id",
                       new { Id = logId });
                 }
 

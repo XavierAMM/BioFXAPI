@@ -30,7 +30,7 @@ namespace BioFXAPI.Controllers
 			{
 				cartId = await con.ExecuteScalarAsync<int>(
 					@"INSERT INTO ShoppingCart(UserId, CreadoEl, ActualizadoEl, Activo)
-                      OUTPUT INSERTED.Id VALUES(@UserId, GETUTCDATETIME(), GETUTCDATETIME(), 1)",
+                      OUTPUT INSERTED.Id VALUES(@UserId, GETUTCDATE(), GETUTCDATE(), 1)",
 					new { UserId = userId });
 			}
 
@@ -66,7 +66,7 @@ namespace BioFXAPI.Controllers
 
 			await con.ExecuteAsync(
 				@"UPDATE CartItem SET Activo=0 WHERE CartId=@CartId;
-                  UPDATE ShoppingCart SET ActualizadoEl=GETUTCDATETIME() WHERE Id=@CartId;",
+                  UPDATE ShoppingCart SET ActualizadoEl=GETUTCDATE() WHERE Id=@CartId;",
 				new { CartId = cartId });
 
 			return Ok(new { message = "Carrito vaciado." });

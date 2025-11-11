@@ -284,7 +284,7 @@ namespace BioFXAPI.Controllers
                             Descuento=@Descuento, Disclaimer=@Disclaimer,
                             Contraindicaciones=@Contraindicaciones,
                             Stock=@Stock, StockReservado=@StockReservado,
-                            ActualizadoEl = GETUTCDATETIME()
+                            ActualizadoEl = GETUTCDATE()
                         WHERE Id=@Id";
 
                     await connection.ExecuteAsync(updateQuery, new
@@ -309,7 +309,7 @@ namespace BioFXAPI.Controllers
                     // Reset de categorías actuales
                     await connection.ExecuteAsync(@"
                         UPDATE CategoriasProductos
-                        SET Activo = 0, ActualizadoEl = GETUTCDATETIME()
+                        SET Activo = 0, ActualizadoEl = GETUTCDATE()
                         WHERE ProductoId = @Id AND Activo = 1", new { Id = id }, tx);
 
                     if (dto.CategoriaIds?.Any() == true)
@@ -319,7 +319,7 @@ namespace BioFXAPI.Controllers
                             USING (SELECT @ProductoId AS ProductoId, @CategoriaId AS CategoriaId) AS S
                             ON T.ProductoId = S.ProductoId AND T.CategoriaId = S.CategoriaId
                             WHEN MATCHED THEN
-                                UPDATE SET Activo = 1, ActualizadoEl = GETUTCDATETIME()
+                                UPDATE SET Activo = 1, ActualizadoEl = GETUTCDATE()
                             WHEN NOT MATCHED THEN
                                 INSERT (ProductoId, CategoriaId, Activo) VALUES (S.ProductoId, S.CategoriaId, 1);",
                             dto.CategoriaIds.Select(cid => new { ProductoId = id, CategoriaId = cid }), tx);
@@ -327,7 +327,7 @@ namespace BioFXAPI.Controllers
 
                     // Promocionados: desactivar e insertar
                     await connection.ExecuteAsync(@"
-                        UPDATE ProductoPromocionado SET Activo = 0, ActualizadoEl = GETUTCDATETIME()
+                        UPDATE ProductoPromocionado SET Activo = 0, ActualizadoEl = GETUTCDATE()
                         WHERE ProductoId = @Id", new { Id = id }, tx);
 
                     if (dto.Promocionados?.Any() == true)
@@ -366,19 +366,19 @@ namespace BioFXAPI.Controllers
                 if (!await IsAdmin(connection, userId)) return Forbid();
 
                 var affected = await connection.ExecuteAsync(@"
-                    UPDATE Producto SET Activo = 0, ActualizadoEl = GETUTCDATETIME()
+                    UPDATE Producto SET Activo = 0, ActualizadoEl = GETUTCDATE()
                     WHERE Id = @Id", new { Id = id });
 
                 if (affected == 0) return NotFound(new { message = "Producto no encontrado." });
 
                 await connection.ExecuteAsync(@"
                     UPDATE ProductoPromocionado
-                    SET Activo = 0, ActualizadoEl = GETUTCDATETIME()
+                    SET Activo = 0, ActualizadoEl = GETUTCDATE()
                     WHERE ProductoId = @Id OR PromocionadoId = @Id", new { Id = id });
 
                 await connection.ExecuteAsync(@"
                     UPDATE CategoriasProductos
-                    SET Activo = 0, ActualizadoEl = GETUTCDATETIME()
+                    SET Activo = 0, ActualizadoEl = GETUTCDATE()
                     WHERE ProductoId = @Id", new { Id = id });
 
                 return Ok(new { message = "Producto eliminado." });

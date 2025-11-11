@@ -151,12 +151,26 @@ if (!app.Environment.IsDevelopment())
 if (app.Environment.IsDevelopment()) { app.UseSwagger(); app.UseSwaggerUI(); }
 
 app.UseHttpsRedirection();
+
+if (!app.Environment.IsDevelopment())
+{
+    app.UseExceptionHandler(errApp =>
+    {
+        errApp.Run(async ctx =>
+        {
+            ctx.Response.StatusCode = StatusCodes.Status500InternalServerError;
+            ctx.Response.ContentType = "application/json";
+            await ctx.Response.WriteAsync("{\"message\":\"Error interno\"}");
+        });
+    });
+}
 app.UseCors("Frontend");
+
 app.UseWhen(ctx => !HttpMethods.IsOptions(ctx.Request.Method), branch =>
 {
     branch.UseRateLimiter();
 });
-app.UseRateLimiter();
+
 app.Use(async (ctx, next) =>
 {
     ctx.Response.Headers["X-Content-Type-Options"] = "nosniff";
@@ -164,6 +178,7 @@ app.Use(async (ctx, next) =>
     ctx.Response.Headers["Referrer-Policy"] = "no-referrer";
     await next();
 });
+
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers().RequireRateLimiting("api");

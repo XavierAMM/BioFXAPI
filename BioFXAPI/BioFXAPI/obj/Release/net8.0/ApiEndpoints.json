@@ -291,6 +291,43 @@
   },
   {
     "ContainingType": "BioFXAPI.Controllers.OrdersController",
+    "Method": "CancelPendingSession",
+    "RelativePath": "api/Orders/{orderId}/cancel",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "orderId",
+        "Type": "System.Int32",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "BioFXAPI.Controllers.OrdersController",
+    "Method": "RetryPlacetoPaySession",
+    "RelativePath": "api/Orders/{orderId}/placetopay/retry",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "orderId",
+        "Type": "System.Int32",
+        "IsRequired": true
+      },
+      {
+        "Name": "req",
+        "Type": "BioFXAPI.Controllers.OrdersController\u002BReturnUrlRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "BioFXAPI.Controllers.OrdersController",
     "Method": "CreatePlacetoPaySession",
     "RelativePath": "api/Orders/{orderId}/placetopay/session",
     "HttpMethod": "POST",
@@ -599,6 +636,22 @@
       {
         "Name": "id",
         "Type": "System.Int32",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "BioFXAPI.Controllers.TransactionsController",
+    "Method": "CancelByRequest",
+    "RelativePath": "api/Transactions/cancel-by-request",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "r",
+        "Type": "BioFXAPI.Controllers.TransactionsController\u002BRefreshRequest",
         "IsRequired": true
       }
     ],

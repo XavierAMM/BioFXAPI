@@ -31,66 +31,115 @@ namespace BioFXAPI.Controllers
         [HttpPost("create")]
         public async Task<IActionResult> CreateFromCart([FromBody] CreateOrderRequest req)
         {
-            var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+            if (!TryGetUserId(out var userId, out var err)) return err!;
+            if (req is null) return BadRequest(new { message = "Cuerpo inválido." });
 
-            using var con = new SqlConnection(_cs);
-            await con.OpenAsync();
-            using var tx = con.BeginTransaction();
+            await using var con = new SqlConnection(_cs);
+            try
+            {
+                await con.OpenAsync();
 
-            var cartId = await con.ExecuteScalarAsync<int?>(
-                "SELECT TOP 1 Id FROM ShoppingCart WHERE UserId=@UserId AND Activo=1 ORDER BY Id DESC",
-                new { UserId = userId }, tx);
-            if (!cartId.HasValue) return BadRequest(new { message = "Carrito vacío." });
+                await using var tx = con.BeginTransaction();
+                try
+                {
+                    var cartId = await con.ExecuteScalarAsync<int?>(
+                        "SELECT TOP 1 Id FROM ShoppingCart WHERE UserId=@UserId AND Activo=1 ORDER BY Id DESC",
+                        new { UserId = userId }, tx);
+                    if (!cartId.HasValue)
+                    {
+                        await tx.RollbackAsync();
+                        return BadRequest(new { message = "Carrito vacío." });
+                    }
 
-            var items = await con.QueryAsync<(int ProductId, int Quantity, decimal UnitPrice)>(
-                @"SELECT ci.ProductId, ci.Quantity, p.Precio AS UnitPrice
+                    var items = await con.QueryAsync<(int ProductId, int Quantity, decimal UnitPrice)>(
+                        @"SELECT ci.ProductId, ci.Quantity, p.Precio AS UnitPrice
                   FROM CartItem ci
                   INNER JOIN Producto p ON p.Id=ci.ProductId
                   WHERE ci.CartId=@Cart AND ci.Activo=1",
-                new { Cart = cartId }, tx);
-            if (!items.Any()) return BadRequest(new { message = "Carrito sin items." });
-
-            var total = items.Sum(i => i.Quantity * i.UnitPrice);
-            var tax = 0m;
-            var orderNumber = $"ORD-{DateTime.UtcNow:yyyyMMddHHmmss}-{userId}";
-            var referenceRaw = req.Reference ?? $"BIO-{DateTime.UtcNow:yyyyMMddHHmmss}-{userId}";
-            var reference = referenceRaw.Length > 32 ? referenceRaw[..32] : referenceRaw;
-
-            var orderId = await con.ExecuteScalarAsync<int>(
-                @"INSERT INTO [Order](UserId, OrderNumber, Reference, Description, TotalAmount, TaxAmount, Currency, Status, CreadoEl, ActualizadoEl, Activo)
-                  OUTPUT INSERTED.Id
-                  VALUES(@Uid, @OrderNumber, @Reference, @Desc, @Total, @Tax, 'USD', 'PENDING', GETUTCDATETIME(), GETUTCDATETIME(), 1)",
-                new { Uid = userId, OrderNumber = orderNumber, Reference = reference, Desc = req.Description ?? "Compra BioFX", Total = total, Tax = tax }, tx);
-
-            foreach (var it in items)
-            {
-                await con.ExecuteAsync(
-                    @"INSERT INTO OrderItem(OrderId, ProductId, Quantity, UnitPrice, TotalPrice, CreadoEl, Activo)
-                      VALUES(@Oid, @Pid, @Qty, @Price, @Sub, GETUTCDATETIME(), 1)",
-                    new
+                        new { Cart = cartId.Value }, tx);
+                    if (!items.Any())
                     {
-                        Oid = orderId,
-                        Pid = it.ProductId,
-                        Qty = it.Quantity,
-                        Price = it.UnitPrice,
-                        Sub = it.Quantity * it.UnitPrice
-                    }, tx);
+                        await tx.RollbackAsync();
+                        return BadRequest(new { message = "Carrito sin items." });
+                    }
 
-                await con.ExecuteAsync(
-                    @"UPDATE Producto
-                      SET StockReservado = COALESCE(StockReservado,0) + @Qty, ActualizadoEl = GETUTCDATETIME()
+                    var total = items.Sum(i => i.Quantity * i.UnitPrice);
+                    var tax = 0m;
+                    var referenceRaw = req.Reference ?? $"BIO-{DateTime.UtcNow:yyyyMMddHHmmss}-{userId}";
+                    var reference = referenceRaw.Length > 32 ? referenceRaw[..32] : referenceRaw;
+
+                    string NewOrderNumber(int uid) =>
+                        $"ORD-{DateTime.UtcNow:yyyyMMddHHmmssfff}-{uid}-{RandomNumberGenerator.GetInt32(1000, 9999)}";
+
+                    var attempts = 0;
+                    int orderId = 0;
+                    string orderNumber = "";
+
+                    while (true)
+                    {
+                        attempts++;
+                        orderNumber = NewOrderNumber(userId);
+
+                        try
+                        {
+                            orderId = await con.ExecuteScalarAsync<int>(
+                                @"INSERT INTO [Order](UserId, OrderNumber, Reference, Description, TotalAmount, TaxAmount, Currency, Status, CreadoEl, ActualizadoEl, Activo)
+                                  OUTPUT INSERTED.Id
+                                  VALUES(@Uid, @OrderNumber, @Reference, @Desc, @Total, @Tax, 'USD', 'PENDING', GETUTCDATE(), GETUTCDATE(), 1)",
+                                new
+                                {
+                                    Uid = userId,
+                                    OrderNumber = orderNumber,
+                                    Reference = reference,
+                                    Desc = req.Description ?? "Compra BioFX",
+                                    Total = total,
+                                    Tax = tax
+                                }, tx);
+                            break; // insert OK
+                        }
+                        catch (SqlException ex) when (ex.Number == 2627 || ex.Number == 2601)
+                        {
+                            if (attempts >= 3) throw;                                                       
+                        }
+                    }
+
+                    foreach (var it in items)
+                    {
+                        await con.ExecuteAsync(
+                            @"INSERT INTO OrderItem(OrderId, ProductId, Quantity, UnitPrice, TotalPrice, CreadoEl, Activo)
+                      VALUES(@Oid, @Pid, @Qty, @Price, @Sub, GETUTCDATE(), 1)",
+                            new { Oid = orderId, Pid = it.ProductId, Qty = it.Quantity, Price = it.UnitPrice, Sub = it.Quantity * it.UnitPrice }, tx);
+
+                        await con.ExecuteAsync(
+                            @"UPDATE Producto
+                      SET StockReservado = COALESCE(StockReservado,0) + @Qty, ActualizadoEl = GETUTCDATE()
                       WHERE Id = @Pid", new { Pid = it.ProductId, Qty = it.Quantity }, tx);
+                    }
+
+                    await con.ExecuteAsync(
+                        "UPDATE CartItem SET Activo=0 WHERE CartId=@Cart AND Activo=1",
+                        new { Cart = cartId.Value }, tx);
+
+                    await tx.CommitAsync();
+                    return Ok(new { OrderId = orderId, OrderNumber = orderNumber, Reference = reference, Total = total, Currency = "USD" });
+                }
+                catch (SqlException ex)
+                {
+                    return StatusCode(500, new { message = "Error de base de datos.", code = ex.Number, error = ex.Message });
+                }
+                catch (Exception ex)
+                {
+                    return StatusCode(500, new { message = "Error interno al crear la orden.", error = ex.Message });
+                }
             }
-
-            await con.ExecuteAsync(
-                "UPDATE CartItem SET Activo=0, ActualizadoEl=GETUTCDATETIME() WHERE CartId=@Cart AND Activo=1",
-                new { Cart = cartId }, tx);
-
-            tx.Commit();
-            return Ok(new { OrderId = orderId, OrderNumber = orderNumber, Reference = reference, Total = total, Currency = "USD" });
+            catch (SqlException ex)
+            {
+                // fallo abriendo conexión
+                return StatusCode(500, new { message = "No se pudo conectar a la base de datos.", code = ex.Number });
+            }
         }
 
-        
+
         [HttpPost("{orderId:int}/placetopay/session")]
         public async Task<IActionResult> CreatePlacetoPaySession(int orderId, [FromBody] ReturnUrlRequest req)
         {
@@ -100,7 +149,7 @@ namespace BioFXAPI.Controllers
             using var con = new SqlConnection(_cs);
             await con.OpenAsync();
 
-            var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+            if (!TryGetUserId(out var userId, out var err)) return err!;
             var isMine = await con.ExecuteScalarAsync<int>(
                 "SELECT COUNT(1) FROM [Order] WHERE Id=@Id AND UserId=@Uid AND Activo=1",
                 new { Id = orderId, Uid = userId });
@@ -192,7 +241,7 @@ namespace BioFXAPI.Controllers
 
             await con.ExecuteAsync(
                 @"INSERT INTO [Transaction](OrderId, RequestId, InternalReference, ProcessUrl, Status, Reason, Message, PaymentMethod, PaymentMethodName, IssuerName, Refunded, RefundedAmount, CreadoEl, ActualizadoEl, Activo)
-                  VALUES(@OrderId, @RequestId, NULL, @ProcessUrl, 'PENDING', NULL, NULL, NULL, NULL, NULL, 0, NULL, GETUTCDATETIME(), GETUTCDATETIME(), 1)",
+                  VALUES(@OrderId, @RequestId, NULL, @ProcessUrl, 'PENDING', NULL, NULL, NULL, NULL, NULL, 0, NULL, GETUTCDATE(), GETUTCDATE(), 1)",
                 new { OrderId = orderId, RequestId = requestId, ProcessUrl = processUrl });
 
             return Ok(new { requestId, processUrl });
@@ -204,7 +253,7 @@ namespace BioFXAPI.Controllers
             using var con = new SqlConnection(_cs);
             await con.OpenAsync();
 
-            var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+            if (!TryGetUserId(out var userId, out var err)) return err!;
             var isMine = await con.ExecuteScalarAsync<int>(
                 "SELECT COUNT(1) FROM [Order] WHERE Id=@Id AND UserId=@Uid AND Activo=1",
                 new { Id = orderId, Uid = userId });
@@ -274,7 +323,7 @@ namespace BioFXAPI.Controllers
                 UPDATE p
                 SET p.Stock = p.Stock - oi.Quantity,
                     p.StockReservado = CASE WHEN p.StockReservado >= oi.Quantity THEN p.StockReservado - oi.Quantity ELSE 0 END,
-                    p.ActualizadoEl = GETUTCDATETIME()
+                    p.ActualizadoEl = GETUTCDATE()
                 FROM Producto p INNER JOIN OrderItem oi ON oi.ProductId = p.Id
                 WHERE oi.OrderId = @OrderId;", new { OrderId = orderId }, dbtx);
             }
@@ -283,14 +332,14 @@ namespace BioFXAPI.Controllers
                 await con.ExecuteAsync(@"
                 UPDATE p
                 SET p.StockReservado = CASE WHEN p.StockReservado >= oi.Quantity THEN p.StockReservado - oi.Quantity ELSE 0 END,
-                    p.ActualizadoEl = GETUTCDATETIME()
+                    p.ActualizadoEl = GETUTCDATE()
                 FROM Producto p INNER JOIN OrderItem oi ON oi.ProductId = p.Id
                 WHERE oi.OrderId = @OrderId;", new { OrderId = orderId }, dbtx);
             }
 
             await con.ExecuteAsync(
-                @"UPDATE [Order] SET Status=@E, ActualizadoEl=GETUTCDATETIME() WHERE Id=@Id;
-                  UPDATE [Transaction] SET Status=@E, ActualizadoEl=GETUTCDATETIME() WHERE Id=@TxId;",
+                @"UPDATE [Order] SET Status=@E, ActualizadoEl=GETUTCDATE() WHERE Id=@Id;
+                  UPDATE [Transaction] SET Status=@E, ActualizadoEl=GETUTCDATE() WHERE Id=@TxId;",
                             new { Id = orderId, E = mapped, TxId = txRow.Id }, dbtx);
 
             dbtx.Commit();
@@ -305,7 +354,7 @@ namespace BioFXAPI.Controllers
             await con.OpenAsync();
 
             // 1) Dueño
-            var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+            if (!TryGetUserId(out var userId, out var err)) return err!;
             var isMine = await con.ExecuteScalarAsync<int>(
                 "SELECT COUNT(1) FROM [Order] WHERE Id=@Id AND UserId=@Uid AND Activo=1",
                 new { Id = orderId, Uid = userId });
@@ -362,13 +411,13 @@ namespace BioFXAPI.Controllers
             await con.ExecuteAsync(@"
         UPDATE p
         SET p.StockReservado = CASE WHEN p.StockReservado >= oi.Quantity THEN p.StockReservado - oi.Quantity ELSE 0 END,
-            p.ActualizadoEl = GETUTCDATETIME()
+            p.ActualizadoEl = GETUTCDATE()
         FROM Producto p INNER JOIN OrderItem oi ON oi.ProductId = p.Id
         WHERE oi.OrderId = @OrderId;", new { OrderId = orderId }, tx);
 
             await con.ExecuteAsync(@"
-        UPDATE [Order] SET Status='CANCELLED', ActualizadoEl=GETUTCDATETIME() WHERE Id=@Id;
-        UPDATE [Transaction] SET Status='CANCELLED', ActualizadoEl=GETUTCDATETIME()
+        UPDATE [Order] SET Status='CANCELLED', ActualizadoEl=GETUTCDATE() WHERE Id=@Id;
+        UPDATE [Transaction] SET Status='CANCELLED', ActualizadoEl=GETUTCDATE()
         WHERE OrderId=@Id AND Activo=1;", new { Id = orderId }, tx);
 
             tx.Commit();
@@ -383,7 +432,7 @@ namespace BioFXAPI.Controllers
             using var con = new SqlConnection(_cs);
             await con.OpenAsync();
 
-            var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+            if (!TryGetUserId(out var userId, out var err)) return err!;
             var mine = await con.ExecuteScalarAsync<int>(
                 "SELECT COUNT(1) FROM [Order] WHERE Id=@Id AND UserId=@Uid AND Activo=1",
                 new { Id = orderId, Uid = userId });
@@ -404,6 +453,24 @@ namespace BioFXAPI.Controllers
             return await CreatePlacetoPaySession(orderId, req);
         }
 
+        private bool TryGetUserId(out int userId, out IActionResult? errorResult)
+        {
+            // intenta varias claves comunes
+            var idStr =
+                User.FindFirst(ClaimTypes.NameIdentifier)?.Value ??
+                User.FindFirst("nameid")?.Value ??
+                User.FindFirst("sub")?.Value ??
+                User.FindFirst("uid")?.Value;
+
+            if (!int.TryParse(idStr, out userId))
+            {
+                errorResult = Unauthorized(new { message = "Usuario no identificado." });
+                return false;
+            }
+
+            errorResult = null;
+            return true;
+        }
 
         public record CreateOrderRequest(string? Reference, string? Description);
         public record ReturnUrlRequest(string ReturnUrl);

@@ -98,7 +98,7 @@ namespace BioFXAPI.Controllers
                 UPDATE p
                 SET p.Stock = p.Stock - oi.Quantity,
                     p.StockReservado = CASE WHEN p.StockReservado >= oi.Quantity THEN p.StockReservado - oi.Quantity ELSE 0 END,
-                    p.ActualizadoEl = GETUTCDATETIME()
+                    p.ActualizadoEl = GETUTCDATE()
                 FROM Producto p INNER JOIN OrderItem oi ON oi.ProductId = p.Id
                 WHERE oi.OrderId = @OrderId;", new { OrderId = txRow.OrderId }, dbtx);
             }
@@ -107,14 +107,14 @@ namespace BioFXAPI.Controllers
                 await con.ExecuteAsync(@"
                 UPDATE p
                 SET p.StockReservado = CASE WHEN p.StockReservado >= oi.Quantity THEN p.StockReservado - oi.Quantity ELSE 0 END,
-                    p.ActualizadoEl = GETUTCDATETIME()
+                    p.ActualizadoEl = GETUTCDATE()
                 FROM Producto p INNER JOIN OrderItem oi ON oi.ProductId = p.Id
                 WHERE oi.OrderId = @OrderId;", new { OrderId = txRow.OrderId }, dbtx);
             }
 
             await con.ExecuteAsync(
-                @"UPDATE [Order] SET Status=@E, ActualizadoEl=GETUTCDATETIME() WHERE Id=@Id;
-                UPDATE [Transaction] SET Status=@E, ActualizadoEl=GETUTCDATETIME() WHERE Id=@TxId;",
+                @"UPDATE [Order] SET Status=@E, ActualizadoEl=GETUTCDATE() WHERE Id=@Id;
+                UPDATE [Transaction] SET Status=@E, ActualizadoEl=GETUTCDATE() WHERE Id=@TxId;",
                 new { Id = txRow.OrderId, E = mapped, TxId = txRow.Id }, dbtx);
 
             dbtx.Commit();
@@ -158,13 +158,13 @@ namespace BioFXAPI.Controllers
             await con.ExecuteAsync(@"
         UPDATE p
         SET p.StockReservado = CASE WHEN p.StockReservado >= oi.Quantity THEN p.StockReservado - oi.Quantity ELSE 0 END,
-            p.ActualizadoEl = GETUTCDATETIME()
+            p.ActualizadoEl = GETUTCDATE()
         FROM Producto p INNER JOIN OrderItem oi ON oi.ProductId = p.Id
         WHERE oi.OrderId = @OrderId;", new { OrderId = orderId.Value }, tx);
 
             await con.ExecuteAsync(@"
-        UPDATE [Order] SET Status='CANCELLED', ActualizadoEl=GETUTCDATETIME() WHERE Id=@Id;
-        UPDATE [Transaction] SET Status='CANCELLED', ActualizadoEl=GETUTCDATETIME()
+        UPDATE [Order] SET Status='CANCELLED', ActualizadoEl=GETUTCDATE() WHERE Id=@Id;
+        UPDATE [Transaction] SET Status='CANCELLED', ActualizadoEl=GETUTCDATE()
         WHERE OrderId=@Id AND Activo=1;", new { Id = orderId.Value }, tx);
 
             tx.Commit();
