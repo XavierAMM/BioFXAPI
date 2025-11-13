@@ -1,5 +1,6 @@
 using BioFXAPI.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
@@ -158,12 +159,29 @@ if (!app.Environment.IsDevelopment())
     {
         errApp.Run(async ctx =>
         {
+            var feature = ctx.Features.Get<IExceptionHandlerFeature>();
+
             ctx.Response.StatusCode = StatusCodes.Status500InternalServerError;
             ctx.Response.ContentType = "application/json";
-            await ctx.Response.WriteAsync("{\"message\":\"Error interno\"}");
+
+            if (feature?.Error != null)
+            {
+                await ctx.Response.WriteAsJsonAsync(new
+                {
+                    message = "Error interno (global)",
+                    error = feature.Error.Message,
+                    stack = feature.Error.StackTrace
+                });
+            }
+            else
+            {
+                await ctx.Response.WriteAsync("{\"message\":\"Error interno\"}");
+            }
         });
     });
 }
+
+
 app.UseCors("Frontend");
 
 app.UseWhen(ctx => !HttpMethods.IsOptions(ctx.Request.Method), branch =>
