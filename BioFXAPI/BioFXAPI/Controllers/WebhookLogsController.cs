@@ -19,129 +19,150 @@ namespace BioFXAPI.Controllers
         [AllowAnonymous]
         public async Task<IActionResult> ReceivePlacetoPay()
         {
-            // 1) Leer cuerpo tal cual
             using var reader = new StreamReader(Request.Body);
             var body = await reader.ReadToEndAsync();
 
-            // 2) Tomar firma del header (acepta dos variantes comunes)
-            string? signatureHeader =
-                Request.Headers.TryGetValue("Signature", out var s1) ? s1.ToString() :
-                Request.Headers.TryGetValue("X-PTP-Signature", out var s2) ? s2.ToString() :
-                Request.Headers.TryGetValue("X-Signature", out var s3) ? s3.ToString() :
-                Request.Headers.TryGetValue("PTP-Signature", out var s4) ? s4.ToString() :
-                string.Empty;
+            var cfg = HttpContext.RequestServices.GetRequiredService<IConfiguration>();
+            var verify = bool.TryParse(cfg["PlacetoPay:VerifyWebhookSignature"], out var v) && v;
+            var secret = cfg["PlacetoPay:SecretKey"]!;
 
-            signatureHeader = signatureHeader?.Trim();
-
-            // 3) ¿Verificación activada?
-            var verify = bool.TryParse(HttpContext.RequestServices
-                            .GetRequiredService<IConfiguration>()["PlacetoPay:VerifyWebhookSignature"], out var v) && v;
-
-            // 4) Validar HMAC si corresponde
-            if (verify)
-            {
-                var secret = HttpContext.RequestServices
-                              .GetRequiredService<IConfiguration>()["PlacetoPay:SecretKey"]!;
-                
-                using var hmac = new HMACSHA256(Encoding.UTF8.GetBytes(secret));
-                var digest = hmac.ComputeHash(Encoding.UTF8.GetBytes(body));
-
-                var expected = digest; // bytes HMAC
-
-                bool matchB64 = false;
-                try
-                {
-                    var sigBytes = Convert.FromBase64String(signatureHeader ?? "");
-                    matchB64 = CryptographicOperations.FixedTimeEquals(expected, sigBytes);
-                }
-                catch { /* no era Base64 */ }
-
-                // intentar Hex → bytes
-                bool matchHex = false;
-                if (!matchB64 && !string.IsNullOrWhiteSpace(signatureHeader))
-                {
-                    string hex = signatureHeader.Trim().Replace("-", "");
-                    if (hex.Length % 2 == 0)
-                    {
-                        try
-                        {
-                            var sigBytes = new byte[hex.Length / 2];
-                            for (int i = 0; i < sigBytes.Length; i++)
-                                sigBytes[i] = Convert.ToByte(hex.Substring(2 * i, 2), 16);
-
-                            matchHex = CryptographicOperations.FixedTimeEquals(expected, sigBytes);
-                        }
-                        catch { /* no era hex válido */ }
-                    }
-                }
-
-                bool match = matchB64 || matchHex;
-
-
-                if (!match)
-                {
-                    // Registrar intento inválido y devolver 401
-                    using var conErr = new SqlConnection(_cs);
-                    await conErr.OpenAsync();
-                    await conErr.ExecuteAsync(
-                        @"INSERT INTO WebhookLog(RequestId, Payload, Signature, Status, Processed, CreadoEl, ActualizadoEl, Activo)
-                          VALUES(@RequestId, @Payload, @Signature, 'INVALID_SIGNATURE', 0, GETUTCDATE(), GETUTCDATE(), 1)",
-                                new { RequestId = (int?)null, Payload = body, Signature = signatureHeader });
-
-                    return Unauthorized(new { message = "Invalid signature" });
-                }
-            }
-
-            // 5) Extraer requestId si viene en el payload
             int requestId = -1;
+            string? bodySignature = null;
+            string? statusStatus = null;
+            string? statusDate = null;
+
             try
             {
                 using var doc = JsonDocument.Parse(body);
                 var root = doc.RootElement;
-                if (root.TryGetProperty("requestId", out var ridEl) && ridEl.TryGetInt32(out var rid))
-                    requestId = rid;
-                else if (root.TryGetProperty("data", out var dataEl) &&
-                         dataEl.TryGetProperty("requestId", out var ridEl2) && ridEl2.TryGetInt32(out var rid2))
-                    requestId = rid2;
-                else if (root.TryGetProperty("request", out var reqEl) &&
-                         reqEl.TryGetProperty("requestId", out var ridEl3) && ridEl3.TryGetInt32(out var rid3))
-                    requestId = rid3;
+
+                // requestId: int o string
+                if (root.TryGetProperty("requestId", out var ridEl))
+                {
+                    if (ridEl.ValueKind == JsonValueKind.Number && ridEl.TryGetInt32(out var rid))
+                    {
+                        requestId = rid;
+                    }
+                    else if (ridEl.ValueKind == JsonValueKind.String &&
+                             int.TryParse(ridEl.GetString(), out var rid2))
+                    {
+                        requestId = rid2;
+                    }
+                }
+
+                // status.status y status.date
+                if (root.TryGetProperty("status", out var stEl))
+                {
+                    if (stEl.TryGetProperty("status", out var stStatusEl) && stStatusEl.ValueKind == JsonValueKind.String)
+                        statusStatus = stStatusEl.GetString();
+
+                    if (stEl.TryGetProperty("date", out var stDateEl) && stDateEl.ValueKind == JsonValueKind.String)
+                        statusDate = stDateEl.GetString();
+                }
+
+                // signature en el BODY (Checkout)
+                if (root.TryGetProperty("signature", out var sigEl) && sigEl.ValueKind == JsonValueKind.String)
+                    bodySignature = sigEl.GetString();
             }
-            catch { /* no JSON */ }
+            catch
+            {
+                // Si body no es JSON válido, requestId = -1 y sin firma
+            }
+
+            // Firma esperada según Checkout: SHA-256(requestId + status.status + status.date + secretKey)
+            if (verify)
+            {
+                if (requestId <= 0 || string.IsNullOrWhiteSpace(statusStatus) ||
+                    string.IsNullOrWhiteSpace(statusDate) || string.IsNullOrWhiteSpace(bodySignature))
+                {
+                    await InsertInvalidSignatureLog(requestId, body, bodySignature);
+                    return Unauthorized(new { message = "Invalid signature" });
+                }
+
+                var raw = $"{requestId}{statusStatus}{statusDate}{secret}";
+                var received = bodySignature!.Trim();
+
+                bool ok;
+
+                if (received.StartsWith("sha256:", StringComparison.OrdinalIgnoreCase))
+                {
+                    // SHA-256
+                    received = received.Substring("sha256:".Length);
+                    using var sha256 = SHA256.Create();
+                    var hashBytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(raw));
+                    var expectedHex = BitConverter.ToString(hashBytes).Replace("-", "").ToLowerInvariant();
+                    ok = string.Equals(expectedHex, received, StringComparison.OrdinalIgnoreCase);
+                }
+                else
+                {
+                    // SHA-1 (modo legado) -- Para las pruebas. 
+                    using var sha1 = SHA1.Create();
+                    var hashBytes = sha1.ComputeHash(Encoding.UTF8.GetBytes(raw));
+                    var expectedHex = BitConverter.ToString(hashBytes).Replace("-", "").ToLowerInvariant();
+                    ok = string.Equals(expectedHex, received, StringComparison.OrdinalIgnoreCase);
+                }
+
+                if (!ok)
+                {
+                    await InsertInvalidSignatureLog(requestId, body, bodySignature);
+                    return Unauthorized(new { message = "Invalid signature" });
+                }
+            }
 
 
-            // 6) Registrar log 'RECEIVED' y disparar reconsulta oficial (fuente de verdad)
+            // Registrar log 'RECEIVED'
             using var con = new SqlConnection(_cs);
             await con.OpenAsync();
 
             var logId = await con.ExecuteScalarAsync<int>(
-             @"INSERT INTO WebhookLog(RequestId, Payload, Signature, Status, Processed, CreadoEl, ActualizadoEl, Activo)
+                     @"INSERT INTO WebhookLog(RequestId, Payload, Signature, Status, Processed, CreadoEl, ActualizadoEl, Activo)
                OUTPUT INSERTED.Id
                VALUES(@RequestId, @Payload, @Signature, 'RECEIVED', 0, GETUTCDATE(), GETUTCDATE(), 1)",
-                     new { RequestId = requestId > 0 ? requestId : (int?)null, Payload = body, Signature = signatureHeader });
+                 new
+                 {
+                     RequestId = requestId > 0 ? requestId : (int?)null,
+                     Payload = body,
+                     Signature = bodySignature ?? string.Empty
+                 });
 
+            // Disparar reconsulta si tenemos requestId
             if (requestId > 0)
             {
                 var apiBase = $"{Request.Scheme}://{Request.Host}";
                 using var http = new HttpClient();
                 var content = new StringContent(JsonSerializer.Serialize(new { requestId }), Encoding.UTF8, "application/json");
+
                 try
                 {
                     var r = await http.PostAsync($"{apiBase}/api/Transactions/refresh-by-request", content);
                     await con.ExecuteAsync(
-                      "UPDATE WebhookLog SET Status=@S, Processed=@P, ActualizadoEl=GETUTCDATE() WHERE Id=@Id",
-                      new { S = r.IsSuccessStatusCode ? "PROCESSED" : "ERROR", P = r.IsSuccessStatusCode ? 1 : 0, Id = logId });
+                        "UPDATE WebhookLog SET Status=@S, Processed=@P, ActualizadoEl=GETUTCDATE() WHERE Id=@Id",
+                        new { S = r.IsSuccessStatusCode ? "PROCESSED" : "ERROR", P = r.IsSuccessStatusCode ? 1 : 0, Id = logId });
                 }
                 catch
                 {
                     await con.ExecuteAsync(
-                      "UPDATE WebhookLog SET Status='ERROR', Processed=0, ActualizadoEl=GETUTCDATE() WHERE Id=@Id",
-                      new { Id = logId });
+                        "UPDATE WebhookLog SET Status='ERROR', Processed=0, ActualizadoEl=GETUTCDATE() WHERE Id=@Id",
+                        new { Id = logId });
                 }
-
             }
 
             return Ok(new { received = true, requestId });
+        }
+
+        private async Task InsertInvalidSignatureLog(int requestId, string body, string? sig)
+        {
+            using var conErr = new SqlConnection(_cs);
+            await conErr.OpenAsync();
+            await conErr.ExecuteAsync(
+                @"INSERT INTO WebhookLog(RequestId, Payload, Signature, Status, Processed, CreadoEl, ActualizadoEl, Activo)
+          VALUES(@RequestId, @Payload, @Signature, 'INVALID_SIGNATURE', 0, GETUTCDATE(), GETUTCDATE(), 1)",
+                new
+                {
+                    RequestId = requestId > 0 ? requestId : (int?)null,
+                    Payload = body,
+                    Signature = sig ?? string.Empty
+                });
         }
 
 

@@ -26,7 +26,7 @@ namespace BioFXAPI.Controllers
 		}
 
 		[HttpPost("refresh-by-request")]
-        [Authorize]
+        [AllowAnonymous]
         public async Task<IActionResult> RefreshByRequestId([FromBody] RefreshRequest r)
 		{
 			var seed = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:sszzz",System.Globalization.CultureInfo.InvariantCulture);
@@ -73,11 +73,20 @@ namespace BioFXAPI.Controllers
             if (txRow == default) return NotFound(new { message = "No existe transacción." });
 
             // propietario
-            var userId = int.Parse(User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)!.Value);
-            var isMine = await con.ExecuteScalarAsync<int>(
-                "SELECT COUNT(1) FROM [Order] WHERE Id=@Id AND UserId=@Uid AND Activo=1",
-                new { Id = txRow.OrderId, Uid = userId });
-            if (isMine == 0) return Forbid();
+            if (User?.Identity?.IsAuthenticated == true)
+            {
+                var idStr = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+                if (!int.TryParse(idStr, out var userId))
+                {
+                    return Unauthorized(new { message = "Usuario no identificado." });
+                }
+
+                var isMine = await con.ExecuteScalarAsync<int>(
+                    "SELECT COUNT(1) FROM [Order] WHERE Id=@Id AND UserId=@Uid AND Activo=1",
+                    new { Id = txRow.OrderId, Uid = userId });
+
+                if (isMine == 0) return Forbid();
+            }
 
             using var doc = JsonDocument.Parse(payload);
             var status = doc.RootElement.GetProperty("status").GetProperty("status").GetString();

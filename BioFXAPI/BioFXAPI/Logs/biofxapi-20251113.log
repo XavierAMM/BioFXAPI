@@ -1,0 +1,680 @@
+2025-11-13 16:23:40.981 -05:00 [DBG] Registered model binder providers, in the following order: ["Microsoft.AspNetCore.Mvc.ModelBinding.Binders.BinderTypeModelBinderProvider","Microsoft.AspNetCore.Mvc.ModelBinding.Binders.ServicesModelBinderProvider","Microsoft.AspNetCore.Mvc.ModelBinding.Binders.BodyModelBinderProvider","Microsoft.AspNetCore.Mvc.ModelBinding.Binders.HeaderModelBinderProvider","Microsoft.AspNetCore.Mvc.ModelBinding.Binders.FloatingPointTypeModelBinderProvider","Microsoft.AspNetCore.Mvc.ModelBinding.Binders.EnumTypeModelBinderProvider","Microsoft.AspNetCore.Mvc.ModelBinding.Binders.DateTimeModelBinderProvider","Microsoft.AspNetCore.Mvc.ModelBinding.Binders.SimpleTypeModelBinderProvider","Microsoft.AspNetCore.Mvc.ModelBinding.Binders.TryParseModelBinderProvider","Microsoft.AspNetCore.Mvc.ModelBinding.Binders.CancellationTokenModelBinderProvider","Microsoft.AspNetCore.Mvc.ModelBinding.Binders.ByteArrayModelBinderProvider","Microsoft.AspNetCore.Mvc.ModelBinding.Binders.FormFileModelBinderProvider","Microsoft.AspNetCore.Mvc.ModelBinding.Binders.FormCollectionModelBinderProvider","Microsoft.AspNetCore.Mvc.ModelBinding.Binders.KeyValuePairModelBinderProvider","Microsoft.AspNetCore.Mvc.ModelBinding.Binders.DictionaryModelBinderProvider","Microsoft.AspNetCore.Mvc.ModelBinding.Binders.ArrayModelBinderProvider","Microsoft.AspNetCore.Mvc.ModelBinding.Binders.CollectionModelBinderProvider","Microsoft.AspNetCore.Mvc.ModelBinding.Binders.ComplexObjectModelBinderProvider"]
+2025-11-13 16:23:41.153 -05:00 [DBG] Hosting starting
+2025-11-13 16:23:41.203 -05:00 [INF] User profile is available. Using 'C:\Users\xmanc\AppData\Local\ASP.NET\DataProtection-Keys' as key repository and Windows DPAPI to encrypt keys at rest.
+2025-11-13 16:23:41.213 -05:00 [DBG] Reading data from file 'C:\Users\xmanc\AppData\Local\ASP.NET\DataProtection-Keys\key-3390bb48-7b52-40b9-a5cd-8587ed8f0a32.xml'.
+2025-11-13 16:23:41.273 -05:00 [DBG] Found key {3390bb48-7b52-40b9-a5cd-8587ed8f0a32}.
+2025-11-13 16:23:41.286 -05:00 [DBG] Considering key {3390bb48-7b52-40b9-a5cd-8587ed8f0a32} with expiration date 2025-12-03 18:54:05Z as default key.
+2025-11-13 16:23:41.289 -05:00 [DBG] Forwarded activator type request from Microsoft.AspNetCore.DataProtection.XmlEncryption.DpapiXmlDecryptor, Microsoft.AspNetCore.DataProtection, Version=8.0.0.0, Culture=neutral, PublicKeyToken=adb9793829ddae60 to Microsoft.AspNetCore.DataProtection.XmlEncryption.DpapiXmlDecryptor, Microsoft.AspNetCore.DataProtection, Culture=neutral, PublicKeyToken=adb9793829ddae60
+2025-11-13 16:23:41.292 -05:00 [DBG] Decrypting secret element using Windows DPAPI.
+2025-11-13 16:23:41.295 -05:00 [DBG] Forwarded activator type request from Microsoft.AspNetCore.DataProtection.AuthenticatedEncryption.ConfigurationModel.AuthenticatedEncryptorDescriptorDeserializer, Microsoft.AspNetCore.DataProtection, Version=8.0.0.0, Culture=neutral, PublicKeyToken=adb9793829ddae60 to Microsoft.AspNetCore.DataProtection.AuthenticatedEncryption.ConfigurationModel.AuthenticatedEncryptorDescriptorDeserializer, Microsoft.AspNetCore.DataProtection, Culture=neutral, PublicKeyToken=adb9793829ddae60
+2025-11-13 16:23:41.301 -05:00 [DBG] Opening CNG algorithm 'AES' from provider 'null' with chaining mode CBC.
+2025-11-13 16:23:41.306 -05:00 [DBG] Opening CNG algorithm 'SHA256' from provider 'null' with HMAC.
+2025-11-13 16:23:41.311 -05:00 [DBG] Using key {3390bb48-7b52-40b9-a5cd-8587ed8f0a32} as the default key.
+2025-11-13 16:23:41.312 -05:00 [DBG] Key ring with default key {3390bb48-7b52-40b9-a5cd-8587ed8f0a32} was loaded during application startup.
+2025-11-13 16:23:41.321 -05:00 [DBG] Middleware loaded
+2025-11-13 16:23:41.323 -05:00 [DBG] Middleware loaded. Script /_framework/aspnetcore-browser-refresh.js (16501 B).
+2025-11-13 16:23:41.325 -05:00 [DBG] Middleware loaded. Script /_framework/blazor-hotreload.js (799 B).
+2025-11-13 16:23:41.456 -05:00 [DBG] Middleware loaded: DOTNET_MODIFIABLE_ASSEMBLIES=null, __ASPNETCORE_BROWSER_TOOLS=true
+2025-11-13 16:23:41.588 -05:00 [INF] Now listening on: https://localhost:7177
+2025-11-13 16:23:41.590 -05:00 [INF] Now listening on: http://localhost:5160
+2025-11-13 16:23:41.591 -05:00 [DBG] Loaded hosting startup assembly BioFXAPI
+2025-11-13 16:23:41.592 -05:00 [DBG] Loaded hosting startup assembly Microsoft.WebTools.ApiEndpointDiscovery
+2025-11-13 16:23:41.593 -05:00 [DBG] Loaded hosting startup assembly Microsoft.AspNetCore.Watch.BrowserRefresh
+2025-11-13 16:23:41.594 -05:00 [DBG] Loaded hosting startup assembly Microsoft.WebTools.BrowserLink.Net
+2025-11-13 16:23:41.672 -05:00 [INF] Application started. Press Ctrl+C to shut down.
+2025-11-13 16:23:41.674 -05:00 [INF] Hosting environment: Development
+2025-11-13 16:23:41.675 -05:00 [INF] Content root path: C:\Users\xmanc\OneDrive\Desktop\BioFXAPI-Github\BioFXAPI\BioFXAPI
+2025-11-13 16:23:41.676 -05:00 [DBG] Hosting started
+2025-11-13 16:23:41.935 -05:00 [DBG] Connection id "0HNH2VBLM1Q6K" accepted.
+2025-11-13 16:23:41.936 -05:00 [DBG] Connection id "0HNH2VBLM1Q6L" accepted.
+2025-11-13 16:23:41.937 -05:00 [DBG] Connection id "0HNH2VBLM1Q6K" started.
+2025-11-13 16:23:41.938 -05:00 [DBG] Connection id "0HNH2VBLM1Q6L" started.
+2025-11-13 16:23:41.960 -05:00 [DBG] Connection id "0HNH2VBLM1Q6L" received FIN.
+2025-11-13 16:23:41.960 -05:00 [DBG] Connection id "0HNH2VBLM1Q6K" received FIN.
+2025-11-13 16:23:41.977 -05:00 [DBG] Failed to authenticate HTTPS connection.
+System.IO.IOException: Received an unexpected EOF or 0 bytes from the transport stream.
+   at System.Net.Security.SslStream.ReceiveHandshakeFrameAsync[TIOAdapter](CancellationToken cancellationToken)
+   at System.Net.Security.SslStream.ForceAuthenticationAsync[TIOAdapter](Boolean receiveFirst, Byte[] reAuthenticationData, CancellationToken cancellationToken)
+   at System.Net.Security.SslStream.ProcessAuthenticationWithTelemetryAsync(Boolean isAsync, CancellationToken cancellationToken)
+   at Microsoft.AspNetCore.Server.Kestrel.Https.Internal.HttpsConnectionMiddleware.OnConnectionAsync(ConnectionContext context)
+2025-11-13 16:23:41.977 -05:00 [DBG] Failed to authenticate HTTPS connection.
+System.IO.IOException: Received an unexpected EOF or 0 bytes from the transport stream.
+   at System.Net.Security.SslStream.ReceiveHandshakeFrameAsync[TIOAdapter](CancellationToken cancellationToken)
+   at System.Net.Security.SslStream.ForceAuthenticationAsync[TIOAdapter](Boolean receiveFirst, Byte[] reAuthenticationData, CancellationToken cancellationToken)
+   at System.Net.Security.SslStream.ProcessAuthenticationWithTelemetryAsync(Boolean isAsync, CancellationToken cancellationToken)
+   at Microsoft.AspNetCore.Server.Kestrel.Https.Internal.HttpsConnectionMiddleware.OnConnectionAsync(ConnectionContext context)
+2025-11-13 16:23:42.028 -05:00 [DBG] Connection id "0HNH2VBLM1Q6L" stopped.
+2025-11-13 16:23:42.028 -05:00 [DBG] Connection id "0HNH2VBLM1Q6K" stopped.
+2025-11-13 16:23:42.031 -05:00 [DBG] Connection id "0HNH2VBLM1Q6K" sending FIN because: "The Socket transport's send loop completed gracefully."
+2025-11-13 16:23:42.031 -05:00 [DBG] Connection id "0HNH2VBLM1Q6L" sending FIN because: "The Socket transport's send loop completed gracefully."
+2025-11-13 16:23:42.906 -05:00 [DBG] Connection id "0HNH2VBLM1Q6M" accepted.
+2025-11-13 16:23:42.908 -05:00 [DBG] Connection id "0HNH2VBLM1Q6M" started.
+2025-11-13 16:23:43.005 -05:00 [DBG] Connection 0HNH2VBLM1Q6M established using the following protocol: "Tls13"
+2025-11-13 16:23:43.077 -05:00 [INF] Request starting HTTP/2 GET https://localhost:7177/swagger - null null
+2025-11-13 16:23:43.228 -05:00 [DBG] Wildcard detected, all requests with hosts will be allowed.
+2025-11-13 16:23:43.260 -05:00 [DBG] No candidates found for the request path '/swagger'
+2025-11-13 16:23:43.262 -05:00 [DBG] Request did not match any endpoints
+2025-11-13 16:23:43.275 -05:00 [INF] Request finished HTTP/2 GET https://localhost:7177/swagger - 301 0 null 205.7982ms
+2025-11-13 16:23:43.280 -05:00 [INF] Request starting HTTP/2 GET https://localhost:7177/swagger/index.html - null null
+2025-11-13 16:23:43.286 -05:00 [DBG] No candidates found for the request path '/swagger/index.html'
+2025-11-13 16:23:43.287 -05:00 [DBG] Request did not match any endpoints
+2025-11-13 16:23:43.349 -05:00 [DBG] Response markup is scheduled to include Browser Link script injection.
+2025-11-13 16:23:43.351 -05:00 [DBG] Response markup is scheduled to include browser refresh script injection.
+2025-11-13 16:23:43.369 -05:00 [DBG] Response markup was updated to include Browser Link script injection.
+2025-11-13 16:23:43.371 -05:00 [DBG] Response markup was updated to include browser refresh script injection.
+2025-11-13 16:23:43.372 -05:00 [INF] Request finished HTTP/2 GET https://localhost:7177/swagger/index.html - 200 null text/html;charset=utf-8 91.7397ms
+2025-11-13 16:23:43.451 -05:00 [INF] Request starting HTTP/2 GET https://localhost:7177/swagger/swagger-ui-bundle.js - null null
+2025-11-13 16:23:43.451 -05:00 [INF] Request starting HTTP/2 GET https://localhost:7177/_vs/browserLink - null null
+2025-11-13 16:23:43.451 -05:00 [INF] Request starting HTTP/2 GET https://localhost:7177/_framework/aspnetcore-browser-refresh.js - null null
+2025-11-13 16:23:43.451 -05:00 [INF] Request starting HTTP/2 GET https://localhost:7177/swagger/swagger-ui-standalone-preset.js - null null
+2025-11-13 16:23:43.454 -05:00 [DBG] No candidates found for the request path '/swagger/swagger-ui-bundle.js'
+2025-11-13 16:23:43.451 -05:00 [INF] Request starting HTTP/2 GET https://localhost:7177/swagger/swagger-ui.css - null null
+2025-11-13 16:23:43.469 -05:00 [DBG] No candidates found for the request path '/swagger/swagger-ui-standalone-preset.js'
+2025-11-13 16:23:43.479 -05:00 [DBG] Request did not match any endpoints
+2025-11-13 16:23:43.479 -05:00 [DBG] Script injected: /_framework/aspnetcore-browser-refresh.js
+2025-11-13 16:23:43.483 -05:00 [DBG] No candidates found for the request path '/swagger/swagger-ui.css'
+2025-11-13 16:23:43.484 -05:00 [DBG] Request did not match any endpoints
+2025-11-13 16:23:43.486 -05:00 [INF] Request finished HTTP/2 GET https://localhost:7177/_framework/aspnetcore-browser-refresh.js - 200 16501 application/javascript; charset=utf-8 34.9051ms
+2025-11-13 16:23:43.487 -05:00 [DBG] Request did not match any endpoints
+2025-11-13 16:23:43.519 -05:00 [INF] Sending file. Request path: '/swagger-ui.css'. Physical path: 'N/A'
+2025-11-13 16:23:43.519 -05:00 [INF] Sending file. Request path: '/swagger-ui-standalone-preset.js'. Physical path: 'N/A'
+2025-11-13 16:23:43.524 -05:00 [INF] Request finished HTTP/2 GET https://localhost:7177/swagger/swagger-ui.css - 200 152034 text/css 73.2417ms
+2025-11-13 16:23:43.526 -05:00 [INF] Request finished HTTP/2 GET https://localhost:7177/swagger/swagger-ui-standalone-preset.js - 200 230280 text/javascript 74.3705ms
+2025-11-13 16:23:43.554 -05:00 [INF] Request finished HTTP/2 GET https://localhost:7177/_vs/browserLink - 200 null text/javascript; charset=UTF-8 102.3055ms
+2025-11-13 16:23:43.571 -05:00 [INF] Sending file. Request path: '/swagger-ui-bundle.js'. Physical path: 'N/A'
+2025-11-13 16:23:43.573 -05:00 [INF] Request finished HTTP/2 GET https://localhost:7177/swagger/swagger-ui-bundle.js - 200 1456926 text/javascript 121.7375ms
+2025-11-13 16:23:43.738 -05:00 [INF] Request starting HTTP/2 GET https://localhost:7177/swagger/v1/swagger.json - null null
+2025-11-13 16:23:43.744 -05:00 [DBG] No candidates found for the request path '/swagger/v1/swagger.json'
+2025-11-13 16:23:43.746 -05:00 [DBG] Request did not match any endpoints
+2025-11-13 16:23:43.768 -05:00 [INF] Request finished HTTP/2 GET https://localhost:7177/swagger/v1/swagger.json - 200 null application/json;charset=utf-8 29.8453ms
+2025-11-13 16:23:56.993 -05:00 [INF] Request starting HTTP/2 POST https://localhost:7177/api/Auth/login - application/json 69
+2025-11-13 16:23:57.004 -05:00 [DBG] 1 candidate(s) found for the request path '/api/Auth/login'
+2025-11-13 16:23:57.008 -05:00 [DBG] Endpoint 'BioFXAPI.Controllers.AuthController.Login (BioFXAPI)' with route pattern 'api/Auth/login' is valid for the request path '/api/Auth/login'
+2025-11-13 16:23:57.010 -05:00 [DBG] Request matched endpoint 'BioFXAPI.Controllers.AuthController.Login (BioFXAPI)'
+2025-11-13 16:23:57.013 -05:00 [DBG] Static files was skipped as the request already matched an endpoint.
+2025-11-13 16:23:57.014 -05:00 [DBG] The request has an origin header: 'https://localhost:7177'.
+2025-11-13 16:23:57.015 -05:00 [INF] CORS policy execution failed.
+2025-11-13 16:23:57.016 -05:00 [INF] Request origin https://localhost:7177 does not have permission to access the resource.
+2025-11-13 16:23:57.104 -05:00 [DBG] AuthenticationScheme: Bearer was not authenticated.
+2025-11-13 16:23:57.109 -05:00 [INF] Executing endpoint 'BioFXAPI.Controllers.AuthController.Login (BioFXAPI)'
+2025-11-13 16:23:57.141 -05:00 [INF] Route matched with {action = "Login", controller = "Auth"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] Login(BioFXAPI.Models.LoginRequest) on controller BioFXAPI.Controllers.AuthController (BioFXAPI).
+2025-11-13 16:23:57.144 -05:00 [DBG] Execution plan of authorization filters (in the following order): ["None"]
+2025-11-13 16:23:57.146 -05:00 [DBG] Execution plan of resource filters (in the following order): ["None"]
+2025-11-13 16:23:57.148 -05:00 [DBG] Execution plan of action filters (in the following order): ["Microsoft.AspNetCore.Mvc.ModelBinding.UnsupportedContentTypeFilter (Order: -3000)","Microsoft.AspNetCore.Mvc.Infrastructure.ModelStateInvalidFilter (Order: -2000)"]
+2025-11-13 16:23:57.150 -05:00 [DBG] Execution plan of exception filters (in the following order): ["None"]
+2025-11-13 16:23:57.151 -05:00 [DBG] Execution plan of result filters (in the following order): ["Microsoft.AspNetCore.Mvc.Infrastructure.ClientErrorResultFilter (Order: -2000)"]
+2025-11-13 16:23:57.155 -05:00 [DBG] Executing controller factory for controller BioFXAPI.Controllers.AuthController (BioFXAPI)
+2025-11-13 16:23:57.157 -05:00 [DBG] Executed controller factory for controller BioFXAPI.Controllers.AuthController (BioFXAPI)
+2025-11-13 16:23:57.172 -05:00 [DBG] Attempting to bind parameter 'request' of type 'BioFXAPI.Models.LoginRequest' ...
+2025-11-13 16:23:57.176 -05:00 [DBG] Attempting to bind parameter 'request' of type 'BioFXAPI.Models.LoginRequest' using the name '' in request data ...
+2025-11-13 16:23:57.179 -05:00 [DBG] Selected input formatter 'Microsoft.AspNetCore.Mvc.Formatters.SystemTextJsonInputFormatter' for content type 'application/json'.
+2025-11-13 16:23:57.187 -05:00 [DBG] Connection id "0HNH2VBLM1Q6M", Request id "0HNH2VBLM1Q6M:00000011": started reading request body.
+2025-11-13 16:23:57.189 -05:00 [DBG] Connection id "0HNH2VBLM1Q6M", Request id "0HNH2VBLM1Q6M:00000011": done reading request body.
+2025-11-13 16:23:57.200 -05:00 [DBG] JSON input formatter succeeded, deserializing to type 'BioFXAPI.Models.LoginRequest'
+2025-11-13 16:23:57.201 -05:00 [DBG] Done attempting to bind parameter 'request' of type 'BioFXAPI.Models.LoginRequest'.
+2025-11-13 16:23:57.203 -05:00 [DBG] Done attempting to bind parameter 'request' of type 'BioFXAPI.Models.LoginRequest'.
+2025-11-13 16:23:57.204 -05:00 [DBG] Attempting to validate the bound parameter 'request' of type 'BioFXAPI.Models.LoginRequest' ...
+2025-11-13 16:23:57.213 -05:00 [DBG] Done attempting to validate the bound parameter 'request' of type 'BioFXAPI.Models.LoginRequest'.
+2025-11-13 16:23:58.726 -05:00 [DBG] List of registered output formatters, in the following order: ["Microsoft.AspNetCore.Mvc.Formatters.HttpNoContentOutputFormatter","Microsoft.AspNetCore.Mvc.Formatters.StringOutputFormatter","Microsoft.AspNetCore.Mvc.Formatters.StreamOutputFormatter","Microsoft.AspNetCore.Mvc.Formatters.SystemTextJsonOutputFormatter"]
+2025-11-13 16:23:58.729 -05:00 [DBG] No information found on request to perform content negotiation.
+2025-11-13 16:23:58.730 -05:00 [DBG] Attempting to select an output formatter without using a content type as no explicit content types were specified for the response.
+2025-11-13 16:23:58.731 -05:00 [DBG] Attempting to select the first formatter in the output formatters list which can write the result.
+2025-11-13 16:23:58.732 -05:00 [DBG] Selected output formatter 'Microsoft.AspNetCore.Mvc.Formatters.SystemTextJsonOutputFormatter' and content type 'application/json' to write the response.
+2025-11-13 16:23:58.733 -05:00 [INF] Executing OkObjectResult, writing value of type 'BioFXAPI.Models.LoginResponse'.
+2025-11-13 16:23:58.748 -05:00 [INF] Executed action BioFXAPI.Controllers.AuthController.Login (BioFXAPI) in 1592.6074ms
+2025-11-13 16:23:58.750 -05:00 [INF] Executed endpoint 'BioFXAPI.Controllers.AuthController.Login (BioFXAPI)'
+2025-11-13 16:23:58.752 -05:00 [INF] Request finished HTTP/2 POST https://localhost:7177/api/Auth/login - 200 null application/json; charset=utf-8 1759.1279ms
+2025-11-13 16:24:26.727 -05:00 [INF] Request starting HTTP/2 POST https://localhost:7177/api/WebhookLogs/placetopay - null 0
+2025-11-13 16:24:26.732 -05:00 [DBG] 1 candidate(s) found for the request path '/api/WebhookLogs/placetopay'
+2025-11-13 16:24:26.733 -05:00 [DBG] Endpoint 'BioFXAPI.Controllers.WebhookLogsController.ReceivePlacetoPay (BioFXAPI)' with route pattern 'api/WebhookLogs/placetopay' is valid for the request path '/api/WebhookLogs/placetopay'
+2025-11-13 16:24:26.735 -05:00 [DBG] Request matched endpoint 'BioFXAPI.Controllers.WebhookLogsController.ReceivePlacetoPay (BioFXAPI)'
+2025-11-13 16:24:26.736 -05:00 [DBG] Static files was skipped as the request already matched an endpoint.
+2025-11-13 16:24:26.738 -05:00 [DBG] The request has an origin header: 'https://localhost:7177'.
+2025-11-13 16:24:26.739 -05:00 [INF] CORS policy execution failed.
+2025-11-13 16:24:26.740 -05:00 [INF] Request origin https://localhost:7177 does not have permission to access the resource.
+2025-11-13 16:24:26.773 -05:00 [DBG] Successfully validated the token.
+2025-11-13 16:24:26.774 -05:00 [DBG] AuthenticationScheme: Bearer was successfully authenticated.
+2025-11-13 16:24:26.776 -05:00 [INF] Executing endpoint 'BioFXAPI.Controllers.WebhookLogsController.ReceivePlacetoPay (BioFXAPI)'
+2025-11-13 16:24:26.781 -05:00 [INF] Route matched with {action = "ReceivePlacetoPay", controller = "WebhookLogs"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] ReceivePlacetoPay() on controller BioFXAPI.Controllers.WebhookLogsController (BioFXAPI).
+2025-11-13 16:24:26.783 -05:00 [DBG] Execution plan of authorization filters (in the following order): ["None"]
+2025-11-13 16:24:26.784 -05:00 [DBG] Execution plan of resource filters (in the following order): ["None"]
+2025-11-13 16:24:26.785 -05:00 [DBG] Execution plan of action filters (in the following order): ["Microsoft.AspNetCore.Mvc.ModelBinding.UnsupportedContentTypeFilter (Order: -3000)","Microsoft.AspNetCore.Mvc.Infrastructure.ModelStateInvalidFilter (Order: -2000)"]
+2025-11-13 16:24:26.787 -05:00 [DBG] Execution plan of exception filters (in the following order): ["None"]
+2025-11-13 16:24:26.789 -05:00 [DBG] Execution plan of result filters (in the following order): ["Microsoft.AspNetCore.Mvc.Infrastructure.ClientErrorResultFilter (Order: -2000)"]
+2025-11-13 16:24:26.790 -05:00 [DBG] Executing controller factory for controller BioFXAPI.Controllers.WebhookLogsController (BioFXAPI)
+2025-11-13 16:24:26.791 -05:00 [DBG] Executed controller factory for controller BioFXAPI.Controllers.WebhookLogsController (BioFXAPI)
+2025-11-13 16:24:27.237 -05:00 [INF] Executed action BioFXAPI.Controllers.WebhookLogsController.ReceivePlacetoPay (BioFXAPI) in 447.1325ms
+2025-11-13 16:24:27.238 -05:00 [INF] Executed endpoint 'BioFXAPI.Controllers.WebhookLogsController.ReceivePlacetoPay (BioFXAPI)'
+2025-11-13 16:24:27.241 -05:00 [ERR] An unhandled exception has occurred while executing the request.
+System.Data.SqlClient.SqlException (0x80131904): Cannot insert the value NULL into column 'RequestId', table 'BioFXBD.dbo.WebhookLog'; column does not allow nulls. INSERT fails.
+The statement has been terminated.
+   at System.Data.SqlClient.SqlConnection.OnError(SqlException exception, Boolean breakConnection, Action`1 wrapCloseInAction)
+   at System.Data.SqlClient.SqlInternalConnection.OnError(SqlException exception, Boolean breakConnection, Action`1 wrapCloseInAction)
+   at System.Data.SqlClient.TdsParser.ThrowExceptionAndWarning(TdsParserStateObject stateObj, Boolean callerHasConnectionLock, Boolean asyncClose)
+   at System.Data.SqlClient.TdsParser.TryRun(RunBehavior runBehavior, SqlCommand cmdHandler, SqlDataReader dataStream, BulkCopySimpleResultSet bulkCopyHandler, TdsParserStateObject stateObj, Boolean& dataReady)
+   at System.Data.SqlClient.SqlCommand.FinishExecuteReader(SqlDataReader ds, RunBehavior runBehavior, String resetOptionsString)
+   at System.Data.SqlClient.SqlCommand.CompleteAsyncExecuteReader()
+   at System.Data.SqlClient.SqlCommand.EndExecuteNonQueryInternal(IAsyncResult asyncResult)
+   at System.Data.SqlClient.SqlCommand.EndExecuteNonQuery(IAsyncResult asyncResult)
+   at System.Threading.Tasks.TaskFactory`1.FromAsyncCoreLogic(IAsyncResult iar, Func`2 endFunction, Action`1 endAction, Task`1 promise, Boolean requiresSynchronization)
+--- End of stack trace from previous location ---
+   at Dapper.SqlMapper.ExecuteImplAsync(IDbConnection cnn, CommandDefinition command, Object param) in /_/Dapper/SqlMapper.Async.cs:line 662
+   at BioFXAPI.Controllers.WebhookLogsController.ReceivePlacetoPay() in C:\Users\xmanc\OneDrive\Desktop\BioFXAPI-Github\BioFXAPI\BioFXAPI\Controllers\WebhookLogsController.cs:line 86
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ActionMethodExecutor.TaskOfIActionResultExecutor.Execute(ActionContext actionContext, IActionResultTypeMapper mapper, ObjectMethodExecutor executor, Object controller, Object[] arguments)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.<InvokeActionMethodAsync>g__Awaited|12_0(ControllerActionInvoker invoker, ValueTask`1 actionResultValueTask)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.<InvokeNextActionFilterAsync>g__Awaited|10_0(ControllerActionInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.Rethrow(ActionExecutedContextSealed context)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.Next(State& next, Scope& scope, Object& state, Boolean& isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.<InvokeInnerFilterAsync>g__Awaited|13_0(ControllerActionInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeFilterPipelineAsync>g__Awaited|20_0(ResourceInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeAsync>g__Logged|17_1(ResourceInvoker invoker)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeAsync>g__Logged|17_1(ResourceInvoker invoker)
+   at Microsoft.AspNetCore.Routing.EndpointMiddleware.<Invoke>g__AwaitRequestTask|7_0(Endpoint endpoint, Task requestTask, ILogger logger)
+   at Microsoft.AspNetCore.Authorization.AuthorizationMiddleware.Invoke(HttpContext context)
+   at Microsoft.AspNetCore.Authentication.AuthenticationMiddleware.Invoke(HttpContext context)
+   at Program.<>c.<<<Main>$>b__0_7>d.MoveNext() in C:\Users\xmanc\OneDrive\Desktop\BioFXAPI-Github\BioFXAPI\BioFXAPI\Program.cs:line 197
+--- End of stack trace from previous location ---
+   at Microsoft.AspNetCore.RateLimiting.RateLimitingMiddleware.InvokeInternal(HttpContext context, EnableRateLimitingAttribute enableRateLimitingAttribute)
+   at Swashbuckle.AspNetCore.SwaggerUI.SwaggerUIMiddleware.Invoke(HttpContext httpContext)
+   at Swashbuckle.AspNetCore.Swagger.SwaggerMiddleware.Invoke(HttpContext httpContext, ISwaggerProvider swaggerProvider)
+   at Microsoft.AspNetCore.Diagnostics.DeveloperExceptionPageMiddlewareImpl.Invoke(HttpContext context)
+ClientConnectionId:2dc34a89-23c1-4156-98d5-1990dae1170a
+Error Number:515,State:2,Class:16
+2025-11-13 16:24:27.310 -05:00 [INF] Request finished HTTP/2 POST https://localhost:7177/api/WebhookLogs/placetopay - 500 null text/plain; charset=utf-8 583.1136ms
+2025-11-13 16:34:04.326 -05:00 [DBG] Registered model binder providers, in the following order: ["Microsoft.AspNetCore.Mvc.ModelBinding.Binders.BinderTypeModelBinderProvider","Microsoft.AspNetCore.Mvc.ModelBinding.Binders.ServicesModelBinderProvider","Microsoft.AspNetCore.Mvc.ModelBinding.Binders.BodyModelBinderProvider","Microsoft.AspNetCore.Mvc.ModelBinding.Binders.HeaderModelBinderProvider","Microsoft.AspNetCore.Mvc.ModelBinding.Binders.FloatingPointTypeModelBinderProvider","Microsoft.AspNetCore.Mvc.ModelBinding.Binders.EnumTypeModelBinderProvider","Microsoft.AspNetCore.Mvc.ModelBinding.Binders.DateTimeModelBinderProvider","Microsoft.AspNetCore.Mvc.ModelBinding.Binders.SimpleTypeModelBinderProvider","Microsoft.AspNetCore.Mvc.ModelBinding.Binders.TryParseModelBinderProvider","Microsoft.AspNetCore.Mvc.ModelBinding.Binders.CancellationTokenModelBinderProvider","Microsoft.AspNetCore.Mvc.ModelBinding.Binders.ByteArrayModelBinderProvider","Microsoft.AspNetCore.Mvc.ModelBinding.Binders.FormFileModelBinderProvider","Microsoft.AspNetCore.Mvc.ModelBinding.Binders.FormCollectionModelBinderProvider","Microsoft.AspNetCore.Mvc.ModelBinding.Binders.KeyValuePairModelBinderProvider","Microsoft.AspNetCore.Mvc.ModelBinding.Binders.DictionaryModelBinderProvider","Microsoft.AspNetCore.Mvc.ModelBinding.Binders.ArrayModelBinderProvider","Microsoft.AspNetCore.Mvc.ModelBinding.Binders.CollectionModelBinderProvider","Microsoft.AspNetCore.Mvc.ModelBinding.Binders.ComplexObjectModelBinderProvider"]
+2025-11-13 16:34:04.423 -05:00 [DBG] Hosting starting
+2025-11-13 16:34:04.449 -05:00 [INF] User profile is available. Using 'C:\Users\xmanc\AppData\Local\ASP.NET\DataProtection-Keys' as key repository and Windows DPAPI to encrypt keys at rest.
+2025-11-13 16:34:04.458 -05:00 [DBG] Reading data from file 'C:\Users\xmanc\AppData\Local\ASP.NET\DataProtection-Keys\key-3390bb48-7b52-40b9-a5cd-8587ed8f0a32.xml'.
+2025-11-13 16:34:04.465 -05:00 [DBG] Found key {3390bb48-7b52-40b9-a5cd-8587ed8f0a32}.
+2025-11-13 16:34:04.472 -05:00 [DBG] Considering key {3390bb48-7b52-40b9-a5cd-8587ed8f0a32} with expiration date 2025-12-03 18:54:05Z as default key.
+2025-11-13 16:34:04.475 -05:00 [DBG] Forwarded activator type request from Microsoft.AspNetCore.DataProtection.XmlEncryption.DpapiXmlDecryptor, Microsoft.AspNetCore.DataProtection, Version=8.0.0.0, Culture=neutral, PublicKeyToken=adb9793829ddae60 to Microsoft.AspNetCore.DataProtection.XmlEncryption.DpapiXmlDecryptor, Microsoft.AspNetCore.DataProtection, Culture=neutral, PublicKeyToken=adb9793829ddae60
+2025-11-13 16:34:04.478 -05:00 [DBG] Decrypting secret element using Windows DPAPI.
+2025-11-13 16:34:04.480 -05:00 [DBG] Forwarded activator type request from Microsoft.AspNetCore.DataProtection.AuthenticatedEncryption.ConfigurationModel.AuthenticatedEncryptorDescriptorDeserializer, Microsoft.AspNetCore.DataProtection, Version=8.0.0.0, Culture=neutral, PublicKeyToken=adb9793829ddae60 to Microsoft.AspNetCore.DataProtection.AuthenticatedEncryption.ConfigurationModel.AuthenticatedEncryptorDescriptorDeserializer, Microsoft.AspNetCore.DataProtection, Culture=neutral, PublicKeyToken=adb9793829ddae60
+2025-11-13 16:34:04.484 -05:00 [DBG] Opening CNG algorithm 'AES' from provider 'null' with chaining mode CBC.
+2025-11-13 16:34:04.488 -05:00 [DBG] Opening CNG algorithm 'SHA256' from provider 'null' with HMAC.
+2025-11-13 16:34:04.492 -05:00 [DBG] Using key {3390bb48-7b52-40b9-a5cd-8587ed8f0a32} as the default key.
+2025-11-13 16:34:04.493 -05:00 [DBG] Key ring with default key {3390bb48-7b52-40b9-a5cd-8587ed8f0a32} was loaded during application startup.
+2025-11-13 16:34:04.499 -05:00 [DBG] Middleware loaded
+2025-11-13 16:34:04.501 -05:00 [DBG] Middleware loaded. Script /_framework/aspnetcore-browser-refresh.js (16501 B).
+2025-11-13 16:34:04.502 -05:00 [DBG] Middleware loaded. Script /_framework/blazor-hotreload.js (799 B).
+2025-11-13 16:34:04.564 -05:00 [DBG] Middleware loaded: DOTNET_MODIFIABLE_ASSEMBLIES=null, __ASPNETCORE_BROWSER_TOOLS=true
+2025-11-13 16:34:04.660 -05:00 [INF] Now listening on: https://localhost:7177
+2025-11-13 16:34:04.662 -05:00 [INF] Now listening on: http://localhost:5160
+2025-11-13 16:34:04.663 -05:00 [DBG] Loaded hosting startup assembly BioFXAPI
+2025-11-13 16:34:04.664 -05:00 [DBG] Loaded hosting startup assembly Microsoft.WebTools.ApiEndpointDiscovery
+2025-11-13 16:34:04.665 -05:00 [DBG] Loaded hosting startup assembly Microsoft.AspNetCore.Watch.BrowserRefresh
+2025-11-13 16:34:04.666 -05:00 [DBG] Loaded hosting startup assembly Microsoft.WebTools.BrowserLink.Net
+2025-11-13 16:34:04.759 -05:00 [INF] Application started. Press Ctrl+C to shut down.
+2025-11-13 16:34:04.760 -05:00 [INF] Hosting environment: Development
+2025-11-13 16:34:04.761 -05:00 [INF] Content root path: C:\Users\xmanc\OneDrive\Desktop\BioFXAPI-Github\BioFXAPI\BioFXAPI
+2025-11-13 16:34:04.762 -05:00 [DBG] Hosting started
+2025-11-13 16:34:05.103 -05:00 [DBG] Connection id "0HNH2VHFD1KGE" accepted.
+2025-11-13 16:34:05.103 -05:00 [DBG] Connection id "0HNH2VHFD1KGD" accepted.
+2025-11-13 16:34:05.105 -05:00 [DBG] Connection id "0HNH2VHFD1KGE" started.
+2025-11-13 16:34:05.106 -05:00 [DBG] Connection id "0HNH2VHFD1KGD" started.
+2025-11-13 16:34:05.125 -05:00 [DBG] Connection id "0HNH2VHFD1KGD" received FIN.
+2025-11-13 16:34:05.125 -05:00 [DBG] Connection id "0HNH2VHFD1KGE" received FIN.
+2025-11-13 16:34:05.137 -05:00 [DBG] Failed to authenticate HTTPS connection.
+System.IO.IOException: Received an unexpected EOF or 0 bytes from the transport stream.
+   at System.Net.Security.SslStream.ReceiveHandshakeFrameAsync[TIOAdapter](CancellationToken cancellationToken)
+   at System.Net.Security.SslStream.ForceAuthenticationAsync[TIOAdapter](Boolean receiveFirst, Byte[] reAuthenticationData, CancellationToken cancellationToken)
+   at System.Net.Security.SslStream.ProcessAuthenticationWithTelemetryAsync(Boolean isAsync, CancellationToken cancellationToken)
+   at Microsoft.AspNetCore.Server.Kestrel.Https.Internal.HttpsConnectionMiddleware.OnConnectionAsync(ConnectionContext context)
+2025-11-13 16:34:05.137 -05:00 [DBG] Failed to authenticate HTTPS connection.
+System.IO.IOException: Received an unexpected EOF or 0 bytes from the transport stream.
+   at System.Net.Security.SslStream.ReceiveHandshakeFrameAsync[TIOAdapter](CancellationToken cancellationToken)
+   at System.Net.Security.SslStream.ForceAuthenticationAsync[TIOAdapter](Boolean receiveFirst, Byte[] reAuthenticationData, CancellationToken cancellationToken)
+   at System.Net.Security.SslStream.ProcessAuthenticationWithTelemetryAsync(Boolean isAsync, CancellationToken cancellationToken)
+   at Microsoft.AspNetCore.Server.Kestrel.Https.Internal.HttpsConnectionMiddleware.OnConnectionAsync(ConnectionContext context)
+2025-11-13 16:34:05.161 -05:00 [DBG] Connection id "0HNH2VHFD1KGD" stopped.
+2025-11-13 16:34:05.161 -05:00 [DBG] Connection id "0HNH2VHFD1KGE" stopped.
+2025-11-13 16:34:05.164 -05:00 [DBG] Connection id "0HNH2VHFD1KGD" sending FIN because: "The Socket transport's send loop completed gracefully."
+2025-11-13 16:34:05.164 -05:00 [DBG] Connection id "0HNH2VHFD1KGE" sending FIN because: "The Socket transport's send loop completed gracefully."
+2025-11-13 16:34:05.329 -05:00 [DBG] Connection id "0HNH2VHFD1KGF" accepted.
+2025-11-13 16:34:05.330 -05:00 [DBG] Connection id "0HNH2VHFD1KGF" started.
+2025-11-13 16:34:05.363 -05:00 [DBG] Connection 0HNH2VHFD1KGF established using the following protocol: "Tls13"
+2025-11-13 16:34:05.563 -05:00 [INF] Request starting HTTP/2 GET https://localhost:7177/swagger/index.html - null null
+2025-11-13 16:34:05.666 -05:00 [DBG] Wildcard detected, all requests with hosts will be allowed.
+2025-11-13 16:34:05.699 -05:00 [DBG] No candidates found for the request path '/swagger/index.html'
+2025-11-13 16:34:05.701 -05:00 [DBG] Request did not match any endpoints
+2025-11-13 16:34:05.766 -05:00 [DBG] Response markup is scheduled to include Browser Link script injection.
+2025-11-13 16:34:05.770 -05:00 [DBG] Response markup is scheduled to include browser refresh script injection.
+2025-11-13 16:34:05.790 -05:00 [DBG] Response markup was updated to include Browser Link script injection.
+2025-11-13 16:34:05.792 -05:00 [DBG] Response markup was updated to include browser refresh script injection.
+2025-11-13 16:34:05.796 -05:00 [INF] Request finished HTTP/2 GET https://localhost:7177/swagger/index.html - 200 null text/html;charset=utf-8 242.1477ms
+2025-11-13 16:34:05.899 -05:00 [INF] Request starting HTTP/2 GET https://localhost:7177/_framework/aspnetcore-browser-refresh.js - null null
+2025-11-13 16:34:05.907 -05:00 [DBG] Script injected: /_framework/aspnetcore-browser-refresh.js
+2025-11-13 16:34:05.909 -05:00 [INF] Request finished HTTP/2 GET https://localhost:7177/_framework/aspnetcore-browser-refresh.js - 200 16501 application/javascript; charset=utf-8 9.6809ms
+2025-11-13 16:34:05.914 -05:00 [INF] Request starting HTTP/2 GET https://localhost:7177/_vs/browserLink - null null
+2025-11-13 16:34:05.971 -05:00 [INF] Request finished HTTP/2 GET https://localhost:7177/_vs/browserLink - 200 null text/javascript; charset=UTF-8 57.6341ms
+2025-11-13 16:34:06.184 -05:00 [INF] Request starting HTTP/2 GET https://localhost:7177/swagger/v1/swagger.json - null null
+2025-11-13 16:34:06.187 -05:00 [DBG] No candidates found for the request path '/swagger/v1/swagger.json'
+2025-11-13 16:34:06.188 -05:00 [DBG] Request did not match any endpoints
+2025-11-13 16:34:06.205 -05:00 [INF] Request finished HTTP/2 GET https://localhost:7177/swagger/v1/swagger.json - 200 null application/json;charset=utf-8 21.8011ms
+2025-11-13 16:34:19.366 -05:00 [INF] Request starting HTTP/2 GET https://localhost:7177/api/Productos - null null
+2025-11-13 16:34:19.376 -05:00 [DBG] 1 candidate(s) found for the request path '/api/Productos'
+2025-11-13 16:34:19.381 -05:00 [DBG] Endpoint 'BioFXAPI.Controllers.ProductosController.GetProductos (BioFXAPI)' with route pattern 'api/Productos' is valid for the request path '/api/Productos'
+2025-11-13 16:34:19.383 -05:00 [DBG] Request matched endpoint 'BioFXAPI.Controllers.ProductosController.GetProductos (BioFXAPI)'
+2025-11-13 16:34:19.385 -05:00 [DBG] Static files was skipped as the request already matched an endpoint.
+2025-11-13 16:34:19.486 -05:00 [DBG] Successfully validated the token.
+2025-11-13 16:34:19.488 -05:00 [DBG] AuthenticationScheme: Bearer was successfully authenticated.
+2025-11-13 16:34:19.491 -05:00 [INF] Executing endpoint 'BioFXAPI.Controllers.ProductosController.GetProductos (BioFXAPI)'
+2025-11-13 16:34:19.510 -05:00 [INF] Route matched with {action = "GetProductos", controller = "Productos"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] GetProductos() on controller BioFXAPI.Controllers.ProductosController (BioFXAPI).
+2025-11-13 16:34:19.513 -05:00 [DBG] Execution plan of authorization filters (in the following order): ["None"]
+2025-11-13 16:34:19.515 -05:00 [DBG] Execution plan of resource filters (in the following order): ["None"]
+2025-11-13 16:34:19.516 -05:00 [DBG] Execution plan of action filters (in the following order): ["Microsoft.AspNetCore.Mvc.ModelBinding.UnsupportedContentTypeFilter (Order: -3000)","Microsoft.AspNetCore.Mvc.Infrastructure.ModelStateInvalidFilter (Order: -2000)"]
+2025-11-13 16:34:19.518 -05:00 [DBG] Execution plan of exception filters (in the following order): ["None"]
+2025-11-13 16:34:19.519 -05:00 [DBG] Execution plan of result filters (in the following order): ["Microsoft.AspNetCore.Mvc.Infrastructure.ClientErrorResultFilter (Order: -2000)"]
+2025-11-13 16:34:19.521 -05:00 [DBG] Executing controller factory for controller BioFXAPI.Controllers.ProductosController (BioFXAPI)
+2025-11-13 16:34:19.523 -05:00 [DBG] Executed controller factory for controller BioFXAPI.Controllers.ProductosController (BioFXAPI)
+2025-11-13 16:34:20.995 -05:00 [DBG] List of registered output formatters, in the following order: ["Microsoft.AspNetCore.Mvc.Formatters.HttpNoContentOutputFormatter","Microsoft.AspNetCore.Mvc.Formatters.StringOutputFormatter","Microsoft.AspNetCore.Mvc.Formatters.StreamOutputFormatter","Microsoft.AspNetCore.Mvc.Formatters.SystemTextJsonOutputFormatter"]
+2025-11-13 16:34:20.998 -05:00 [DBG] No information found on request to perform content negotiation.
+2025-11-13 16:34:20.999 -05:00 [DBG] Attempting to select an output formatter without using a content type as no explicit content types were specified for the response.
+2025-11-13 16:34:20.999 -05:00 [DBG] Attempting to select the first formatter in the output formatters list which can write the result.
+2025-11-13 16:34:21.000 -05:00 [DBG] Selected output formatter 'Microsoft.AspNetCore.Mvc.Formatters.SystemTextJsonOutputFormatter' and content type 'application/json' to write the response.
+2025-11-13 16:34:21.001 -05:00 [INF] Executing OkObjectResult, writing value of type 'System.Collections.Generic.List`1[[BioFXAPI.Models.Producto, BioFXAPI, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]]'.
+2025-11-13 16:34:21.025 -05:00 [INF] Executed action BioFXAPI.Controllers.ProductosController.GetProductos (BioFXAPI) in 1502.8264ms
+2025-11-13 16:34:21.027 -05:00 [INF] Executed endpoint 'BioFXAPI.Controllers.ProductosController.GetProductos (BioFXAPI)'
+2025-11-13 16:34:21.028 -05:00 [INF] Request finished HTTP/2 GET https://localhost:7177/api/Productos - 200 null application/json; charset=utf-8 1662.1974ms
+2025-11-13 16:34:36.951 -05:00 [INF] Request starting HTTP/2 POST https://localhost:7177/api/WebhookLogs/placetopay - null 0
+2025-11-13 16:34:36.956 -05:00 [DBG] 1 candidate(s) found for the request path '/api/WebhookLogs/placetopay'
+2025-11-13 16:34:36.958 -05:00 [DBG] Endpoint 'BioFXAPI.Controllers.WebhookLogsController.ReceivePlacetoPay (BioFXAPI)' with route pattern 'api/WebhookLogs/placetopay' is valid for the request path '/api/WebhookLogs/placetopay'
+2025-11-13 16:34:36.959 -05:00 [DBG] Request matched endpoint 'BioFXAPI.Controllers.WebhookLogsController.ReceivePlacetoPay (BioFXAPI)'
+2025-11-13 16:34:36.961 -05:00 [DBG] Static files was skipped as the request already matched an endpoint.
+2025-11-13 16:34:36.962 -05:00 [DBG] The request has an origin header: 'https://localhost:7177'.
+2025-11-13 16:34:36.963 -05:00 [INF] CORS policy execution failed.
+2025-11-13 16:34:36.964 -05:00 [INF] Request origin https://localhost:7177 does not have permission to access the resource.
+2025-11-13 16:34:36.967 -05:00 [DBG] Successfully validated the token.
+2025-11-13 16:34:36.968 -05:00 [DBG] AuthenticationScheme: Bearer was successfully authenticated.
+2025-11-13 16:34:36.969 -05:00 [INF] Executing endpoint 'BioFXAPI.Controllers.WebhookLogsController.ReceivePlacetoPay (BioFXAPI)'
+2025-11-13 16:34:36.974 -05:00 [INF] Route matched with {action = "ReceivePlacetoPay", controller = "WebhookLogs"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] ReceivePlacetoPay() on controller BioFXAPI.Controllers.WebhookLogsController (BioFXAPI).
+2025-11-13 16:34:36.975 -05:00 [DBG] Execution plan of authorization filters (in the following order): ["None"]
+2025-11-13 16:34:36.976 -05:00 [DBG] Execution plan of resource filters (in the following order): ["None"]
+2025-11-13 16:34:36.978 -05:00 [DBG] Execution plan of action filters (in the following order): ["Microsoft.AspNetCore.Mvc.ModelBinding.UnsupportedContentTypeFilter (Order: -3000)","Microsoft.AspNetCore.Mvc.Infrastructure.ModelStateInvalidFilter (Order: -2000)"]
+2025-11-13 16:34:36.979 -05:00 [DBG] Execution plan of exception filters (in the following order): ["None"]
+2025-11-13 16:34:36.980 -05:00 [DBG] Execution plan of result filters (in the following order): ["Microsoft.AspNetCore.Mvc.Infrastructure.ClientErrorResultFilter (Order: -2000)"]
+2025-11-13 16:34:36.982 -05:00 [DBG] Executing controller factory for controller BioFXAPI.Controllers.WebhookLogsController (BioFXAPI)
+2025-11-13 16:34:36.983 -05:00 [DBG] Executed controller factory for controller BioFXAPI.Controllers.WebhookLogsController (BioFXAPI)
+2025-11-13 16:34:37.109 -05:00 [INF] Executed action BioFXAPI.Controllers.WebhookLogsController.ReceivePlacetoPay (BioFXAPI) in 126.9239ms
+2025-11-13 16:34:37.110 -05:00 [INF] Executed endpoint 'BioFXAPI.Controllers.WebhookLogsController.ReceivePlacetoPay (BioFXAPI)'
+2025-11-13 16:34:37.113 -05:00 [ERR] An unhandled exception has occurred while executing the request.
+System.Data.SqlClient.SqlException (0x80131904): Cannot insert the value NULL into column 'RequestId', table 'BioFXBD.dbo.WebhookLog'; column does not allow nulls. INSERT fails.
+The statement has been terminated.
+   at System.Data.SqlClient.SqlConnection.OnError(SqlException exception, Boolean breakConnection, Action`1 wrapCloseInAction)
+   at System.Data.SqlClient.SqlInternalConnection.OnError(SqlException exception, Boolean breakConnection, Action`1 wrapCloseInAction)
+   at System.Data.SqlClient.TdsParser.ThrowExceptionAndWarning(TdsParserStateObject stateObj, Boolean callerHasConnectionLock, Boolean asyncClose)
+   at System.Data.SqlClient.TdsParser.TryRun(RunBehavior runBehavior, SqlCommand cmdHandler, SqlDataReader dataStream, BulkCopySimpleResultSet bulkCopyHandler, TdsParserStateObject stateObj, Boolean& dataReady)
+   at System.Data.SqlClient.SqlCommand.FinishExecuteReader(SqlDataReader ds, RunBehavior runBehavior, String resetOptionsString)
+   at System.Data.SqlClient.SqlCommand.CompleteAsyncExecuteReader()
+   at System.Data.SqlClient.SqlCommand.EndExecuteNonQueryInternal(IAsyncResult asyncResult)
+   at System.Data.SqlClient.SqlCommand.EndExecuteNonQuery(IAsyncResult asyncResult)
+   at System.Threading.Tasks.TaskFactory`1.FromAsyncCoreLogic(IAsyncResult iar, Func`2 endFunction, Action`1 endAction, Task`1 promise, Boolean requiresSynchronization)
+--- End of stack trace from previous location ---
+   at Dapper.SqlMapper.ExecuteImplAsync(IDbConnection cnn, CommandDefinition command, Object param) in /_/Dapper/SqlMapper.Async.cs:line 662
+   at BioFXAPI.Controllers.WebhookLogsController.ReceivePlacetoPay() in C:\Users\xmanc\OneDrive\Desktop\BioFXAPI-Github\BioFXAPI\BioFXAPI\Controllers\WebhookLogsController.cs:line 86
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ActionMethodExecutor.TaskOfIActionResultExecutor.Execute(ActionContext actionContext, IActionResultTypeMapper mapper, ObjectMethodExecutor executor, Object controller, Object[] arguments)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.<InvokeActionMethodAsync>g__Awaited|12_0(ControllerActionInvoker invoker, ValueTask`1 actionResultValueTask)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.<InvokeNextActionFilterAsync>g__Awaited|10_0(ControllerActionInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.Rethrow(ActionExecutedContextSealed context)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.Next(State& next, Scope& scope, Object& state, Boolean& isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.<InvokeInnerFilterAsync>g__Awaited|13_0(ControllerActionInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeFilterPipelineAsync>g__Awaited|20_0(ResourceInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeAsync>g__Logged|17_1(ResourceInvoker invoker)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeAsync>g__Logged|17_1(ResourceInvoker invoker)
+   at Microsoft.AspNetCore.Routing.EndpointMiddleware.<Invoke>g__AwaitRequestTask|7_0(Endpoint endpoint, Task requestTask, ILogger logger)
+   at Microsoft.AspNetCore.Authorization.AuthorizationMiddleware.Invoke(HttpContext context)
+   at Microsoft.AspNetCore.Authentication.AuthenticationMiddleware.Invoke(HttpContext context)
+   at Program.<>c.<<<Main>$>b__0_7>d.MoveNext() in C:\Users\xmanc\OneDrive\Desktop\BioFXAPI-Github\BioFXAPI\BioFXAPI\Program.cs:line 197
+--- End of stack trace from previous location ---
+   at Microsoft.AspNetCore.RateLimiting.RateLimitingMiddleware.InvokeInternal(HttpContext context, EnableRateLimitingAttribute enableRateLimitingAttribute)
+   at Swashbuckle.AspNetCore.SwaggerUI.SwaggerUIMiddleware.Invoke(HttpContext httpContext)
+   at Swashbuckle.AspNetCore.Swagger.SwaggerMiddleware.Invoke(HttpContext httpContext, ISwaggerProvider swaggerProvider)
+   at Microsoft.AspNetCore.Diagnostics.DeveloperExceptionPageMiddlewareImpl.Invoke(HttpContext context)
+ClientConnectionId:2c653aed-7278-4d8b-a733-a86433e42a2d
+Error Number:515,State:2,Class:16
+2025-11-13 16:34:37.135 -05:00 [INF] Request finished HTTP/2 POST https://localhost:7177/api/WebhookLogs/placetopay - 500 null text/plain; charset=utf-8 184.2867ms
+2025-11-13 16:46:12.608 -05:00 [INF] Request starting HTTP/2 POST https://localhost:7177/api/WebhookLogs/placetopay - null 0
+2025-11-13 16:46:12.618 -05:00 [DBG] 1 candidate(s) found for the request path '/api/WebhookLogs/placetopay'
+2025-11-13 16:46:12.619 -05:00 [DBG] Endpoint 'BioFXAPI.Controllers.WebhookLogsController.ReceivePlacetoPay (BioFXAPI)' with route pattern 'api/WebhookLogs/placetopay' is valid for the request path '/api/WebhookLogs/placetopay'
+2025-11-13 16:46:12.621 -05:00 [DBG] Request matched endpoint 'BioFXAPI.Controllers.WebhookLogsController.ReceivePlacetoPay (BioFXAPI)'
+2025-11-13 16:46:12.622 -05:00 [DBG] Static files was skipped as the request already matched an endpoint.
+2025-11-13 16:46:12.623 -05:00 [DBG] The request has an origin header: 'https://localhost:7177'.
+2025-11-13 16:46:12.624 -05:00 [INF] CORS policy execution failed.
+2025-11-13 16:46:12.625 -05:00 [INF] Request origin https://localhost:7177 does not have permission to access the resource.
+2025-11-13 16:46:12.628 -05:00 [DBG] Successfully validated the token.
+2025-11-13 16:46:12.629 -05:00 [DBG] AuthenticationScheme: Bearer was successfully authenticated.
+2025-11-13 16:46:12.630 -05:00 [INF] Executing endpoint 'BioFXAPI.Controllers.WebhookLogsController.ReceivePlacetoPay (BioFXAPI)'
+2025-11-13 16:46:12.631 -05:00 [INF] Route matched with {action = "ReceivePlacetoPay", controller = "WebhookLogs"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] ReceivePlacetoPay() on controller BioFXAPI.Controllers.WebhookLogsController (BioFXAPI).
+2025-11-13 16:46:12.633 -05:00 [DBG] Execution plan of authorization filters (in the following order): ["None"]
+2025-11-13 16:46:12.634 -05:00 [DBG] Execution plan of resource filters (in the following order): ["None"]
+2025-11-13 16:46:12.636 -05:00 [DBG] Execution plan of action filters (in the following order): ["Microsoft.AspNetCore.Mvc.ModelBinding.UnsupportedContentTypeFilter (Order: -3000)","Microsoft.AspNetCore.Mvc.Infrastructure.ModelStateInvalidFilter (Order: -2000)"]
+2025-11-13 16:46:12.638 -05:00 [DBG] Execution plan of exception filters (in the following order): ["None"]
+2025-11-13 16:46:12.639 -05:00 [DBG] Execution plan of result filters (in the following order): ["Microsoft.AspNetCore.Mvc.Infrastructure.ClientErrorResultFilter (Order: -2000)"]
+2025-11-13 16:46:12.641 -05:00 [DBG] Executing controller factory for controller BioFXAPI.Controllers.WebhookLogsController (BioFXAPI)
+2025-11-13 16:46:12.642 -05:00 [DBG] Executed controller factory for controller BioFXAPI.Controllers.WebhookLogsController (BioFXAPI)
+2025-11-13 16:46:13.198 -05:00 [DBG] List of registered output formatters, in the following order: ["Microsoft.AspNetCore.Mvc.Formatters.HttpNoContentOutputFormatter","Microsoft.AspNetCore.Mvc.Formatters.StringOutputFormatter","Microsoft.AspNetCore.Mvc.Formatters.StreamOutputFormatter","Microsoft.AspNetCore.Mvc.Formatters.SystemTextJsonOutputFormatter"]
+2025-11-13 16:46:13.200 -05:00 [DBG] No information found on request to perform content negotiation.
+2025-11-13 16:46:13.200 -05:00 [DBG] Attempting to select an output formatter without using a content type as no explicit content types were specified for the response.
+2025-11-13 16:46:13.201 -05:00 [DBG] Attempting to select the first formatter in the output formatters list which can write the result.
+2025-11-13 16:46:13.202 -05:00 [DBG] Selected output formatter 'Microsoft.AspNetCore.Mvc.Formatters.SystemTextJsonOutputFormatter' and content type 'application/json' to write the response.
+2025-11-13 16:46:13.202 -05:00 [INF] Executing UnauthorizedObjectResult, writing value of type '<>f__AnonymousType0`1[[System.String, System.Private.CoreLib, Version=8.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]'.
+2025-11-13 16:46:13.205 -05:00 [INF] Executed action BioFXAPI.Controllers.WebhookLogsController.ReceivePlacetoPay (BioFXAPI) in 564.6557ms
+2025-11-13 16:46:13.206 -05:00 [INF] Executed endpoint 'BioFXAPI.Controllers.WebhookLogsController.ReceivePlacetoPay (BioFXAPI)'
+2025-11-13 16:46:13.207 -05:00 [INF] Request finished HTTP/2 POST https://localhost:7177/api/WebhookLogs/placetopay - 401 null application/json; charset=utf-8 599.1242ms
+2025-11-13 16:46:54.173 -05:00 [DBG] Registered model binder providers, in the following order: ["Microsoft.AspNetCore.Mvc.ModelBinding.Binders.BinderTypeModelBinderProvider","Microsoft.AspNetCore.Mvc.ModelBinding.Binders.ServicesModelBinderProvider","Microsoft.AspNetCore.Mvc.ModelBinding.Binders.BodyModelBinderProvider","Microsoft.AspNetCore.Mvc.ModelBinding.Binders.HeaderModelBinderProvider","Microsoft.AspNetCore.Mvc.ModelBinding.Binders.FloatingPointTypeModelBinderProvider","Microsoft.AspNetCore.Mvc.ModelBinding.Binders.EnumTypeModelBinderProvider","Microsoft.AspNetCore.Mvc.ModelBinding.Binders.DateTimeModelBinderProvider","Microsoft.AspNetCore.Mvc.ModelBinding.Binders.SimpleTypeModelBinderProvider","Microsoft.AspNetCore.Mvc.ModelBinding.Binders.TryParseModelBinderProvider","Microsoft.AspNetCore.Mvc.ModelBinding.Binders.CancellationTokenModelBinderProvider","Microsoft.AspNetCore.Mvc.ModelBinding.Binders.ByteArrayModelBinderProvider","Microsoft.AspNetCore.Mvc.ModelBinding.Binders.FormFileModelBinderProvider","Microsoft.AspNetCore.Mvc.ModelBinding.Binders.FormCollectionModelBinderProvider","Microsoft.AspNetCore.Mvc.ModelBinding.Binders.KeyValuePairModelBinderProvider","Microsoft.AspNetCore.Mvc.ModelBinding.Binders.DictionaryModelBinderProvider","Microsoft.AspNetCore.Mvc.ModelBinding.Binders.ArrayModelBinderProvider","Microsoft.AspNetCore.Mvc.ModelBinding.Binders.CollectionModelBinderProvider","Microsoft.AspNetCore.Mvc.ModelBinding.Binders.ComplexObjectModelBinderProvider"]
+2025-11-13 16:46:54.281 -05:00 [DBG] Hosting starting
+2025-11-13 16:46:54.310 -05:00 [INF] User profile is available. Using 'C:\Users\xmanc\AppData\Local\ASP.NET\DataProtection-Keys' as key repository and Windows DPAPI to encrypt keys at rest.
+2025-11-13 16:46:54.321 -05:00 [DBG] Reading data from file 'C:\Users\xmanc\AppData\Local\ASP.NET\DataProtection-Keys\key-3390bb48-7b52-40b9-a5cd-8587ed8f0a32.xml'.
+2025-11-13 16:46:54.329 -05:00 [DBG] Found key {3390bb48-7b52-40b9-a5cd-8587ed8f0a32}.
+2025-11-13 16:46:54.337 -05:00 [DBG] Considering key {3390bb48-7b52-40b9-a5cd-8587ed8f0a32} with expiration date 2025-12-03 18:54:05Z as default key.
+2025-11-13 16:46:54.340 -05:00 [DBG] Forwarded activator type request from Microsoft.AspNetCore.DataProtection.XmlEncryption.DpapiXmlDecryptor, Microsoft.AspNetCore.DataProtection, Version=8.0.0.0, Culture=neutral, PublicKeyToken=adb9793829ddae60 to Microsoft.AspNetCore.DataProtection.XmlEncryption.DpapiXmlDecryptor, Microsoft.AspNetCore.DataProtection, Culture=neutral, PublicKeyToken=adb9793829ddae60
+2025-11-13 16:46:54.343 -05:00 [DBG] Decrypting secret element using Windows DPAPI.
+2025-11-13 16:46:54.345 -05:00 [DBG] Forwarded activator type request from Microsoft.AspNetCore.DataProtection.AuthenticatedEncryption.ConfigurationModel.AuthenticatedEncryptorDescriptorDeserializer, Microsoft.AspNetCore.DataProtection, Version=8.0.0.0, Culture=neutral, PublicKeyToken=adb9793829ddae60 to Microsoft.AspNetCore.DataProtection.AuthenticatedEncryption.ConfigurationModel.AuthenticatedEncryptorDescriptorDeserializer, Microsoft.AspNetCore.DataProtection, Culture=neutral, PublicKeyToken=adb9793829ddae60
+2025-11-13 16:46:54.352 -05:00 [DBG] Opening CNG algorithm 'AES' from provider 'null' with chaining mode CBC.
+2025-11-13 16:46:54.358 -05:00 [DBG] Opening CNG algorithm 'SHA256' from provider 'null' with HMAC.
+2025-11-13 16:46:54.362 -05:00 [DBG] Using key {3390bb48-7b52-40b9-a5cd-8587ed8f0a32} as the default key.
+2025-11-13 16:46:54.363 -05:00 [DBG] Key ring with default key {3390bb48-7b52-40b9-a5cd-8587ed8f0a32} was loaded during application startup.
+2025-11-13 16:46:54.371 -05:00 [DBG] Middleware loaded
+2025-11-13 16:46:54.374 -05:00 [DBG] Middleware loaded. Script /_framework/aspnetcore-browser-refresh.js (16501 B).
+2025-11-13 16:46:54.376 -05:00 [DBG] Middleware loaded. Script /_framework/blazor-hotreload.js (799 B).
+2025-11-13 16:46:54.446 -05:00 [DBG] Middleware loaded: DOTNET_MODIFIABLE_ASSEMBLIES=null, __ASPNETCORE_BROWSER_TOOLS=true
+2025-11-13 16:46:54.549 -05:00 [INF] Now listening on: https://localhost:7177
+2025-11-13 16:46:54.550 -05:00 [INF] Now listening on: http://localhost:5160
+2025-11-13 16:46:54.551 -05:00 [DBG] Loaded hosting startup assembly BioFXAPI
+2025-11-13 16:46:54.552 -05:00 [DBG] Loaded hosting startup assembly Microsoft.WebTools.ApiEndpointDiscovery
+2025-11-13 16:46:54.552 -05:00 [DBG] Loaded hosting startup assembly Microsoft.AspNetCore.Watch.BrowserRefresh
+2025-11-13 16:46:54.553 -05:00 [DBG] Loaded hosting startup assembly Microsoft.WebTools.BrowserLink.Net
+2025-11-13 16:46:54.629 -05:00 [INF] Application started. Press Ctrl+C to shut down.
+2025-11-13 16:46:54.630 -05:00 [INF] Hosting environment: Development
+2025-11-13 16:46:54.631 -05:00 [INF] Content root path: C:\Users\xmanc\OneDrive\Desktop\BioFXAPI-Github\BioFXAPI\BioFXAPI
+2025-11-13 16:46:54.631 -05:00 [DBG] Hosting started
+2025-11-13 16:46:54.863 -05:00 [DBG] Connection id "0HNH2VOKQ1NO8" accepted.
+2025-11-13 16:46:54.866 -05:00 [DBG] Connection id "0HNH2VOKQ1NO8" started.
+2025-11-13 16:46:54.869 -05:00 [DBG] Connection id "0HNH2VOKQ1NO9" accepted.
+2025-11-13 16:46:54.870 -05:00 [DBG] Connection id "0HNH2VOKQ1NO9" started.
+2025-11-13 16:46:54.885 -05:00 [DBG] Connection id "0HNH2VOKQ1NO9" received FIN.
+2025-11-13 16:46:54.885 -05:00 [DBG] Connection id "0HNH2VOKQ1NO8" received FIN.
+2025-11-13 16:46:54.897 -05:00 [DBG] Failed to authenticate HTTPS connection.
+System.IO.IOException: Received an unexpected EOF or 0 bytes from the transport stream.
+   at System.Net.Security.SslStream.ReceiveHandshakeFrameAsync[TIOAdapter](CancellationToken cancellationToken)
+   at System.Net.Security.SslStream.ForceAuthenticationAsync[TIOAdapter](Boolean receiveFirst, Byte[] reAuthenticationData, CancellationToken cancellationToken)
+   at System.Net.Security.SslStream.ProcessAuthenticationWithTelemetryAsync(Boolean isAsync, CancellationToken cancellationToken)
+   at Microsoft.AspNetCore.Server.Kestrel.Https.Internal.HttpsConnectionMiddleware.OnConnectionAsync(ConnectionContext context)
+2025-11-13 16:46:54.897 -05:00 [DBG] Failed to authenticate HTTPS connection.
+System.IO.IOException: Received an unexpected EOF or 0 bytes from the transport stream.
+   at System.Net.Security.SslStream.ReceiveHandshakeFrameAsync[TIOAdapter](CancellationToken cancellationToken)
+   at System.Net.Security.SslStream.ForceAuthenticationAsync[TIOAdapter](Boolean receiveFirst, Byte[] reAuthenticationData, CancellationToken cancellationToken)
+   at System.Net.Security.SslStream.ProcessAuthenticationWithTelemetryAsync(Boolean isAsync, CancellationToken cancellationToken)
+   at Microsoft.AspNetCore.Server.Kestrel.Https.Internal.HttpsConnectionMiddleware.OnConnectionAsync(ConnectionContext context)
+2025-11-13 16:46:54.923 -05:00 [DBG] Connection id "0HNH2VOKQ1NO8" stopped.
+2025-11-13 16:46:54.923 -05:00 [DBG] Connection id "0HNH2VOKQ1NO9" stopped.
+2025-11-13 16:46:54.926 -05:00 [DBG] Connection id "0HNH2VOKQ1NO8" sending FIN because: "The Socket transport's send loop completed gracefully."
+2025-11-13 16:46:54.926 -05:00 [DBG] Connection id "0HNH2VOKQ1NO9" sending FIN because: "The Socket transport's send loop completed gracefully."
+2025-11-13 16:46:55.042 -05:00 [DBG] Connection id "0HNH2VOKQ1NOA" accepted.
+2025-11-13 16:46:55.044 -05:00 [DBG] Connection id "0HNH2VOKQ1NOA" started.
+2025-11-13 16:46:55.075 -05:00 [DBG] Connection 0HNH2VOKQ1NOA established using the following protocol: "Tls13"
+2025-11-13 16:46:55.260 -05:00 [INF] Request starting HTTP/2 GET https://localhost:7177/swagger/index.html - null null
+2025-11-13 16:46:55.357 -05:00 [DBG] Wildcard detected, all requests with hosts will be allowed.
+2025-11-13 16:46:55.383 -05:00 [DBG] No candidates found for the request path '/swagger/index.html'
+2025-11-13 16:46:55.385 -05:00 [DBG] Request did not match any endpoints
+2025-11-13 16:46:55.447 -05:00 [DBG] Response markup is scheduled to include Browser Link script injection.
+2025-11-13 16:46:55.450 -05:00 [DBG] Response markup is scheduled to include browser refresh script injection.
+2025-11-13 16:46:55.467 -05:00 [DBG] Response markup was updated to include Browser Link script injection.
+2025-11-13 16:46:55.469 -05:00 [DBG] Response markup was updated to include browser refresh script injection.
+2025-11-13 16:46:55.473 -05:00 [INF] Request finished HTTP/2 GET https://localhost:7177/swagger/index.html - 200 null text/html;charset=utf-8 222.2273ms
+2025-11-13 16:46:55.541 -05:00 [INF] Request starting HTTP/2 GET https://localhost:7177/_vs/browserLink - null null
+2025-11-13 16:46:55.541 -05:00 [INF] Request starting HTTP/2 GET https://localhost:7177/_framework/aspnetcore-browser-refresh.js - null null
+2025-11-13 16:46:55.560 -05:00 [DBG] Script injected: /_framework/aspnetcore-browser-refresh.js
+2025-11-13 16:46:55.566 -05:00 [INF] Request finished HTTP/2 GET https://localhost:7177/_framework/aspnetcore-browser-refresh.js - 200 16501 application/javascript; charset=utf-8 25.4309ms
+2025-11-13 16:46:55.589 -05:00 [INF] Request finished HTTP/2 GET https://localhost:7177/_vs/browserLink - 200 null text/javascript; charset=UTF-8 47.626ms
+2025-11-13 16:46:55.638 -05:00 [INF] Request starting HTTP/2 GET https://localhost:7177/swagger/v1/swagger.json - null null
+2025-11-13 16:46:55.642 -05:00 [DBG] No candidates found for the request path '/swagger/v1/swagger.json'
+2025-11-13 16:46:55.643 -05:00 [DBG] Request did not match any endpoints
+2025-11-13 16:46:55.661 -05:00 [INF] Request finished HTTP/2 GET https://localhost:7177/swagger/v1/swagger.json - 200 null application/json;charset=utf-8 22.6517ms
+2025-11-13 16:47:01.614 -05:00 [INF] Request starting HTTP/2 POST https://localhost:7177/api/WebhookLogs/placetopay - null 0
+2025-11-13 16:47:01.622 -05:00 [DBG] 1 candidate(s) found for the request path '/api/WebhookLogs/placetopay'
+2025-11-13 16:47:01.626 -05:00 [DBG] Endpoint 'BioFXAPI.Controllers.WebhookLogsController.ReceivePlacetoPay (BioFXAPI)' with route pattern 'api/WebhookLogs/placetopay' is valid for the request path '/api/WebhookLogs/placetopay'
+2025-11-13 16:47:01.629 -05:00 [DBG] Request matched endpoint 'BioFXAPI.Controllers.WebhookLogsController.ReceivePlacetoPay (BioFXAPI)'
+2025-11-13 16:47:01.632 -05:00 [DBG] Static files was skipped as the request already matched an endpoint.
+2025-11-13 16:47:01.633 -05:00 [DBG] The request has an origin header: 'https://localhost:7177'.
+2025-11-13 16:47:01.634 -05:00 [INF] CORS policy execution failed.
+2025-11-13 16:47:01.635 -05:00 [INF] Request origin https://localhost:7177 does not have permission to access the resource.
+2025-11-13 16:47:01.729 -05:00 [DBG] Successfully validated the token.
+2025-11-13 16:47:01.732 -05:00 [DBG] AuthenticationScheme: Bearer was successfully authenticated.
+2025-11-13 16:47:01.735 -05:00 [INF] Executing endpoint 'BioFXAPI.Controllers.WebhookLogsController.ReceivePlacetoPay (BioFXAPI)'
+2025-11-13 16:47:01.753 -05:00 [INF] Route matched with {action = "ReceivePlacetoPay", controller = "WebhookLogs"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] ReceivePlacetoPay() on controller BioFXAPI.Controllers.WebhookLogsController (BioFXAPI).
+2025-11-13 16:47:01.755 -05:00 [DBG] Execution plan of authorization filters (in the following order): ["None"]
+2025-11-13 16:47:01.757 -05:00 [DBG] Execution plan of resource filters (in the following order): ["None"]
+2025-11-13 16:47:01.758 -05:00 [DBG] Execution plan of action filters (in the following order): ["Microsoft.AspNetCore.Mvc.ModelBinding.UnsupportedContentTypeFilter (Order: -3000)","Microsoft.AspNetCore.Mvc.Infrastructure.ModelStateInvalidFilter (Order: -2000)"]
+2025-11-13 16:47:01.759 -05:00 [DBG] Execution plan of exception filters (in the following order): ["None"]
+2025-11-13 16:47:01.761 -05:00 [DBG] Execution plan of result filters (in the following order): ["Microsoft.AspNetCore.Mvc.Infrastructure.ClientErrorResultFilter (Order: -2000)"]
+2025-11-13 16:47:01.763 -05:00 [DBG] Executing controller factory for controller BioFXAPI.Controllers.WebhookLogsController (BioFXAPI)
+2025-11-13 16:47:01.764 -05:00 [DBG] Executed controller factory for controller BioFXAPI.Controllers.WebhookLogsController (BioFXAPI)
+2025-11-13 16:47:02.566 -05:00 [DBG] List of registered output formatters, in the following order: ["Microsoft.AspNetCore.Mvc.Formatters.HttpNoContentOutputFormatter","Microsoft.AspNetCore.Mvc.Formatters.StringOutputFormatter","Microsoft.AspNetCore.Mvc.Formatters.StreamOutputFormatter","Microsoft.AspNetCore.Mvc.Formatters.SystemTextJsonOutputFormatter"]
+2025-11-13 16:47:02.570 -05:00 [DBG] No information found on request to perform content negotiation.
+2025-11-13 16:47:02.571 -05:00 [DBG] Attempting to select an output formatter without using a content type as no explicit content types were specified for the response.
+2025-11-13 16:47:02.572 -05:00 [DBG] Attempting to select the first formatter in the output formatters list which can write the result.
+2025-11-13 16:47:02.574 -05:00 [DBG] Selected output formatter 'Microsoft.AspNetCore.Mvc.Formatters.SystemTextJsonOutputFormatter' and content type 'application/json' to write the response.
+2025-11-13 16:47:02.575 -05:00 [INF] Executing OkObjectResult, writing value of type '<>f__AnonymousType54`2[[System.Boolean, System.Private.CoreLib, Version=8.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e],[System.Int32, System.Private.CoreLib, Version=8.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]'.
+2025-11-13 16:47:02.584 -05:00 [INF] Executed action BioFXAPI.Controllers.WebhookLogsController.ReceivePlacetoPay (BioFXAPI) in 820.3051ms
+2025-11-13 16:47:02.586 -05:00 [INF] Executed endpoint 'BioFXAPI.Controllers.WebhookLogsController.ReceivePlacetoPay (BioFXAPI)'
+2025-11-13 16:47:02.589 -05:00 [INF] Request finished HTTP/2 POST https://localhost:7177/api/WebhookLogs/placetopay - 200 null application/json; charset=utf-8 975.1277ms
+2025-11-13 16:50:26.655 -05:00 [DBG] Registered model binder providers, in the following order: ["Microsoft.AspNetCore.Mvc.ModelBinding.Binders.BinderTypeModelBinderProvider","Microsoft.AspNetCore.Mvc.ModelBinding.Binders.ServicesModelBinderProvider","Microsoft.AspNetCore.Mvc.ModelBinding.Binders.BodyModelBinderProvider","Microsoft.AspNetCore.Mvc.ModelBinding.Binders.HeaderModelBinderProvider","Microsoft.AspNetCore.Mvc.ModelBinding.Binders.FloatingPointTypeModelBinderProvider","Microsoft.AspNetCore.Mvc.ModelBinding.Binders.EnumTypeModelBinderProvider","Microsoft.AspNetCore.Mvc.ModelBinding.Binders.DateTimeModelBinderProvider","Microsoft.AspNetCore.Mvc.ModelBinding.Binders.SimpleTypeModelBinderProvider","Microsoft.AspNetCore.Mvc.ModelBinding.Binders.TryParseModelBinderProvider","Microsoft.AspNetCore.Mvc.ModelBinding.Binders.CancellationTokenModelBinderProvider","Microsoft.AspNetCore.Mvc.ModelBinding.Binders.ByteArrayModelBinderProvider","Microsoft.AspNetCore.Mvc.ModelBinding.Binders.FormFileModelBinderProvider","Microsoft.AspNetCore.Mvc.ModelBinding.Binders.FormCollectionModelBinderProvider","Microsoft.AspNetCore.Mvc.ModelBinding.Binders.KeyValuePairModelBinderProvider","Microsoft.AspNetCore.Mvc.ModelBinding.Binders.DictionaryModelBinderProvider","Microsoft.AspNetCore.Mvc.ModelBinding.Binders.ArrayModelBinderProvider","Microsoft.AspNetCore.Mvc.ModelBinding.Binders.CollectionModelBinderProvider","Microsoft.AspNetCore.Mvc.ModelBinding.Binders.ComplexObjectModelBinderProvider"]
+2025-11-13 16:50:26.784 -05:00 [DBG] Hosting starting
+2025-11-13 16:50:26.808 -05:00 [INF] User profile is available. Using 'C:\Users\xmanc\AppData\Local\ASP.NET\DataProtection-Keys' as key repository and Windows DPAPI to encrypt keys at rest.
+2025-11-13 16:50:26.816 -05:00 [DBG] Reading data from file 'C:\Users\xmanc\AppData\Local\ASP.NET\DataProtection-Keys\key-3390bb48-7b52-40b9-a5cd-8587ed8f0a32.xml'.
+2025-11-13 16:50:26.824 -05:00 [DBG] Found key {3390bb48-7b52-40b9-a5cd-8587ed8f0a32}.
+2025-11-13 16:50:26.829 -05:00 [DBG] Considering key {3390bb48-7b52-40b9-a5cd-8587ed8f0a32} with expiration date 2025-12-03 18:54:05Z as default key.
+2025-11-13 16:50:26.832 -05:00 [DBG] Forwarded activator type request from Microsoft.AspNetCore.DataProtection.XmlEncryption.DpapiXmlDecryptor, Microsoft.AspNetCore.DataProtection, Version=8.0.0.0, Culture=neutral, PublicKeyToken=adb9793829ddae60 to Microsoft.AspNetCore.DataProtection.XmlEncryption.DpapiXmlDecryptor, Microsoft.AspNetCore.DataProtection, Culture=neutral, PublicKeyToken=adb9793829ddae60
+2025-11-13 16:50:26.834 -05:00 [DBG] Decrypting secret element using Windows DPAPI.
+2025-11-13 16:50:26.836 -05:00 [DBG] Forwarded activator type request from Microsoft.AspNetCore.DataProtection.AuthenticatedEncryption.ConfigurationModel.AuthenticatedEncryptorDescriptorDeserializer, Microsoft.AspNetCore.DataProtection, Version=8.0.0.0, Culture=neutral, PublicKeyToken=adb9793829ddae60 to Microsoft.AspNetCore.DataProtection.AuthenticatedEncryption.ConfigurationModel.AuthenticatedEncryptorDescriptorDeserializer, Microsoft.AspNetCore.DataProtection, Culture=neutral, PublicKeyToken=adb9793829ddae60
+2025-11-13 16:50:26.839 -05:00 [DBG] Opening CNG algorithm 'AES' from provider 'null' with chaining mode CBC.
+2025-11-13 16:50:26.843 -05:00 [DBG] Opening CNG algorithm 'SHA256' from provider 'null' with HMAC.
+2025-11-13 16:50:26.847 -05:00 [DBG] Using key {3390bb48-7b52-40b9-a5cd-8587ed8f0a32} as the default key.
+2025-11-13 16:50:26.848 -05:00 [DBG] Key ring with default key {3390bb48-7b52-40b9-a5cd-8587ed8f0a32} was loaded during application startup.
+2025-11-13 16:50:26.853 -05:00 [DBG] Middleware loaded
+2025-11-13 16:50:26.854 -05:00 [DBG] Middleware loaded. Script /_framework/aspnetcore-browser-refresh.js (16501 B).
+2025-11-13 16:50:26.856 -05:00 [DBG] Middleware loaded. Script /_framework/blazor-hotreload.js (799 B).
+2025-11-13 16:50:26.916 -05:00 [DBG] Middleware loaded: DOTNET_MODIFIABLE_ASSEMBLIES=null, __ASPNETCORE_BROWSER_TOOLS=true
+2025-11-13 16:50:26.999 -05:00 [INF] Now listening on: https://localhost:7177
+2025-11-13 16:50:27.000 -05:00 [INF] Now listening on: http://localhost:5160
+2025-11-13 16:50:27.001 -05:00 [DBG] Loaded hosting startup assembly BioFXAPI
+2025-11-13 16:50:27.001 -05:00 [DBG] Loaded hosting startup assembly Microsoft.WebTools.ApiEndpointDiscovery
+2025-11-13 16:50:27.002 -05:00 [DBG] Loaded hosting startup assembly Microsoft.AspNetCore.Watch.BrowserRefresh
+2025-11-13 16:50:27.002 -05:00 [DBG] Loaded hosting startup assembly Microsoft.WebTools.BrowserLink.Net
+2025-11-13 16:50:27.066 -05:00 [INF] Application started. Press Ctrl+C to shut down.
+2025-11-13 16:50:27.067 -05:00 [INF] Hosting environment: Development
+2025-11-13 16:50:27.067 -05:00 [INF] Content root path: C:\Users\xmanc\OneDrive\Desktop\BioFXAPI-Github\BioFXAPI\BioFXAPI
+2025-11-13 16:50:27.068 -05:00 [DBG] Hosting started
+2025-11-13 16:50:27.223 -05:00 [DBG] Connection id "0HNH2VQK38R00" accepted.
+2025-11-13 16:50:27.225 -05:00 [DBG] Connection id "0HNH2VQK38R00" started.
+2025-11-13 16:50:27.231 -05:00 [DBG] Connection id "0HNH2VQK38R01" accepted.
+2025-11-13 16:50:27.232 -05:00 [DBG] Connection id "0HNH2VQK38R01" started.
+2025-11-13 16:50:27.233 -05:00 [DBG] Connection id "0HNH2VQK38R01" received FIN.
+2025-11-13 16:50:27.233 -05:00 [DBG] Connection id "0HNH2VQK38R00" received FIN.
+2025-11-13 16:50:27.246 -05:00 [DBG] Failed to authenticate HTTPS connection.
+System.IO.IOException: Received an unexpected EOF or 0 bytes from the transport stream.
+   at System.Net.Security.SslStream.ReceiveHandshakeFrameAsync[TIOAdapter](CancellationToken cancellationToken)
+   at System.Net.Security.SslStream.ForceAuthenticationAsync[TIOAdapter](Boolean receiveFirst, Byte[] reAuthenticationData, CancellationToken cancellationToken)
+   at System.Net.Security.SslStream.ProcessAuthenticationWithTelemetryAsync(Boolean isAsync, CancellationToken cancellationToken)
+   at Microsoft.AspNetCore.Server.Kestrel.Https.Internal.HttpsConnectionMiddleware.OnConnectionAsync(ConnectionContext context)
+2025-11-13 16:50:27.246 -05:00 [DBG] Failed to authenticate HTTPS connection.
+System.IO.IOException: Received an unexpected EOF or 0 bytes from the transport stream.
+   at System.Net.Security.SslStream.ReceiveHandshakeFrameAsync[TIOAdapter](CancellationToken cancellationToken)
+   at System.Net.Security.SslStream.ForceAuthenticationAsync[TIOAdapter](Boolean receiveFirst, Byte[] reAuthenticationData, CancellationToken cancellationToken)
+   at System.Net.Security.SslStream.ProcessAuthenticationWithTelemetryAsync(Boolean isAsync, CancellationToken cancellationToken)
+   at Microsoft.AspNetCore.Server.Kestrel.Https.Internal.HttpsConnectionMiddleware.OnConnectionAsync(ConnectionContext context)
+2025-11-13 16:50:27.274 -05:00 [DBG] Connection id "0HNH2VQK38R01" stopped.
+2025-11-13 16:50:27.274 -05:00 [DBG] Connection id "0HNH2VQK38R00" stopped.
+2025-11-13 16:50:27.276 -05:00 [DBG] Connection id "0HNH2VQK38R00" sending FIN because: "The Socket transport's send loop completed gracefully."
+2025-11-13 16:50:27.276 -05:00 [DBG] Connection id "0HNH2VQK38R01" sending FIN because: "The Socket transport's send loop completed gracefully."
+2025-11-13 16:50:27.399 -05:00 [DBG] Connection id "0HNH2VQK38R02" accepted.
+2025-11-13 16:50:27.401 -05:00 [DBG] Connection id "0HNH2VQK38R02" started.
+2025-11-13 16:50:27.436 -05:00 [DBG] Connection 0HNH2VQK38R02 established using the following protocol: "Tls13"
+2025-11-13 16:50:27.625 -05:00 [INF] Request starting HTTP/2 GET https://localhost:7177/swagger/index.html - null null
+2025-11-13 16:50:27.742 -05:00 [DBG] Wildcard detected, all requests with hosts will be allowed.
+2025-11-13 16:50:27.767 -05:00 [DBG] No candidates found for the request path '/swagger/index.html'
+2025-11-13 16:50:27.769 -05:00 [DBG] Request did not match any endpoints
+2025-11-13 16:50:27.830 -05:00 [DBG] Response markup is scheduled to include Browser Link script injection.
+2025-11-13 16:50:27.832 -05:00 [DBG] Response markup is scheduled to include browser refresh script injection.
+2025-11-13 16:50:27.849 -05:00 [DBG] Response markup was updated to include Browser Link script injection.
+2025-11-13 16:50:27.851 -05:00 [DBG] Response markup was updated to include browser refresh script injection.
+2025-11-13 16:50:27.855 -05:00 [INF] Request finished HTTP/2 GET https://localhost:7177/swagger/index.html - 200 null text/html;charset=utf-8 237.8113ms
+2025-11-13 16:50:27.930 -05:00 [INF] Request starting HTTP/2 GET https://localhost:7177/_framework/aspnetcore-browser-refresh.js - null null
+2025-11-13 16:50:27.930 -05:00 [INF] Request starting HTTP/2 GET https://localhost:7177/_vs/browserLink - null null
+2025-11-13 16:50:27.942 -05:00 [DBG] Script injected: /_framework/aspnetcore-browser-refresh.js
+2025-11-13 16:50:27.946 -05:00 [INF] Request finished HTTP/2 GET https://localhost:7177/_framework/aspnetcore-browser-refresh.js - 200 16501 application/javascript; charset=utf-8 16.1317ms
+2025-11-13 16:50:27.982 -05:00 [INF] Request finished HTTP/2 GET https://localhost:7177/_vs/browserLink - 200 null text/javascript; charset=UTF-8 52.2891ms
+2025-11-13 16:50:28.038 -05:00 [INF] Request starting HTTP/2 GET https://localhost:7177/swagger/v1/swagger.json - null null
+2025-11-13 16:50:28.040 -05:00 [DBG] No candidates found for the request path '/swagger/v1/swagger.json'
+2025-11-13 16:50:28.041 -05:00 [DBG] Request did not match any endpoints
+2025-11-13 16:50:28.056 -05:00 [INF] Request finished HTTP/2 GET https://localhost:7177/swagger/v1/swagger.json - 200 null application/json;charset=utf-8 18.4222ms
+2025-11-13 16:50:33.537 -05:00 [INF] Request starting HTTP/2 POST https://localhost:7177/api/WebhookLogs/placetopay - null 0
+2025-11-13 16:50:33.547 -05:00 [DBG] 1 candidate(s) found for the request path '/api/WebhookLogs/placetopay'
+2025-11-13 16:50:33.551 -05:00 [DBG] Endpoint 'BioFXAPI.Controllers.WebhookLogsController.ReceivePlacetoPay (BioFXAPI)' with route pattern 'api/WebhookLogs/placetopay' is valid for the request path '/api/WebhookLogs/placetopay'
+2025-11-13 16:50:33.553 -05:00 [DBG] Request matched endpoint 'BioFXAPI.Controllers.WebhookLogsController.ReceivePlacetoPay (BioFXAPI)'
+2025-11-13 16:50:33.556 -05:00 [DBG] Static files was skipped as the request already matched an endpoint.
+2025-11-13 16:50:33.558 -05:00 [DBG] The request has an origin header: 'https://localhost:7177'.
+2025-11-13 16:50:33.559 -05:00 [INF] CORS policy execution failed.
+2025-11-13 16:50:33.559 -05:00 [INF] Request origin https://localhost:7177 does not have permission to access the resource.
+2025-11-13 16:50:33.664 -05:00 [DBG] Successfully validated the token.
+2025-11-13 16:50:33.666 -05:00 [DBG] AuthenticationScheme: Bearer was successfully authenticated.
+2025-11-13 16:50:33.670 -05:00 [INF] Executing endpoint 'BioFXAPI.Controllers.WebhookLogsController.ReceivePlacetoPay (BioFXAPI)'
+2025-11-13 16:50:33.690 -05:00 [INF] Route matched with {action = "ReceivePlacetoPay", controller = "WebhookLogs"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] ReceivePlacetoPay() on controller BioFXAPI.Controllers.WebhookLogsController (BioFXAPI).
+2025-11-13 16:50:33.693 -05:00 [DBG] Execution plan of authorization filters (in the following order): ["None"]
+2025-11-13 16:50:33.695 -05:00 [DBG] Execution plan of resource filters (in the following order): ["None"]
+2025-11-13 16:50:33.696 -05:00 [DBG] Execution plan of action filters (in the following order): ["Microsoft.AspNetCore.Mvc.ModelBinding.UnsupportedContentTypeFilter (Order: -3000)","Microsoft.AspNetCore.Mvc.Infrastructure.ModelStateInvalidFilter (Order: -2000)"]
+2025-11-13 16:50:33.698 -05:00 [DBG] Execution plan of exception filters (in the following order): ["None"]
+2025-11-13 16:50:33.700 -05:00 [DBG] Execution plan of result filters (in the following order): ["Microsoft.AspNetCore.Mvc.Infrastructure.ClientErrorResultFilter (Order: -2000)"]
+2025-11-13 16:50:33.702 -05:00 [DBG] Executing controller factory for controller BioFXAPI.Controllers.WebhookLogsController (BioFXAPI)
+2025-11-13 16:50:33.704 -05:00 [DBG] Executed controller factory for controller BioFXAPI.Controllers.WebhookLogsController (BioFXAPI)
+2025-11-13 16:50:34.510 -05:00 [DBG] List of registered output formatters, in the following order: ["Microsoft.AspNetCore.Mvc.Formatters.HttpNoContentOutputFormatter","Microsoft.AspNetCore.Mvc.Formatters.StringOutputFormatter","Microsoft.AspNetCore.Mvc.Formatters.StreamOutputFormatter","Microsoft.AspNetCore.Mvc.Formatters.SystemTextJsonOutputFormatter"]
+2025-11-13 16:50:34.515 -05:00 [DBG] No information found on request to perform content negotiation.
+2025-11-13 16:50:34.515 -05:00 [DBG] Attempting to select an output formatter without using a content type as no explicit content types were specified for the response.
+2025-11-13 16:50:34.516 -05:00 [DBG] Attempting to select the first formatter in the output formatters list which can write the result.
+2025-11-13 16:50:34.517 -05:00 [DBG] Selected output formatter 'Microsoft.AspNetCore.Mvc.Formatters.SystemTextJsonOutputFormatter' and content type 'application/json' to write the response.
+2025-11-13 16:50:34.518 -05:00 [INF] Executing OkObjectResult, writing value of type '<>f__AnonymousType54`2[[System.Boolean, System.Private.CoreLib, Version=8.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e],[System.Int32, System.Private.CoreLib, Version=8.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]'.
+2025-11-13 16:50:34.529 -05:00 [INF] Executed action BioFXAPI.Controllers.WebhookLogsController.ReceivePlacetoPay (BioFXAPI) in 825.0734ms
+2025-11-13 16:50:34.532 -05:00 [INF] Executed endpoint 'BioFXAPI.Controllers.WebhookLogsController.ReceivePlacetoPay (BioFXAPI)'
+2025-11-13 16:50:34.533 -05:00 [INF] Request finished HTTP/2 POST https://localhost:7177/api/WebhookLogs/placetopay - 200 null application/json; charset=utf-8 996.891ms
+2025-11-13 17:03:06.513 -05:00 [DBG] Connection id "0HNH2VQK38R02" received FIN.
+2025-11-13 17:03:06.523 -05:00 [DBG] The connection queue processing loop for 0HNH2VQK38R02 completed.
+2025-11-13 17:03:06.525 -05:00 [DBG] Connection id "0HNH2VQK38R02" is closed. The last processed stream ID was 9.
+2025-11-13 17:03:06.527 -05:00 [DBG] Connection id "0HNH2VQK38R02" sending FIN because: "The Socket transport's send loop completed gracefully."
+2025-11-13 17:03:06.530 -05:00 [DBG] Connection id "0HNH2VQK38R02" stopped.
+2025-11-13 17:21:37.247 -05:00 [DBG] Registered model binder providers, in the following order: ["Microsoft.AspNetCore.Mvc.ModelBinding.Binders.BinderTypeModelBinderProvider","Microsoft.AspNetCore.Mvc.ModelBinding.Binders.ServicesModelBinderProvider","Microsoft.AspNetCore.Mvc.ModelBinding.Binders.BodyModelBinderProvider","Microsoft.AspNetCore.Mvc.ModelBinding.Binders.HeaderModelBinderProvider","Microsoft.AspNetCore.Mvc.ModelBinding.Binders.FloatingPointTypeModelBinderProvider","Microsoft.AspNetCore.Mvc.ModelBinding.Binders.EnumTypeModelBinderProvider","Microsoft.AspNetCore.Mvc.ModelBinding.Binders.DateTimeModelBinderProvider","Microsoft.AspNetCore.Mvc.ModelBinding.Binders.SimpleTypeModelBinderProvider","Microsoft.AspNetCore.Mvc.ModelBinding.Binders.TryParseModelBinderProvider","Microsoft.AspNetCore.Mvc.ModelBinding.Binders.CancellationTokenModelBinderProvider","Microsoft.AspNetCore.Mvc.ModelBinding.Binders.ByteArrayModelBinderProvider","Microsoft.AspNetCore.Mvc.ModelBinding.Binders.FormFileModelBinderProvider","Microsoft.AspNetCore.Mvc.ModelBinding.Binders.FormCollectionModelBinderProvider","Microsoft.AspNetCore.Mvc.ModelBinding.Binders.KeyValuePairModelBinderProvider","Microsoft.AspNetCore.Mvc.ModelBinding.Binders.DictionaryModelBinderProvider","Microsoft.AspNetCore.Mvc.ModelBinding.Binders.ArrayModelBinderProvider","Microsoft.AspNetCore.Mvc.ModelBinding.Binders.CollectionModelBinderProvider","Microsoft.AspNetCore.Mvc.ModelBinding.Binders.ComplexObjectModelBinderProvider"]
+2025-11-13 17:21:37.559 -05:00 [DBG] Hosting starting
+2025-11-13 17:21:37.629 -05:00 [INF] User profile is available. Using 'C:\Users\xmanc\AppData\Local\ASP.NET\DataProtection-Keys' as key repository and Windows DPAPI to encrypt keys at rest.
+2025-11-13 17:21:37.643 -05:00 [DBG] Reading data from file 'C:\Users\xmanc\AppData\Local\ASP.NET\DataProtection-Keys\key-3390bb48-7b52-40b9-a5cd-8587ed8f0a32.xml'.
+2025-11-13 17:21:37.669 -05:00 [DBG] Found key {3390bb48-7b52-40b9-a5cd-8587ed8f0a32}.
+2025-11-13 17:21:37.683 -05:00 [DBG] Considering key {3390bb48-7b52-40b9-a5cd-8587ed8f0a32} with expiration date 2025-12-03 18:54:05Z as default key.
+2025-11-13 17:21:37.689 -05:00 [DBG] Forwarded activator type request from Microsoft.AspNetCore.DataProtection.XmlEncryption.DpapiXmlDecryptor, Microsoft.AspNetCore.DataProtection, Version=8.0.0.0, Culture=neutral, PublicKeyToken=adb9793829ddae60 to Microsoft.AspNetCore.DataProtection.XmlEncryption.DpapiXmlDecryptor, Microsoft.AspNetCore.DataProtection, Culture=neutral, PublicKeyToken=adb9793829ddae60
+2025-11-13 17:21:37.693 -05:00 [DBG] Decrypting secret element using Windows DPAPI.
+2025-11-13 17:21:37.697 -05:00 [DBG] Forwarded activator type request from Microsoft.AspNetCore.DataProtection.AuthenticatedEncryption.ConfigurationModel.AuthenticatedEncryptorDescriptorDeserializer, Microsoft.AspNetCore.DataProtection, Version=8.0.0.0, Culture=neutral, PublicKeyToken=adb9793829ddae60 to Microsoft.AspNetCore.DataProtection.AuthenticatedEncryption.ConfigurationModel.AuthenticatedEncryptorDescriptorDeserializer, Microsoft.AspNetCore.DataProtection, Culture=neutral, PublicKeyToken=adb9793829ddae60
+2025-11-13 17:21:37.703 -05:00 [DBG] Opening CNG algorithm 'AES' from provider 'null' with chaining mode CBC.
+2025-11-13 17:21:37.709 -05:00 [DBG] Opening CNG algorithm 'SHA256' from provider 'null' with HMAC.
+2025-11-13 17:21:37.714 -05:00 [DBG] Using key {3390bb48-7b52-40b9-a5cd-8587ed8f0a32} as the default key.
+2025-11-13 17:21:37.734 -05:00 [DBG] Key ring with default key {3390bb48-7b52-40b9-a5cd-8587ed8f0a32} was loaded during application startup.
+2025-11-13 17:21:37.756 -05:00 [DBG] Middleware loaded
+2025-11-13 17:21:37.769 -05:00 [DBG] Middleware loaded. Script /_framework/aspnetcore-browser-refresh.js (16501 B).
+2025-11-13 17:21:37.799 -05:00 [DBG] Middleware loaded. Script /_framework/blazor-hotreload.js (799 B).
+2025-11-13 17:21:37.927 -05:00 [DBG] Middleware loaded: DOTNET_MODIFIABLE_ASSEMBLIES=null, __ASPNETCORE_BROWSER_TOOLS=true
+2025-11-13 17:21:38.048 -05:00 [INF] Now listening on: https://localhost:7177
+2025-11-13 17:21:38.063 -05:00 [INF] Now listening on: http://localhost:5160
+2025-11-13 17:21:38.065 -05:00 [DBG] Connection id "0HNH30C1L094U" accepted.
+2025-11-13 17:21:38.069 -05:00 [DBG] Loaded hosting startup assembly BioFXAPI
+2025-11-13 17:21:38.072 -05:00 [DBG] Connection id "0HNH30C1L094V" accepted.
+2025-11-13 17:21:38.085 -05:00 [DBG] Connection id "0HNH30C1L094U" started.
+2025-11-13 17:21:38.111 -05:00 [DBG] Loaded hosting startup assembly Microsoft.WebTools.ApiEndpointDiscovery
+2025-11-13 17:21:38.095 -05:00 [DBG] Connection id "0HNH30C1L094U" received FIN.
+2025-11-13 17:21:38.095 -05:00 [DBG] Connection id "0HNH30C1L094V" received FIN.
+2025-11-13 17:21:38.119 -05:00 [DBG] Connection id "0HNH30C1L094V" started.
+2025-11-13 17:21:38.125 -05:00 [DBG] Loaded hosting startup assembly Microsoft.AspNetCore.Watch.BrowserRefresh
+2025-11-13 17:21:38.132 -05:00 [DBG] Loaded hosting startup assembly Microsoft.WebTools.BrowserLink.Net
+2025-11-13 17:21:38.139 -05:00 [DBG] Failed to authenticate HTTPS connection.
+System.IO.IOException: Received an unexpected EOF or 0 bytes from the transport stream.
+   at System.Net.Security.SslStream.ReceiveHandshakeFrameAsync[TIOAdapter](CancellationToken cancellationToken)
+   at System.Net.Security.SslStream.ForceAuthenticationAsync[TIOAdapter](Boolean receiveFirst, Byte[] reAuthenticationData, CancellationToken cancellationToken)
+   at System.Net.Security.SslStream.ProcessAuthenticationWithTelemetryAsync(Boolean isAsync, CancellationToken cancellationToken)
+   at Microsoft.AspNetCore.Server.Kestrel.Https.Internal.HttpsConnectionMiddleware.OnConnectionAsync(ConnectionContext context)
+2025-11-13 17:21:38.139 -05:00 [DBG] Failed to authenticate HTTPS connection.
+System.IO.IOException: Received an unexpected EOF or 0 bytes from the transport stream.
+   at System.Net.Security.SslStream.ReceiveHandshakeFrameAsync[TIOAdapter](CancellationToken cancellationToken)
+   at System.Net.Security.SslStream.ForceAuthenticationAsync[TIOAdapter](Boolean receiveFirst, Byte[] reAuthenticationData, CancellationToken cancellationToken)
+   at System.Net.Security.SslStream.ProcessAuthenticationWithTelemetryAsync(Boolean isAsync, CancellationToken cancellationToken)
+   at Microsoft.AspNetCore.Server.Kestrel.Https.Internal.HttpsConnectionMiddleware.OnConnectionAsync(ConnectionContext context)
+2025-11-13 17:21:38.254 -05:00 [INF] Application started. Press Ctrl+C to shut down.
+2025-11-13 17:21:38.287 -05:00 [DBG] Connection id "0HNH30C1L094U" stopped.
+2025-11-13 17:21:38.402 -05:00 [DBG] Connection id "0HNH30C1L0950" accepted.
+2025-11-13 17:21:38.454 -05:00 [INF] Hosting environment: Development
+2025-11-13 17:21:38.468 -05:00 [DBG] Connection id "0HNH30C1L094U" sending FIN because: "The Socket transport's send loop completed gracefully."
+2025-11-13 17:21:38.478 -05:00 [DBG] Connection id "0HNH30C1L0950" started.
+2025-11-13 17:21:38.421 -05:00 [DBG] Connection id "0HNH30C1L094V" stopped.
+2025-11-13 17:21:38.480 -05:00 [INF] Content root path: C:\Users\xmanc\OneDrive\Desktop\BioFXAPI-Github\BioFXAPI\BioFXAPI
+2025-11-13 17:21:38.488 -05:00 [DBG] Connection id "0HNH30C1L094V" sending FIN because: "The Socket transport's send loop completed gracefully."
+2025-11-13 17:21:38.494 -05:00 [DBG] Hosting started
+2025-11-13 17:21:38.668 -05:00 [DBG] Connection 0HNH30C1L0950 established using the following protocol: "Tls13"
+2025-11-13 17:21:38.812 -05:00 [INF] Request starting HTTP/2 GET https://localhost:7177/swagger/index.html - null null
+2025-11-13 17:21:39.011 -05:00 [DBG] Wildcard detected, all requests with hosts will be allowed.
+2025-11-13 17:21:39.082 -05:00 [DBG] No candidates found for the request path '/swagger/index.html'
+2025-11-13 17:21:39.122 -05:00 [DBG] Request did not match any endpoints
+2025-11-13 17:21:39.255 -05:00 [DBG] Response markup is scheduled to include Browser Link script injection.
+2025-11-13 17:21:39.345 -05:00 [DBG] Response markup is scheduled to include browser refresh script injection.
+2025-11-13 17:21:39.435 -05:00 [DBG] Response markup was updated to include Browser Link script injection.
+2025-11-13 17:21:39.476 -05:00 [DBG] Response markup was updated to include browser refresh script injection.
+2025-11-13 17:21:39.498 -05:00 [INF] Request finished HTTP/2 GET https://localhost:7177/swagger/index.html - 200 null text/html;charset=utf-8 695.6086ms
+2025-11-13 17:21:39.662 -05:00 [INF] Request starting HTTP/2 GET https://localhost:7177/_framework/aspnetcore-browser-refresh.js - null null
+2025-11-13 17:21:39.665 -05:00 [INF] Request starting HTTP/2 GET https://localhost:7177/_vs/browserLink - null null
+2025-11-13 17:21:39.736 -05:00 [DBG] Script injected: /_framework/aspnetcore-browser-refresh.js
+2025-11-13 17:21:39.746 -05:00 [INF] Request finished HTTP/2 GET https://localhost:7177/_framework/aspnetcore-browser-refresh.js - 200 16501 application/javascript; charset=utf-8 83.5823ms
+2025-11-13 17:21:39.782 -05:00 [INF] Request finished HTTP/2 GET https://localhost:7177/_vs/browserLink - 200 null text/javascript; charset=UTF-8 116.7057ms
+2025-11-13 17:21:39.844 -05:00 [INF] Request starting HTTP/2 GET https://localhost:7177/swagger/v1/swagger.json - null null
+2025-11-13 17:21:39.870 -05:00 [DBG] No candidates found for the request path '/swagger/v1/swagger.json'
+2025-11-13 17:21:39.892 -05:00 [DBG] Request did not match any endpoints
+2025-11-13 17:21:39.949 -05:00 [INF] Request finished HTTP/2 GET https://localhost:7177/swagger/v1/swagger.json - 200 null application/json;charset=utf-8 104.6071ms
+2025-11-13 17:21:42.889 -05:00 [DBG] Connection id "0HNH30C1L0950" received FIN.
+2025-11-13 17:21:42.899 -05:00 [DBG] The connection queue processing loop for 0HNH30C1L0950 completed.
+2025-11-13 17:21:42.901 -05:00 [DBG] Connection id "0HNH30C1L0950" is closed. The last processed stream ID was 7.
+2025-11-13 17:21:42.935 -05:00 [DBG] Connection id "0HNH30C1L0950" sending FIN because: "The Socket transport's send loop completed gracefully."
+2025-11-13 17:21:42.995 -05:00 [DBG] Connection id "0HNH30C1L0950" stopped.
+2025-11-13 17:23:21.302 -05:00 [DBG] Connection id "0HNH30C1L0951" accepted.
+2025-11-13 17:23:21.304 -05:00 [DBG] Connection id "0HNH30C1L0951" started.
+2025-11-13 17:23:21.314 -05:00 [DBG] Connection 0HNH30C1L0951 established using the following protocol: "Tls13"
+2025-11-13 17:23:21.318 -05:00 [INF] Request starting HTTP/2 POST https://localhost:7177/api/Transactions/refresh-by-request - application/json 25
+2025-11-13 17:23:21.330 -05:00 [DBG] 1 candidate(s) found for the request path '/api/Transactions/refresh-by-request'
+2025-11-13 17:23:21.334 -05:00 [DBG] Endpoint 'BioFXAPI.Controllers.TransactionsController.RefreshByRequestId (BioFXAPI)' with route pattern 'api/Transactions/refresh-by-request' is valid for the request path '/api/Transactions/refresh-by-request'
+2025-11-13 17:23:21.336 -05:00 [DBG] Request matched endpoint 'BioFXAPI.Controllers.TransactionsController.RefreshByRequestId (BioFXAPI)'
+2025-11-13 17:23:21.340 -05:00 [DBG] Static files was skipped as the request already matched an endpoint.
+2025-11-13 17:23:21.342 -05:00 [DBG] The request has an origin header: 'https://localhost:7177'.
+2025-11-13 17:23:21.344 -05:00 [INF] CORS policy execution failed.
+2025-11-13 17:23:21.345 -05:00 [INF] Request origin https://localhost:7177 does not have permission to access the resource.
+2025-11-13 17:23:21.469 -05:00 [DBG] Successfully validated the token.
+2025-11-13 17:23:21.482 -05:00 [DBG] AuthenticationScheme: Bearer was successfully authenticated.
+2025-11-13 17:23:21.489 -05:00 [INF] Executing endpoint 'BioFXAPI.Controllers.TransactionsController.RefreshByRequestId (BioFXAPI)'
+2025-11-13 17:23:21.523 -05:00 [INF] Route matched with {action = "RefreshByRequestId", controller = "Transactions"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] RefreshByRequestId(RefreshRequest) on controller BioFXAPI.Controllers.TransactionsController (BioFXAPI).
+2025-11-13 17:23:21.526 -05:00 [DBG] Execution plan of authorization filters (in the following order): ["None"]
+2025-11-13 17:23:21.528 -05:00 [DBG] Execution plan of resource filters (in the following order): ["None"]
+2025-11-13 17:23:21.530 -05:00 [DBG] Execution plan of action filters (in the following order): ["Microsoft.AspNetCore.Mvc.ModelBinding.UnsupportedContentTypeFilter (Order: -3000)","Microsoft.AspNetCore.Mvc.Infrastructure.ModelStateInvalidFilter (Order: -2000)"]
+2025-11-13 17:23:21.532 -05:00 [DBG] Execution plan of exception filters (in the following order): ["None"]
+2025-11-13 17:23:21.535 -05:00 [DBG] Execution plan of result filters (in the following order): ["Microsoft.AspNetCore.Mvc.Infrastructure.ClientErrorResultFilter (Order: -2000)"]
+2025-11-13 17:23:21.540 -05:00 [DBG] Executing controller factory for controller BioFXAPI.Controllers.TransactionsController (BioFXAPI)
+2025-11-13 17:23:21.543 -05:00 [DBG] Executed controller factory for controller BioFXAPI.Controllers.TransactionsController (BioFXAPI)
+2025-11-13 17:23:21.556 -05:00 [DBG] Attempting to bind parameter 'r' of type 'BioFXAPI.Controllers.TransactionsController+RefreshRequest' ...
+2025-11-13 17:23:21.560 -05:00 [DBG] Attempting to bind parameter 'r' of type 'BioFXAPI.Controllers.TransactionsController+RefreshRequest' using the name '' in request data ...
+2025-11-13 17:23:21.563 -05:00 [DBG] Selected input formatter 'Microsoft.AspNetCore.Mvc.Formatters.SystemTextJsonInputFormatter' for content type 'application/json'.
+2025-11-13 17:23:21.572 -05:00 [DBG] Connection id "0HNH30C1L0951", Request id "0HNH30C1L0951:00000001": started reading request body.
+2025-11-13 17:23:21.574 -05:00 [DBG] Connection id "0HNH30C1L0951", Request id "0HNH30C1L0951:00000001": done reading request body.
+2025-11-13 17:23:21.587 -05:00 [DBG] JSON input formatter succeeded, deserializing to type 'BioFXAPI.Controllers.TransactionsController+RefreshRequest'
+2025-11-13 17:23:21.589 -05:00 [DBG] Done attempting to bind parameter 'r' of type 'BioFXAPI.Controllers.TransactionsController+RefreshRequest'.
+2025-11-13 17:23:21.590 -05:00 [DBG] Done attempting to bind parameter 'r' of type 'BioFXAPI.Controllers.TransactionsController+RefreshRequest'.
+2025-11-13 17:23:21.592 -05:00 [DBG] Attempting to validate the bound parameter 'r' of type 'BioFXAPI.Controllers.TransactionsController+RefreshRequest' ...
+2025-11-13 17:23:21.602 -05:00 [DBG] Done attempting to validate the bound parameter 'r' of type 'BioFXAPI.Controllers.TransactionsController+RefreshRequest'.
+2025-11-13 17:23:24.080 -05:00 [DBG] List of registered output formatters, in the following order: ["Microsoft.AspNetCore.Mvc.Formatters.HttpNoContentOutputFormatter","Microsoft.AspNetCore.Mvc.Formatters.StringOutputFormatter","Microsoft.AspNetCore.Mvc.Formatters.StreamOutputFormatter","Microsoft.AspNetCore.Mvc.Formatters.SystemTextJsonOutputFormatter"]
+2025-11-13 17:23:24.087 -05:00 [DBG] No information found on request to perform content negotiation.
+2025-11-13 17:23:24.089 -05:00 [DBG] Attempting to select an output formatter without using a content type as no explicit content types were specified for the response.
+2025-11-13 17:23:24.092 -05:00 [DBG] Attempting to select the first formatter in the output formatters list which can write the result.
+2025-11-13 17:23:24.094 -05:00 [DBG] Selected output formatter 'Microsoft.AspNetCore.Mvc.Formatters.SystemTextJsonOutputFormatter' and content type 'application/json' to write the response.
+2025-11-13 17:23:24.097 -05:00 [INF] Executing OkObjectResult, writing value of type '<>f__AnonymousType37`2[[System.Int32, System.Private.CoreLib, Version=8.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e],[System.String, System.Private.CoreLib, Version=8.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]'.
+2025-11-13 17:23:24.108 -05:00 [INF] Executed action BioFXAPI.Controllers.TransactionsController.RefreshByRequestId (BioFXAPI) in 2568.6325ms
+2025-11-13 17:23:24.111 -05:00 [INF] Executed endpoint 'BioFXAPI.Controllers.TransactionsController.RefreshByRequestId (BioFXAPI)'
+2025-11-13 17:23:24.114 -05:00 [INF] Request finished HTTP/2 POST https://localhost:7177/api/Transactions/refresh-by-request - 200 null application/json; charset=utf-8 2795.4274ms

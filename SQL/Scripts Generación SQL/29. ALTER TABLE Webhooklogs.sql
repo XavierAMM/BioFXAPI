@@ -1,0 +1,3 @@
+ALTER TABLE WebhookLog
+ALTER COLUMN RequestId INT NULL;
+
