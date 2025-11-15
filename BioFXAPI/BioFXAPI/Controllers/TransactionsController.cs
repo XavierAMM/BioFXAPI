@@ -89,7 +89,69 @@ namespace BioFXAPI.Controllers
             }
 
             using var doc = JsonDocument.Parse(payload);
-            var status = doc.RootElement.GetProperty("status").GetProperty("status").GetString();
+            var root = doc.RootElement;
+
+            // 1) status global de la solicitud
+            var statusEl = root.GetProperty("status");
+            var status = statusEl.GetProperty("status").GetString();
+
+            var reason = statusEl.TryGetProperty("reason", out var reasonEl) && reasonEl.ValueKind == JsonValueKind.String
+                ? reasonEl.GetString()
+                : null;
+
+            var message = statusEl.TryGetProperty("message", out var msgEl) && msgEl.ValueKind == JsonValueKind.String
+                ? msgEl.GetString()
+                : null;
+
+            // 2) datos específicos del pago (primer elemento de payment[])
+            string? paymentMethod = null;
+            string? paymentMethodName = null;
+            string? issuerName = null;
+            int? internalReference = null;
+            bool? refunded = null;
+            decimal? refundedAmount = null;
+
+            if (root.TryGetProperty("payment", out var payArr) && payArr.ValueKind == JsonValueKind.Array && payArr.GetArrayLength() > 0)
+            {
+                var p0 = payArr[0];
+
+                // internalReference (en tu JSON viene como string)
+                if (p0.TryGetProperty("internalReference", out var irEl))
+                {
+                    if (irEl.ValueKind == JsonValueKind.Number && irEl.TryGetInt32(out var irNum))
+                        internalReference = irNum;
+                    else if (irEl.ValueKind == JsonValueKind.String && int.TryParse(irEl.GetString(), out var irNum2))
+                        internalReference = irNum2;
+                }
+
+                if (p0.TryGetProperty("paymentMethod", out var pmEl) && pmEl.ValueKind == JsonValueKind.String)
+                    paymentMethod = pmEl.GetString();
+
+                if (p0.TryGetProperty("paymentMethodName", out var pmnEl) && pmnEl.ValueKind == JsonValueKind.String)
+                    paymentMethodName = pmnEl.GetString();
+
+                if (p0.TryGetProperty("issuerName", out var issEl) && issEl.ValueKind == JsonValueKind.String)
+                    issuerName = issEl.GetString();
+
+                if (p0.TryGetProperty("refunded", out var refEl) && (refEl.ValueKind == JsonValueKind.True || refEl.ValueKind == JsonValueKind.False))
+                {
+                    refunded = refEl.GetBoolean();
+                }
+
+
+                if (p0.TryGetProperty("amount", out var amountEl) && amountEl.ValueKind == JsonValueKind.Object)
+                {
+                    if (amountEl.TryGetProperty("to", out var toEl) && toEl.ValueKind == JsonValueKind.Object)
+                    {
+                        if (toEl.TryGetProperty("total", out var totEl) && totEl.ValueKind == JsonValueKind.Number && totEl.TryGetDecimal(out var tot))
+                        {
+                            refundedAmount = tot;
+                        }
+                    }
+                }
+            }
+
+            // 3) mapping del estado a tu modelo local
             var mapped = status switch
             {
                 "APPROVED" or "OK" => "PAID",
@@ -101,35 +163,65 @@ namespace BioFXAPI.Controllers
 
             using var dbtx = con.BeginTransaction();
 
+            // 4) Stock
             if (!string.Equals(txRow.Status, "PAID", StringComparison.OrdinalIgnoreCase) && mapped == "PAID")
             {
                 await con.ExecuteAsync(@"
-                UPDATE p
-                SET p.Stock = p.Stock - oi.Quantity,
-                    p.StockReservado = CASE WHEN p.StockReservado >= oi.Quantity THEN p.StockReservado - oi.Quantity ELSE 0 END,
-                    p.ActualizadoEl = GETUTCDATE()
-                FROM Producto p INNER JOIN OrderItem oi ON oi.ProductId = p.Id
-                WHERE oi.OrderId = @OrderId;", new { OrderId = txRow.OrderId }, dbtx);
+        UPDATE p
+        SET p.Stock = p.Stock - oi.Quantity,
+            p.StockReservado = CASE WHEN p.StockReservado >= oi.Quantity THEN p.StockReservado - oi.Quantity ELSE 0 END,
+            p.ActualizadoEl = GETUTCDATE()
+        FROM Producto p INNER JOIN OrderItem oi ON oi.ProductId = p.Id
+        WHERE oi.OrderId = @OrderId;", new { OrderId = txRow.OrderId }, dbtx);
             }
             else if (mapped == "REJECTED" || mapped == "EXPIRED")
             {
                 await con.ExecuteAsync(@"
-                UPDATE p
-                SET p.StockReservado = CASE WHEN p.StockReservado >= oi.Quantity THEN p.StockReservado - oi.Quantity ELSE 0 END,
-                    p.ActualizadoEl = GETUTCDATE()
-                FROM Producto p INNER JOIN OrderItem oi ON oi.ProductId = p.Id
-                WHERE oi.OrderId = @OrderId;", new { OrderId = txRow.OrderId }, dbtx);
+        UPDATE p
+        SET p.StockReservado = CASE WHEN p.StockReservado >= oi.Quantity THEN p.StockReservado - oi.Quantity ELSE 0 END,
+            p.ActualizadoEl = GETUTCDATE()
+        FROM Producto p INNER JOIN OrderItem oi ON oi.ProductId = p.Id
+        WHERE oi.OrderId = @OrderId;", new { OrderId = txRow.OrderId }, dbtx);
             }
 
+            // 5) Actualizar Order + Transaction enriquecida
             await con.ExecuteAsync(
-                @"UPDATE [Order] SET Status=@E, ActualizadoEl=GETUTCDATE() WHERE Id=@Id;
-                UPDATE [Transaction] SET Status=@E, ActualizadoEl=GETUTCDATE() WHERE Id=@TxId;",
-                new { Id = txRow.OrderId, E = mapped, TxId = txRow.Id }, dbtx);
+                @"UPDATE [Order] 
+      SET Status=@E, ActualizadoEl=GETUTCDATE() 
+      WHERE Id=@Id;
+
+      UPDATE [Transaction]
+      SET Status=@E,
+          InternalReference = @InternalReference,
+          Reason           = @Reason,
+          Message          = @Message,
+          PaymentMethod    = @PaymentMethod,
+          PaymentMethodName= @PaymentMethodName,
+          IssuerName       = @IssuerName,
+          Refunded         = CASE WHEN @Refunded IS NULL THEN Refunded ELSE @Refunded END,
+          RefundedAmount   = CASE WHEN @RefundedAmount IS NULL THEN RefundedAmount ELSE @RefundedAmount END,
+          ActualizadoEl    = GETUTCDATE()
+      WHERE Id=@TxId;",
+                new
+                {
+                    Id = txRow.OrderId,
+                    E = mapped,
+                    TxId = txRow.Id,
+                    InternalReference = (object?)internalReference ?? DBNull.Value,
+                    Reason = (object?)reason ?? DBNull.Value,
+                    Message = (object?)message ?? DBNull.Value,
+                    PaymentMethod = (object?)paymentMethod ?? DBNull.Value,
+                    PaymentMethodName = (object?)paymentMethodName ?? DBNull.Value,
+                    IssuerName = (object?)issuerName ?? DBNull.Value,
+                    Refunded = refunded.HasValue ? (refunded.Value ? 1 : 0) : (int?)null,
+                    RefundedAmount = (object?)refundedAmount ?? DBNull.Value
+                }, dbtx);
 
             dbtx.Commit();
 
             return Ok(new { orderId = txRow.OrderId, status = mapped });
-		}
+
+        }
 
 
         [Authorize]
