@@ -4,6 +4,8 @@ C:\Users\xmanc\OneDrive\Desktop\BioFXAPI-Github\BioFXAPI\BioFXAPI\obj\Release\ne
 C:\Users\xmanc\OneDrive\Desktop\BioFXAPI-Github\BioFXAPI\BioFXAPI\obj\Release\net8.0\PubTmp\Out\BioFXAPI.dll
 C:\Users\xmanc\OneDrive\Desktop\BioFXAPI-Github\BioFXAPI\BioFXAPI\obj\Release\net8.0\PubTmp\Out\BioFXAPI.runtimeconfig.json
 C:\Users\xmanc\OneDrive\Desktop\BioFXAPI-Github\BioFXAPI\BioFXAPI\obj\Release\net8.0\PubTmp\Out\BioFXAPI.pdb
+C:\Users\xmanc\OneDrive\Desktop\BioFXAPI-Github\BioFXAPI\BioFXAPI\obj\Release\net8.0\PubTmp\Out\AWSSDK.Core.dll
+C:\Users\xmanc\OneDrive\Desktop\BioFXAPI-Github\BioFXAPI\BioFXAPI\obj\Release\net8.0\PubTmp\Out\AWSSDK.S3.dll
 C:\Users\xmanc\OneDrive\Desktop\BioFXAPI-Github\BioFXAPI\BioFXAPI\obj\Release\net8.0\PubTmp\Out\Azure.Core.dll
 C:\Users\xmanc\OneDrive\Desktop\BioFXAPI-Github\BioFXAPI\BioFXAPI\obj\Release\net8.0\PubTmp\Out\Azure.Identity.dll
 C:\Users\xmanc\OneDrive\Desktop\BioFXAPI-Github\BioFXAPI\BioFXAPI\obj\Release\net8.0\PubTmp\Out\BouncyCastle.Cryptography.dll

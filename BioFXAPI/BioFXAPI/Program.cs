@@ -1,11 +1,16 @@
+using Amazon;
+using Amazon.S3;
+using BioFXAPI.Options;
 using BioFXAPI.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.RateLimiting;
+using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Serilog;
 using System.Text;
+
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -132,6 +137,30 @@ builder.Services.AddSwaggerGen(c =>
 });
 
 builder.Services.AddHealthChecks();
+
+
+builder.Services.Configure<S3Options>(builder.Configuration.GetSection("AwsS3"));
+
+builder.Services.AddSingleton<IAmazonS3>(sp =>
+{
+    var opts = sp.GetRequiredService<IOptions<S3Options>>().Value;
+
+    var config = new AmazonS3Config
+    {
+        RegionEndpoint = RegionEndpoint.GetBySystemName(opts.Region)
+    };
+
+    if (!string.IsNullOrWhiteSpace(opts.AccessKeyId) &&
+        !string.IsNullOrWhiteSpace(opts.SecretAccessKey))
+    {
+        return new AmazonS3Client(opts.AccessKeyId, opts.SecretAccessKey, config);
+    }
+
+    return new AmazonS3Client(config);
+});
+
+builder.Services.AddScoped<IFileStorageService, S3FileStorageService>();
+
 
 Log.Logger = new LoggerConfiguration()
     .MinimumLevel.Debug()

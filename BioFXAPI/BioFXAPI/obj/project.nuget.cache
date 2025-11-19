@@ -1,9 +1,11 @@
 {
   "version": 2,
-  "dgSpecHash": "Ox2Hwuj90Qw=",
+  "dgSpecHash": "OETcGNWGK1g=",
   "success": true,
   "projectFilePath": "C:\\Users\\xmanc\\OneDrive\\Desktop\\BioFXAPI-Github\\BioFXAPI\\BioFXAPI\\BioFXAPI.csproj",
   "expectedPackageFiles": [
+    "C:\\Users\\xmanc\\.nuget\\packages\\awssdk.core\\4.0.3.1\\awssdk.core.4.0.3.1.nupkg.sha512",
+    "C:\\Users\\xmanc\\.nuget\\packages\\awssdk.s3\\4.0.11.3\\awssdk.s3.4.0.11.3.nupkg.sha512",
     "C:\\Users\\xmanc\\.nuget\\packages\\azure.core\\1.47.1\\azure.core.1.47.1.nupkg.sha512",
     "C:\\Users\\xmanc\\.nuget\\packages\\azure.identity\\1.14.2\\azure.identity.1.14.2.nupkg.sha512",
     "C:\\Users\\xmanc\\.nuget\\packages\\bouncycastle.cryptography\\2.5.1\\bouncycastle.cryptography.2.5.1.nupkg.sha512",

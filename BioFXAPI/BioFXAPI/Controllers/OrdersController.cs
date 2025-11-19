@@ -7,7 +7,9 @@ using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
-using System.Linq;
+using BioFXAPI.Services;
+using Microsoft.AspNetCore.Http;
+
 
 namespace BioFXAPI.Controllers
 {
@@ -20,20 +22,24 @@ namespace BioFXAPI.Controllers
         private readonly IConfiguration _cfg;
         private readonly HttpClient _http;
         private readonly ILogger<OrdersController> _logger;
+        private readonly IFileStorageService _fileStorage;
 
-        public OrdersController(IConfiguration cfg, ILogger<OrdersController> logger)
+        public OrdersController(IConfiguration cfg, ILogger<OrdersController> logger, IFileStorageService fileStorage)
         {
             _cfg = cfg;
             _cs = cfg.GetConnectionString("DefaultConnection");
             _http = new HttpClient { BaseAddress = new Uri(_cfg["PlacetoPay:BaseUrl"]) };
             _http.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
             _logger = logger;
+            _fileStorage = fileStorage;
         }
 
         [HttpPost("create")]
         public async Task<IActionResult> CreateFromCart([FromBody] CreateOrderRequest req)
         {
             if (req is null) return BadRequest(new { message = "Cuerpo inválido." });
+            _logger.LogInformation("CreateFromCart llamado. Reference={Reference}, Desc={Desc}",
+             req.Reference, req.Description);
 
             try
             {
@@ -86,6 +92,18 @@ namespace BioFXAPI.Controllers
                     int orderId = 0;
                     string orderNumber = "";
 
+                    // Normalizar campos de documento/dirección/médico
+                    var docType = string.IsNullOrWhiteSpace(req.DocumentType) ? "" : req.DocumentType.Trim();
+                    var docNumber = string.IsNullOrWhiteSpace(req.DocumentNumber) ? "" : req.DocumentNumber.Trim();
+                    var address = string.IsNullOrWhiteSpace(req.AddressLine) ? "" : req.AddressLine.Trim();
+                    var city = string.IsNullOrWhiteSpace(req.City) ? "" : req.City.Trim();
+                    var province = string.IsNullOrWhiteSpace(req.Province) ? "" : req.Province.Trim();
+                    var country = string.IsNullOrWhiteSpace(req.Country) ? "" : req.Country.Trim();
+
+                    // PostalCode y DoctorName sí los podemos dejar en NULL si quieres
+                    var postalCode = string.IsNullOrWhiteSpace(req.PostalCode) ? null : req.PostalCode.Trim();
+                    var doctorName = string.IsNullOrWhiteSpace(req.DoctorName) ? null : req.DoctorName.Trim();
+
                     while (true)
                     {
                         attempts++;
@@ -94,9 +112,49 @@ namespace BioFXAPI.Controllers
                         try
                         {
                             orderId = await con.ExecuteScalarAsync<int>(
-                                @"INSERT INTO [Order](UserId, OrderNumber, Reference, Description, TotalAmount, TaxAmount, Currency, Status, CreadoEl, ActualizadoEl, Activo)
-                          OUTPUT INSERTED.Id
-                          VALUES(@Uid, @OrderNumber, @Reference, @Desc, @Total, @Tax, 'USD', 'PENDING', GETUTCDATE(), GETUTCDATE(), 1)",
+                                @"INSERT INTO [Order](
+                                    UserId,
+                                    OrderNumber,
+                                    Reference,
+                                    Description,
+                                    TotalAmount,
+                                    TaxAmount,
+                                    Currency,
+                                    Status,
+                                    DocumentType,
+                                    DocumentNumber,
+                                    AddressLine,
+                                    City,
+                                    Province,
+                                    PostalCode,
+                                    Country,
+                                    DoctorName,
+                                    CreadoEl,
+                                    ActualizadoEl,
+                                    Activo
+                              )
+                              OUTPUT INSERTED.Id
+                              VALUES(
+                                    @Uid,
+                                    @OrderNumber,
+                                    @Reference,
+                                    @Desc,
+                                    @Total,
+                                    @Tax,
+                                    'USD',
+                                    'PENDING',
+                                    @DocumentType,
+                                    @DocumentNumber,
+                                    @AddressLine,
+                                    @City,
+                                    @Province,
+                                    @PostalCode,
+                                    @Country,
+                                    @DoctorName,
+                                    GETUTCDATE(),
+                                    GETUTCDATE(),
+                                    1
+                              )",
                                 new
                                 {
                                     Uid = userId,
@@ -104,8 +162,18 @@ namespace BioFXAPI.Controllers
                                     Reference = reference,
                                     Desc = req.Description ?? "Compra BioFX",
                                     Total = total,
-                                    Tax = tax
-                                }, tx);
+                                    Tax = tax,
+                                    DocumentType = docType,
+                                    DocumentNumber = docNumber,
+                                    AddressLine = address,
+                                    City = city,
+                                    Province = province,
+                                    PostalCode = (object?)postalCode ?? DBNull.Value,
+                                    Country = country,
+                                    DoctorName = (object?)doctorName ?? DBNull.Value
+                                },
+                                tx);
+
                             break; // insert OK
                         }
                         catch (SqlException ex) when (ex.Number == 2627 || ex.Number == 2601)
@@ -113,6 +181,7 @@ namespace BioFXAPI.Controllers
                             if (attempts >= 3) throw;
                         }
                     }
+
 
                     foreach (var it in items)
                     {
@@ -141,6 +210,9 @@ namespace BioFXAPI.Controllers
                         new { Cart = cartId.Value }, tx);
 
                     await tx.CommitAsync();
+
+                    _logger.LogInformation("Orden creada correctamente. OrderId={OrderId}, UserId={UserId}, Total={Total}",
+                     orderId, userId, total);
 
                     return Ok(new
                     {
@@ -174,6 +246,158 @@ namespace BioFXAPI.Controllers
             }
         }
 
+        [HttpPost("{orderId:int}/attachment")]
+        [RequestSizeLimit(10 * 1024 * 1024)] // 10 MB
+        public async Task<IActionResult> UploadOrderAttachment(int orderId, IFormFile file, CancellationToken ct)
+        {
+            _logger.LogInformation("UploadOrderAttachment llamado para OrderId={OrderId}. FileName={FileName}, Length={Length}, ContentType={ContentType}",
+                orderId,
+                file?.FileName,
+                file?.Length ?? 0,
+                file?.ContentType);
+            if (file == null || file.Length == 0)
+                return BadRequest(new { message = "Archivo requerido." });
+
+            // Solo aceptamos PDF o imágenes
+            if (!EsAdjuntoValido(file.FileName, file.ContentType))
+            {
+                return BadRequest(new
+                {
+                    message = "Solo se permiten archivos PDF o imágenes (PNG, JPG, JPEG) para la receta médica."
+                });
+            }
+
+
+            await using var con = new SqlConnection(_cs);
+            await con.OpenAsync();
+
+            // Resolver usuario autenticado
+            var (ok, userId, err) = await TryResolveUserIdAsync(con, null);
+            if (!ok) return err!;
+
+            // Verificar que la orden existe, está activa y es del usuario
+            var orderRow = await con.QueryFirstOrDefaultAsync<(int UserId, int? AttachmentId)>(
+                @"SELECT UserId, OrderAttachmentId
+          FROM [Order]
+          WHERE Id = @Id AND Activo = 1",
+                new { Id = orderId });
+
+            if (orderRow == default)
+                return NotFound(new { message = "Orden no encontrada." });
+
+            if (orderRow.UserId != userId)
+                return Forbid();
+
+            if (orderRow.AttachmentId.HasValue)
+            {
+                return BadRequest(new { message = "La orden ya tiene una factura asociada." });
+            }
+
+            var ext = Path.GetExtension(file.FileName);
+            if (string.IsNullOrWhiteSpace(ext))
+            {
+                ext = ".bin";
+            }
+
+            var key = $"orders/{orderId}/attachments/{Guid.NewGuid():N}{ext}";
+            var uploadedToS3 = false;
+
+
+            try
+            {
+                // 1) Subir a S3
+                await using (var stream = file.OpenReadStream())
+                {
+                    await _fileStorage.UploadAsync(stream, key, file.ContentType, ct);
+                    uploadedToS3 = true;
+                }
+
+                // 2) Insertar en OrderAttachment + actualizar Order.OrderAttachmentId
+                using var tx = con.BeginTransaction();
+
+                var attachmentId = await con.ExecuteScalarAsync<int>(
+                    @"INSERT INTO [OrderAttachment](
+                    FileName,
+                    ContentType,
+                    FileSize,
+                    StorageKey,
+                    Tipo,
+                    Activo,
+                    CreadoEl,
+                    ActualizadoEl
+              )
+              OUTPUT INSERTED.Id
+              VALUES(
+                    @FileName,
+                    @ContentType,
+                    @FileSize,
+                    @StorageKey,
+                    @Tipo,
+                    1,
+                    GETUTCDATE(),
+                    GETUTCDATE()
+              );",
+                    new
+                    {
+                        FileName = file.FileName,
+                        ContentType = file.ContentType,
+                        FileSize = file.Length,
+                        StorageKey = key,
+                        Tipo = "FACTURA"
+                    },
+                    tx
+                );
+
+                await con.ExecuteAsync(
+                    @"UPDATE [Order]
+              SET OrderAttachmentId = @AttachmentId,
+                  ActualizadoEl = GETUTCDATE()
+              WHERE Id = @OrderId AND Activo = 1;",
+                    new { AttachmentId = attachmentId, OrderId = orderId },
+                    tx
+                );
+
+                await tx.CommitAsync(ct);
+
+                _logger.LogInformation(
+                "Adjunto guardado correctamente. OrderId={OrderId}, AttachmentId={AttachmentId}, Key={Key}",
+                orderId, attachmentId, key);
+
+                return Ok(new
+                {
+                    orderId,
+                    attachmentId,
+                    fileName = file.FileName
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error al asociar factura a la orden {OrderId}.", orderId);
+
+                if (uploadedToS3)
+                {
+                    try
+                    {
+                        await _fileStorage.DeleteAsync(key, ct);
+                        _logger.LogInformation(
+                            "Se eliminó de S3 el archivo {Key} tras fallo al guardar en BD para la orden {OrderId}.",
+                            key, orderId);
+                    }
+                    catch (Exception delEx)
+                    {
+                        _logger.LogError(delEx,
+                            "Error al intentar eliminar de S3 el archivo {Key} tras fallo para la orden {OrderId}.",
+                            key, orderId);
+                    }
+                }
+
+                return StatusCode(500, new
+                {
+                    message = "Error al guardar la factura de la orden.",
+                    error = ex.Message
+                });
+            }
+        }
 
 
         [HttpPost("{orderId:int}/placetopay/session")]
@@ -221,7 +445,7 @@ namespace BioFXAPI.Controllers
             if (pendingTx != default && sameHost)
                 return Ok(new { requestId = pendingTx.RequestId, processUrl = pendingTx.ProcessUrl });
 
-            var seed = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:sszzz",System.Globalization.CultureInfo.InvariantCulture);
+            var seed = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:sszzz", System.Globalization.CultureInfo.InvariantCulture);
 
             var nonceBytes = RandomNumberGenerator.GetBytes(16);
 
@@ -270,7 +494,7 @@ namespace BioFXAPI.Controllers
                 expiration = DateTime.UtcNow.AddMinutes(int.Parse(_cfg["PlacetoPay:TimeoutMinutes"]!))
                              .ToString("yyyy-MM-ddTHH:mm:sszzz"),
                 returnUrl = req.ReturnUrl,
-                notificationUrl,                
+                notificationUrl,
                 ipAddress = ip,
                 userAgent = Request.Headers["User-Agent"].ToString()
             };
@@ -279,6 +503,10 @@ namespace BioFXAPI.Controllers
             _logger.LogInformation("PlacetoPay CreateSession para Order {OrderId}. JSON: {Json}", orderId, json);
             var resp = await _http.PostAsync("api/session", new StringContent(json, Encoding.UTF8, "application/json"));
             var payload = await resp.Content.ReadAsStringAsync();
+
+            _logger.LogInformation("PlacetoPay respuesta para Order {OrderId}. StatusCode={StatusCode}, Payload={Payload}",
+                orderId, (int)resp.StatusCode, payload);
+
             if (!resp.IsSuccessStatusCode) return StatusCode((int)resp.StatusCode, payload);
 
             using var doc = JsonDocument.Parse(payload);
@@ -315,7 +543,7 @@ namespace BioFXAPI.Controllers
                   ORDER BY Id DESC", new { Id = orderId });
             if (txRow == default) return BadRequest(new { message = "Orden sin transacción." });
 
-            var seed = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:sszzz",System.Globalization.CultureInfo.InvariantCulture);
+            var seed = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:sszzz", System.Globalization.CultureInfo.InvariantCulture);
 
             var nonceBytes = RandomNumberGenerator.GetBytes(16);
             var nonce = Convert.ToBase64String(nonceBytes);
@@ -623,8 +851,41 @@ namespace BioFXAPI.Controllers
             return (false, 0, Unauthorized(new { message = "Usuario no identificado." }));
         }
 
+        private static bool EsAdjuntoValido(string fileName, string contentType)
+        {
+            if (string.IsNullOrWhiteSpace(fileName) && string.IsNullOrWhiteSpace(contentType))
+                return false;
 
-        public record CreateOrderRequest(string? Reference, string? Description);
+            var name = fileName?.ToLowerInvariant() ?? string.Empty;
+            var type = contentType?.ToLowerInvariant() ?? string.Empty;
+
+            var isPdf = type == "application/pdf" || name.EndsWith(".pdf");
+
+            var isImage =
+                type.StartsWith("image/") ||
+                name.EndsWith(".png") ||
+                name.EndsWith(".jpg") ||
+                name.EndsWith(".jpeg");
+
+            return isPdf || isImage;
+        }
+
+
+
+        public record CreateOrderRequest(
+            string? Reference,
+            string? Description,
+            string? DocumentType,    // CI, RUC, PASAPORTE
+            string? DocumentNumber,
+            string? AddressLine,
+            string? City,
+            string? Province,
+            string? PostalCode,
+            string? Country,
+            string? DoctorName
+        );
+
         public record ReturnUrlRequest(string ReturnUrl);
+
     }
 }
