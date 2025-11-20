@@ -1,5 +1,8 @@
-﻿using Dapper;
+﻿using BioFXAPI.Notifications;
+using BioFXAPI.Services;
+using Dapper;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System.Data.SqlClient;
 using System.Net.Http.Headers;
@@ -7,8 +10,6 @@ using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
-using BioFXAPI.Services;
-using Microsoft.AspNetCore.Http;
 
 
 namespace BioFXAPI.Controllers
@@ -23,8 +24,9 @@ namespace BioFXAPI.Controllers
         private readonly HttpClient _http;
         private readonly ILogger<OrdersController> _logger;
         private readonly IFileStorageService _fileStorage;
+        private readonly OrderNotificationService _orderNotificationService;
 
-        public OrdersController(IConfiguration cfg, ILogger<OrdersController> logger, IFileStorageService fileStorage)
+        public OrdersController(IConfiguration cfg, ILogger<OrdersController> logger, IFileStorageService fileStorage, OrderNotificationService orderNotificationService)
         {
             _cfg = cfg;
             _cs = cfg.GetConnectionString("DefaultConnection");
@@ -32,6 +34,7 @@ namespace BioFXAPI.Controllers
             _http.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
             _logger = logger;
             _fileStorage = fileStorage;
+            _orderNotificationService = orderNotificationService;
         }
 
         [HttpPost("create")]
@@ -659,47 +662,51 @@ namespace BioFXAPI.Controllers
                 _ => "PENDING"
             };
 
+            // ¿Acaba de pasar a PAID en esta llamada?
+            var justPaid = !string.Equals(txRow.Status, "PAID", StringComparison.OrdinalIgnoreCase)
+                           && mapped == "PAID";
+
             using var dbtx = con.BeginTransaction();
 
             // Descontar stock al pasar a PAID
-            if (!string.Equals(txRow.Status, "PAID", StringComparison.OrdinalIgnoreCase) && mapped == "PAID")
+            if (justPaid)
             {
                 await con.ExecuteAsync(@"
-        UPDATE p
-        SET p.Stock = p.Stock - oi.Quantity,
-            p.StockReservado = CASE WHEN p.StockReservado >= oi.Quantity THEN p.StockReservado - oi.Quantity ELSE 0 END,
-            p.ActualizadoEl = GETUTCDATE()
-        FROM Producto p INNER JOIN OrderItem oi ON oi.ProductId = p.Id
-        WHERE oi.OrderId = @OrderId;", new { OrderId = orderId }, dbtx);
+                    UPDATE p
+                    SET p.Stock = p.Stock - oi.Quantity,
+                        p.StockReservado = CASE WHEN p.StockReservado >= oi.Quantity THEN p.StockReservado - oi.Quantity ELSE 0 END,
+                        p.ActualizadoEl = GETUTCDATE()
+                    FROM Producto p INNER JOIN OrderItem oi ON oi.ProductId = p.Id
+                    WHERE oi.OrderId = @OrderId;", new { OrderId = orderId }, dbtx);
             }
             else if (mapped == "REJECTED" || mapped == "EXPIRED")
             {
                 await con.ExecuteAsync(@"
-        UPDATE p
-        SET p.StockReservado = CASE WHEN p.StockReservado >= oi.Quantity THEN p.StockReservado - oi.Quantity ELSE 0 END,
-            p.ActualizadoEl = GETUTCDATE()
-        FROM Producto p INNER JOIN OrderItem oi ON oi.ProductId = p.Id
-        WHERE oi.OrderId = @OrderId;", new { OrderId = orderId }, dbtx);
+                    UPDATE p
+                    SET p.StockReservado = CASE WHEN p.StockReservado >= oi.Quantity THEN p.StockReservado - oi.Quantity ELSE 0 END,
+                        p.ActualizadoEl = GETUTCDATE()
+                    FROM Producto p INNER JOIN OrderItem oi ON oi.ProductId = p.Id
+                    WHERE oi.OrderId = @OrderId;", new { OrderId = orderId }, dbtx);
             }
 
             // 4) Actualizar Order + Transaction con datos enriquecidos
             await con.ExecuteAsync(
                 @"UPDATE [Order] 
-      SET Status=@E, ActualizadoEl=GETUTCDATE() 
-      WHERE Id=@Id;
+                  SET Status=@E, ActualizadoEl=GETUTCDATE() 
+                  WHERE Id=@Id;
 
-      UPDATE [Transaction]
-      SET Status=@E,
-          InternalReference = @InternalReference,
-          Reason           = @Reason,
-          Message          = @Message,
-          PaymentMethod    = @PaymentMethod,
-          PaymentMethodName= @PaymentMethodName,
-          IssuerName       = @IssuerName,
-          Refunded         = CASE WHEN @Refunded IS NULL THEN Refunded ELSE @Refunded END,
-          RefundedAmount   = CASE WHEN @RefundedAmount IS NULL THEN RefundedAmount ELSE @RefundedAmount END,
-          ActualizadoEl    = GETUTCDATE()
-      WHERE Id=@TxId;",
+                  UPDATE [Transaction]
+                  SET Status=@E,
+                      InternalReference = @InternalReference,
+                      Reason           = @Reason,
+                      Message          = @Message,
+                      PaymentMethod    = @PaymentMethod,
+                      PaymentMethodName= @PaymentMethodName,
+                      IssuerName       = @IssuerName,
+                      Refunded         = CASE WHEN @Refunded IS NULL THEN Refunded ELSE @Refunded END,
+                      RefundedAmount   = CASE WHEN @RefundedAmount IS NULL THEN RefundedAmount ELSE @RefundedAmount END,
+                      ActualizadoEl    = GETUTCDATE()
+                  WHERE Id=@TxId;",
                 new
                 {
                     Id = orderId,
@@ -716,7 +723,29 @@ namespace BioFXAPI.Controllers
                 }, dbtx);
 
             dbtx.Commit();
+
+            // 5) Enviar correos solo si la orden acaba de pasar a PAID
+            if (justPaid)
+            {
+                try
+                {
+                    await _orderNotificationService.SendOrderPaidNotificationsAsync(
+                        orderId,
+                        txRow.RequestId,
+                        HttpContext.RequestAborted);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex,
+                        "Error al enviar notificaciones de orden pagada (OrderId={OrderId}, RequestId={RequestId}) desde RefreshStatus",
+                        orderId,
+                        txRow.RequestId);
+                    // No hacemos rollback ni cambiamos la respuesta; solo logueamos el problema de email.
+                }
+            }
+
             return Ok(new { orderId, status = mapped });
+
 
         }
 
@@ -831,6 +860,125 @@ namespace BioFXAPI.Controllers
             return await CreatePlacetoPaySession(orderId, req);
         }
 
+        [HttpGet("mine/history")]
+        public async Task<IActionResult> GetMyPaidOrdersHistory()
+        {
+            await using var con = new SqlConnection(_cs);
+            await con.OpenAsync();
+
+            // 1) Resolver usuario autenticado (reutilizamos tu helper)
+            var (ok, userId, err) = await TryResolveUserIdAsync(con, null);
+            if (!ok) return err!;
+
+            // 2) Traer órdenes PAID del usuario (compactas)
+            //    Solo órdenes activas y pagadas
+            var orders = (await con.QueryAsync<OrderHistoryRow>(@"
+        SELECT 
+            o.Id             AS OrderId,
+            o.OrderNumber    AS OrderNumber,
+            o.Reference      AS Reference,
+            o.TotalAmount    AS TotalAmount,
+            o.Currency       AS Currency,
+            o.Status         AS Status,
+            o.CreadoEl       AS CreatedAt,
+            o.DocumentType   AS DocumentType,
+            o.DocumentNumber AS DocumentNumber,
+            o.AddressLine    AS AddressLine,
+            o.City           AS City,
+            o.Province       AS Province,
+            o.PostalCode     AS PostalCode,
+            o.Country        AS Country,
+            o.DoctorName     AS DoctorName,
+            CASE WHEN o.OrderAttachmentId IS NULL THEN 0 ELSE 1 END AS HasAttachment,
+            tx.PaymentMethod      AS PaymentMethod,
+            tx.PaymentMethodName  AS PaymentMethodName,
+            tx.IssuerName         AS IssuerName
+        FROM [Order] o
+        OUTER APPLY (
+            SELECT TOP 1 
+                t.PaymentMethod,
+                t.PaymentMethodName,
+                t.IssuerName
+            FROM [Transaction] t
+            WHERE t.OrderId = o.Id AND t.Activo = 1
+            ORDER BY t.Id DESC
+        ) tx
+        WHERE 
+            o.UserId = @Uid
+            AND o.Activo = 1
+            AND o.Status = 'PAID'
+        ORDER BY o.CreadoEl DESC;", new { Uid = userId }))
+                .ToList();
+
+            if (orders.Count == 0)
+                return Ok(Array.Empty<OrderHistoryDto>());
+
+            // 3) Traer items de todas esas órdenes en una sola consulta
+            var orderIds = orders.Select(o => o.OrderId).Distinct().ToArray();
+
+            var items = (await con.QueryAsync<OrderItemHistoryRow>(@"
+        SELECT 
+            oi.OrderId      AS OrderId,
+            oi.ProductId    AS ProductId,
+            p.Nombre        AS ProductName,
+            p.Imagen        AS ProductImage,
+            oi.Quantity     AS Quantity,
+            oi.UnitPrice    AS UnitPrice,
+            oi.TotalPrice   AS TotalPrice
+        FROM OrderItem oi
+        INNER JOIN Producto p ON p.Id = oi.ProductId
+        WHERE 
+            oi.OrderId IN @Ids
+            AND oi.Activo = 1
+        ORDER BY oi.OrderId, oi.Id;", new { Ids = orderIds }))
+                .ToList();
+
+            // 4) Agrupar items por orden y proyectar al DTO final
+            var itemsByOrder = items
+                .GroupBy(i => i.OrderId)
+                .ToDictionary(g => g.Key, g => g.ToList());
+
+            var result = orders.Select(o =>
+            {
+                itemsByOrder.TryGetValue(o.OrderId, out var oItems);
+                oItems ??= new List<OrderItemHistoryRow>();
+
+                return new OrderHistoryDto
+                (
+                    OrderId: o.OrderId,
+                    OrderNumber: o.OrderNumber,
+                    Reference: o.Reference,
+                    CreatedAt: o.CreatedAt,
+                    TotalAmount: o.TotalAmount,
+                    Currency: o.Currency,
+                    HasAttachment: o.HasAttachment != 0,
+                    AddressLine: o.AddressLine,
+                    City: o.City,
+                    Province: o.Province,
+                    PostalCode: o.PostalCode,
+                    Country: o.Country,
+                    DoctorName: o.DoctorName,
+                    PaymentMethod: o.PaymentMethod,
+                    PaymentMethodName: o.PaymentMethodName,
+                    IssuerName: o.IssuerName,
+                    Items: oItems.Select(i => new OrderItemHistoryDto
+                    (
+                        ProductId: i.ProductId,
+                        ProductName: i.ProductName,
+                        ProductImage: i.ProductImage,
+                        Quantity: i.Quantity,
+                        UnitPrice: i.UnitPrice,
+                        TotalPrice: i.TotalPrice
+                    )).ToList()
+                );
+            }).ToList();
+
+
+            return Ok(result);
+        }
+
+
+
         private async Task<(bool ok, int userId, IActionResult? error)> TryResolveUserIdAsync(SqlConnection con, SqlTransaction? tx)
         {
             var idStr = User.FindFirst(ClaimTypes.NameIdentifier)?.Value
@@ -871,6 +1019,66 @@ namespace BioFXAPI.Controllers
         }
 
 
+        public record OrderHistoryDto(
+            int OrderId,
+            string OrderNumber,
+            string Reference,
+            DateTime CreatedAt,
+            decimal TotalAmount,
+            string Currency,
+            bool HasAttachment,
+            string? AddressLine,
+            string? City,
+            string? Province,
+            string? PostalCode,
+            string? Country,
+            string? DoctorName,
+            string? PaymentMethod,
+            string? PaymentMethodName,
+            string? IssuerName,
+            List<OrderItemHistoryDto> Items
+);
+
+        public record OrderItemHistoryDto(
+            int ProductId,
+            string ProductName,
+            string ProductImage,
+            int Quantity,
+            decimal UnitPrice,
+            decimal TotalPrice
+        );
+
+        public record OrderHistoryRow(
+            int OrderId,
+            string OrderNumber,
+            string Reference,
+            decimal TotalAmount,
+            string Currency,
+            string Status,
+            DateTime CreatedAt,
+            string? DocumentType,
+            string? DocumentNumber,
+            string? AddressLine,
+            string? City,
+            string? Province,
+            string? PostalCode,
+            string? Country,
+            string? DoctorName,
+            int HasAttachment,
+            string? PaymentMethod,
+            string? PaymentMethodName,
+            string? IssuerName
+        );
+
+        public record OrderItemHistoryRow(
+            int OrderId,
+            int ProductId,
+            string ProductName,
+            string ProductImage,
+            int Quantity,
+            decimal UnitPrice,
+            decimal TotalPrice
+        );
 
         public record CreateOrderRequest(
             string? Reference,
@@ -886,6 +1094,8 @@ namespace BioFXAPI.Controllers
         );
 
         public record ReturnUrlRequest(string ReturnUrl);
+
+
 
     }
 }

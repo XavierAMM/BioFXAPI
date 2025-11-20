@@ -449,6 +449,16 @@
     "ReturnTypes": []
   },
   {
+    "ContainingType": "BioFXAPI.Controllers.OrdersController",
+    "Method": "GetMyPaidOrdersHistory",
+    "RelativePath": "api/Orders/mine/history",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
     "ContainingType": "BioFXAPI.Controllers.PasswordController",
     "Method": "ForgotPassword",
     "RelativePath": "api/Password/forgot",

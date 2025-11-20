@@ -3,6 +3,8 @@ using MailKit.Net.Smtp;
 using MailKit.Security;
 using MimeKit;
 using System.Diagnostics;
+using BioFXAPI.Notifications;
+
 
 namespace BioFXAPI.Services
 {
@@ -25,14 +27,66 @@ namespace BioFXAPI.Services
             _senderEmail = emailSettings["SenderEmail"];
             _senderPassword = emailSettings["SenderPassword"];
             _enableSsl = bool.Parse(emailSettings["EnableSsl"]);
+
+            _logger.LogInformation(
+                "EmailSettings cargados: SmtpServer={SmtpServer}, SmtpPort={SmtpPort}, SenderEmail={SenderEmail}, EnableSsl={EnableSsl}",
+                _smtpServer, _smtpPort, _senderEmail, _enableSsl);
         }
+
+        private async Task SendEmailAsync(string toEmail, string subject, string htmlContent)
+        {
+            await SendEmailAsync(toEmail, subject, htmlContent, null, null, null);
+        }
+
+
+        private async Task SendEmailAsync(
+            string toEmail,
+            string subject,
+            string htmlContent,
+            byte[]? attachmentBytes,
+            string? attachmentFileName,
+            string? attachmentContentType)
+        {
+            var email = new MimeMessage();
+            email.From.Add(new MailboxAddress("BioFX", _senderEmail));
+            email.To.Add(MailboxAddress.Parse(toEmail));
+            email.Subject = subject;
+
+            var builder = new BodyBuilder
+            {
+                HtmlBody = htmlContent
+            };
+
+            if (attachmentBytes != null &&
+                attachmentBytes.Length > 0 &&
+                !string.IsNullOrWhiteSpace(attachmentFileName))
+            {
+                var ct = string.IsNullOrWhiteSpace(attachmentContentType)
+                    ? "application/octet-stream"
+                    : attachmentContentType;
+
+                builder.Attachments.Add(attachmentFileName, attachmentBytes, ContentType.Parse(ct));
+            }
+
+            email.Body = builder.ToMessageBody();
+
+            using var smtp = new SmtpClient();
+            await smtp.ConnectAsync(_smtpServer, _smtpPort, GetSecureSocketOption());
+            if (string.IsNullOrWhiteSpace(_senderPassword))
+                throw new InvalidOperationException("EmailSettings:SenderPassword no está configurado.");
+
+            await smtp.AuthenticateAsync(_senderEmail, _senderPassword);
+            await smtp.SendAsync(email);
+            await smtp.DisconnectAsync(true);
+        }
+
 
         private SecureSocketOptions GetSecureSocketOption()
         {
             if (!_enableSsl)
                 return SecureSocketOptions.None;
 
-            
+
             return _smtpPort == 465 ?
                 SecureSocketOptions.SslOnConnect :
                 SecureSocketOptions.StartTls;
@@ -143,7 +197,6 @@ namespace BioFXAPI.Services
             }
         }
 
-
         public async Task SendPasswordResetEmailAsync(string recipientEmail, string resetToken)
         {
             var message = new MimeMessage();
@@ -217,6 +270,124 @@ namespace BioFXAPI.Services
             }
         }
 
+        public async Task SendOrderPaidToShippingAsync(
+            string toEmail,
+            string customerFullName,
+            string customerEmail,
+            string? customerPhone,
+            string orderReference,
+            int requestId,
+            string orderStatus,
+            DateTime orderCreatedAt,
+            decimal totalAmount,
+            string currency,
+            string addressLine,
+            string city,
+            string province,
+            string country,
+            string? postalCode,
+            string documentType,
+            string documentNumber,
+            string? doctorName,
+            string paymentStatus,
+            string? paymentMethod,
+            string? paymentMethodName,
+            string? issuerName,
+            IEnumerable<OrderNotificationService.OrderEmailItem> items,
+            byte[]? attachmentBytes,
+            string? attachmentFileName,
+            string? attachmentContentType)
+        {
+            var subject = $"Nueva orden pagada – Ref {orderReference} – Req {requestId}";
+
+            var createdLocal = orderCreatedAt.ToLocalTime();
+
+            string itemsHtml = "";
+            if (items != null)
+            {
+                itemsHtml = @"
+<table style='width:100%;border-collapse:collapse;font-size:13px;'>
+  <thead>
+    <tr>
+      <th style='border-bottom:1px solid #ddd;text-align:left;padding:6px;'>Producto</th>
+      <th style='border-bottom:1px solid #ddd;text-align:right;padding:6px;'>Cantidad</th>
+      <th style='border-bottom:1px solid #ddd;text-align:right;padding:6px;'>Precio unitario</th>
+      <th style='border-bottom:1px solid #ddd;text-align:right;padding:6px;'>Subtotal</th>
+    </tr>
+  </thead>
+  <tbody>";
+                foreach (var it in items)
+                {
+                    itemsHtml += $@"
+    <tr>
+      <td style='border-bottom:1px solid #f0f0f0;padding:6px;'>{System.Net.WebUtility.HtmlEncode(it.ProductName)}</td>
+      <td style='border-bottom:1px solid #f0f0f0;padding:6px;text-align:right;'>{it.Quantity}</td>
+      <td style='border-bottom:1px solid #f0f0f0;padding:6px;text-align:right;'>{it.UnitPrice:0.00}</td>
+      <td style='border-bottom:1px solid #f0f0f0;padding:6px;text-align:right;'>{it.TotalPrice:0.00}</td>
+    </tr>";
+                }
+                itemsHtml += @"
+  </tbody>
+</table>";
+            }
+
+            var html = $@"
+<div style='font-family:Arial,Helvetica,sans-serif;font-size:14px;color:#222;'>
+  <h2 style='margin-top:0;'>Nueva orden pagada para despacho</h2>
+
+  <h3>Datos de la orden</h3>
+  <ul>
+    <li><strong>Referencia:</strong> {System.Net.WebUtility.HtmlEncode(orderReference)}</li>
+    <li><strong>RequestId (PlacetoPay):</strong> {requestId}</li>
+    <li><strong>Fecha de creación:</strong> {createdLocal:dd/MM/yyyy HH:mm}</li>
+    <li><strong>Estado de la orden:</strong> {System.Net.WebUtility.HtmlEncode(orderStatus)}</li>
+    <li><strong>Estado del pago:</strong> {System.Net.WebUtility.HtmlEncode(paymentStatus)}</li>
+  </ul>
+
+  <h3>Datos del comprador</h3>
+  <ul>
+    <li><strong>Nombre:</strong> {System.Net.WebUtility.HtmlEncode(customerFullName)}</li>
+    <li><strong>Email:</strong> {System.Net.WebUtility.HtmlEncode(customerEmail)}</li>
+    {(string.IsNullOrWhiteSpace(customerPhone) ? "" : $"<li><strong>Teléfono:</strong> {System.Net.WebUtility.HtmlEncode(customerPhone)}</li>")}
+    <li><strong>Tipo/Número documento:</strong> {System.Net.WebUtility.HtmlEncode(documentType)} – {System.Net.WebUtility.HtmlEncode(documentNumber)}</li>
+    {(string.IsNullOrWhiteSpace(doctorName) ? "" : $"<li><strong>Médico tratante:</strong> {System.Net.WebUtility.HtmlEncode(doctorName)}</li>")}
+  </ul>
+
+  <h3>Dirección de entrega</h3>
+  <ul>
+    <li>{System.Net.WebUtility.HtmlEncode(addressLine)}</li>
+    <li>{System.Net.WebUtility.HtmlEncode(city)}, {System.Net.WebUtility.HtmlEncode(province)}</li>
+    <li>{System.Net.WebUtility.HtmlEncode(country)}{(string.IsNullOrWhiteSpace(postalCode) ? "" : $" – CP {System.Net.WebUtility.HtmlEncode(postalCode)}")}</li>
+  </ul>
+
+  <h3>Detalle de pago</h3>
+  <ul>
+    <li><strong>Total:</strong> {totalAmount:0.00} {System.Net.WebUtility.HtmlEncode(currency)}</li>
+    {(string.IsNullOrWhiteSpace(paymentMethod) ? "" : $"<li><strong>Método de pago:</strong> {System.Net.WebUtility.HtmlEncode(paymentMethod)} – {System.Net.WebUtility.HtmlEncode(paymentMethodName ?? "")}</li>")}
+    {(string.IsNullOrWhiteSpace(issuerName) ? "" : $"<li><strong>Emisor:</strong> {System.Net.WebUtility.HtmlEncode(issuerName)}</li>")}
+  </ul>
+
+  {(string.IsNullOrEmpty(itemsHtml) ? "" : $@"
+  <h3>Detalle de productos</h3>
+  {itemsHtml}
+  ")}
+
+  <p style='margin-top:20px;'>
+    Esta orden ya está pagada y lista para gestión de envío. 
+    Usar la referencia y el RequestId para cualquier coordinación con el cliente.
+  </p>
+</div>";
+
+            await SendEmailAsync(
+                toEmail,
+                subject,
+                html,
+                attachmentBytes,
+                attachmentFileName,
+                attachmentContentType);
+        }
+
+
         public async Task SendEmailChangeConfirmationAsync(string email, string token)
         {
             var message = new MimeMessage();
@@ -273,6 +444,8 @@ namespace BioFXAPI.Services
             await client.SendAsync(message);
             await client.DisconnectAsync(true);
         }
+
+
 
     }
 }

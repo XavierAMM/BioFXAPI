@@ -770,6 +770,18 @@
         }
       }
     },
+    "/api/Orders/mine/history": {
+      "get": {
+        "tags": [
+          "Orders"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
     "/api/Password/forgot": {
       "post": {
         "tags": [

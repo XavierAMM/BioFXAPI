@@ -1,4 +1,5 @@
-﻿using Dapper;
+﻿using BioFXAPI.Notifications;
+using Dapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Data.SqlClient;
@@ -16,16 +17,20 @@ namespace BioFXAPI.Controllers
 		private readonly string _cs;
 		private readonly IConfiguration _cfg;
 		private readonly HttpClient _http;
+        private readonly OrderNotificationService _orderNotificationService;
 
-		public TransactionsController(IConfiguration cfg)
-		{
-			_cfg = cfg;
-			_cs = cfg.GetConnectionString("DefaultConnection");
-			_http = new HttpClient { BaseAddress = new Uri(_cfg["PlacetoPay:BaseUrl"]) };
-			_http.DefaultRequestHeaders.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("application/json"));
-		}
 
-		[HttpPost("refresh-by-request")]
+        public TransactionsController(IConfiguration cfg, OrderNotificationService orderNotificationService)
+        {
+            _cfg = cfg;
+            _cs = cfg.GetConnectionString("DefaultConnection");
+            _http = new HttpClient { BaseAddress = new Uri(_cfg["PlacetoPay:BaseUrl"]) };
+            _http.DefaultRequestHeaders.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("application/json"));
+            _orderNotificationService = orderNotificationService;
+        }
+
+
+        [HttpPost("refresh-by-request")]
         [AllowAnonymous]
         public async Task<IActionResult> RefreshByRequestId([FromBody] RefreshRequest r)
 		{
@@ -161,10 +166,14 @@ namespace BioFXAPI.Controllers
                 _ => "PENDING"
             };
 
+            // ¿Acaba de pasar a PAID?
+            var justPaid = !string.Equals(txRow.Status, "PAID", StringComparison.OrdinalIgnoreCase)
+                           && mapped == "PAID";
+
             using var dbtx = con.BeginTransaction();
 
             // 4) Stock
-            if (!string.Equals(txRow.Status, "PAID", StringComparison.OrdinalIgnoreCase) && mapped == "PAID")
+            if (justPaid)
             {
                 await con.ExecuteAsync(@"
         UPDATE p
@@ -219,7 +228,25 @@ namespace BioFXAPI.Controllers
 
             dbtx.Commit();
 
+            // 6) Enviar correos solo si acaba de pasar a PAID
+            if (justPaid)
+            {
+                try
+                {
+                    await _orderNotificationService.SendOrderPaidNotificationsAsync(
+                        txRow.OrderId,
+                        r.RequestId,
+                        HttpContext.RequestAborted);
+                }
+                catch (Exception ex)
+                {
+                    // Aquí no tienes logger inyectado; si quisieras, se podría añadir.
+                    // Por ahora, simplemente podrías relanzar o ignorar; lo más prudente es NO romper la respuesta.
+                }
+            }
+
             return Ok(new { orderId = txRow.OrderId, status = mapped });
+
 
         }
 

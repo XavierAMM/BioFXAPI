@@ -1,5 +1,6 @@
 using Amazon;
 using Amazon.S3;
+using BioFXAPI.Notifications;
 using BioFXAPI.Options;
 using BioFXAPI.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -51,6 +52,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     });
 
 builder.Services.AddAuthorization();
+builder.Services.AddScoped<OrderNotificationService>();
 
 
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
