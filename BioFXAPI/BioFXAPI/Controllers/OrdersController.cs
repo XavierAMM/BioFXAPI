@@ -376,24 +376,6 @@ namespace BioFXAPI.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error al asociar factura a la orden {OrderId}.", orderId);
-
-                if (uploadedToS3)
-                {
-                    try
-                    {
-                        await _fileStorage.DeleteAsync(key, ct);
-                        _logger.LogInformation(
-                            "Se eliminó de S3 el archivo {Key} tras fallo al guardar en BD para la orden {OrderId}.",
-                            key, orderId);
-                    }
-                    catch (Exception delEx)
-                    {
-                        _logger.LogError(delEx,
-                            "Error al intentar eliminar de S3 el archivo {Key} tras fallo para la orden {OrderId}.",
-                            key, orderId);
-                    }
-                }
-
                 return StatusCode(500, new
                 {
                     message = "Error al guardar la factura de la orden.",

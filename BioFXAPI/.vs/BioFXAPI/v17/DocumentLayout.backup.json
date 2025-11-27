@@ -3,8 +3,16 @@
   "WorkspaceRootPath": "C:\\Users\\xmanc\\OneDrive\\Desktop\\BioFXAPI-Github\\BioFXAPI\\",
   "Documents": [
     {
+      "AbsoluteMoniker": "D:0:0:{1C47A8D9-43A9-45F2-BC86-DCBFEC64E4C5}|BioFXAPI\\BioFXAPI.csproj|c:\\users\\xmanc\\onedrive\\desktop\\biofxapi-github\\biofxapi\\biofxapi\\controllers\\productoscontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{1C47A8D9-43A9-45F2-BC86-DCBFEC64E4C5}|BioFXAPI\\BioFXAPI.csproj|solutionrelative:biofxapi\\controllers\\productoscontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
       "AbsoluteMoniker": "D:0:0:{1C47A8D9-43A9-45F2-BC86-DCBFEC64E4C5}|BioFXAPI\\BioFXAPI.csproj|c:\\users\\xmanc\\onedrive\\desktop\\biofxapi-github\\biofxapi\\biofxapi\\controllers\\orderscontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{1C47A8D9-43A9-45F2-BC86-DCBFEC64E4C5}|BioFXAPI\\BioFXAPI.csproj|solutionrelative:biofxapi\\controllers\\orderscontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{1C47A8D9-43A9-45F2-BC86-DCBFEC64E4C5}|BioFXAPI\\BioFXAPI.csproj|c:\\users\\xmanc\\onedrive\\desktop\\biofxapi-github\\biofxapi\\biofxapi\\services\\ordernotificationservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{1C47A8D9-43A9-45F2-BC86-DCBFEC64E4C5}|BioFXAPI\\BioFXAPI.csproj|solutionrelative:biofxapi\\services\\ordernotificationservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{1C47A8D9-43A9-45F2-BC86-DCBFEC64E4C5}|BioFXAPI\\BioFXAPI.csproj|c:\\users\\xmanc\\onedrive\\desktop\\biofxapi-github\\biofxapi\\biofxapi\\services\\emailservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
@@ -15,16 +23,16 @@
       "RelativeMoniker": "D:0:0:{1C47A8D9-43A9-45F2-BC86-DCBFEC64E4C5}|BioFXAPI\\BioFXAPI.csproj|solutionrelative:biofxapi\\appsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}"
     },
     {
+      "AbsoluteMoniker": "D:0:0:{1C47A8D9-43A9-45F2-BC86-DCBFEC64E4C5}|BioFXAPI\\BioFXAPI.csproj|c:\\users\\xmanc\\onedrive\\desktop\\biofxapi-github\\biofxapi\\biofxapi\\controllers\\authcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{1C47A8D9-43A9-45F2-BC86-DCBFEC64E4C5}|BioFXAPI\\BioFXAPI.csproj|solutionrelative:biofxapi\\controllers\\authcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
       "AbsoluteMoniker": "D:0:0:{1C47A8D9-43A9-45F2-BC86-DCBFEC64E4C5}|BioFXAPI\\BioFXAPI.csproj|c:\\users\\xmanc\\onedrive\\desktop\\biofxapi-github\\biofxapi\\biofxapi\\models\\persona.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{1C47A8D9-43A9-45F2-BC86-DCBFEC64E4C5}|BioFXAPI\\BioFXAPI.csproj|solutionrelative:biofxapi\\models\\persona.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{1C47A8D9-43A9-45F2-BC86-DCBFEC64E4C5}|BioFXAPI\\BioFXAPI.csproj|c:\\users\\xmanc\\onedrive\\desktop\\biofxapi-github\\biofxapi\\biofxapi\\controllers\\transactionscontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{1C47A8D9-43A9-45F2-BC86-DCBFEC64E4C5}|BioFXAPI\\BioFXAPI.csproj|solutionrelative:biofxapi\\controllers\\transactionscontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{1C47A8D9-43A9-45F2-BC86-DCBFEC64E4C5}|BioFXAPI\\BioFXAPI.csproj|c:\\users\\xmanc\\onedrive\\desktop\\biofxapi-github\\biofxapi\\biofxapi\\controllers\\authcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{1C47A8D9-43A9-45F2-BC86-DCBFEC64E4C5}|BioFXAPI\\BioFXAPI.csproj|solutionrelative:biofxapi\\controllers\\authcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{1C47A8D9-43A9-45F2-BC86-DCBFEC64E4C5}|BioFXAPI\\BioFXAPI.csproj|c:\\users\\xmanc\\onedrive\\desktop\\biofxapi-github\\biofxapi\\biofxapi\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
@@ -54,24 +62,48 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-          "SelectedChildIndex": 2,
+          "SelectedChildIndex": 0,
           "Children": [
             {
               "$type": "Document",
-              "DocumentIndex": 1,
+              "DocumentIndex": 0,
+              "Title": "ProductosController.cs",
+              "DocumentMoniker": "C:\\Users\\xmanc\\OneDrive\\Desktop\\BioFXAPI-Github\\BioFXAPI\\BioFXAPI\\Controllers\\ProductosController.cs",
+              "RelativeDocumentMoniker": "BioFXAPI\\Controllers\\ProductosController.cs",
+              "ToolTip": "C:\\Users\\xmanc\\OneDrive\\Desktop\\BioFXAPI-Github\\BioFXAPI\\BioFXAPI\\Controllers\\ProductosController.cs",
+              "RelativeToolTip": "BioFXAPI\\Controllers\\ProductosController.cs",
+              "ViewState": "AgIAAHwBAAAAAAAAAIAwwDMBAAAuAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-11-27T04:01:12.697Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "OrderNotificationService.cs",
+              "DocumentMoniker": "C:\\Users\\xmanc\\OneDrive\\Desktop\\BioFXAPI-Github\\BioFXAPI\\BioFXAPI\\Services\\OrderNotificationService.cs",
+              "RelativeDocumentMoniker": "BioFXAPI\\Services\\OrderNotificationService.cs",
+              "ToolTip": "C:\\Users\\xmanc\\OneDrive\\Desktop\\BioFXAPI-Github\\BioFXAPI\\BioFXAPI\\Services\\OrderNotificationService.cs",
+              "RelativeToolTip": "BioFXAPI\\Services\\OrderNotificationService.cs",
+              "ViewState": "AgIAAJAAAAAAAAAAAADwv6EAAABEAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-11-21T00:03:26.703Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 3,
               "Title": "EmailService.cs",
               "DocumentMoniker": "C:\\Users\\xmanc\\OneDrive\\Desktop\\BioFXAPI-Github\\BioFXAPI\\BioFXAPI\\Services\\EmailService.cs",
               "RelativeDocumentMoniker": "BioFXAPI\\Services\\EmailService.cs",
               "ToolTip": "C:\\Users\\xmanc\\OneDrive\\Desktop\\BioFXAPI-Github\\BioFXAPI\\BioFXAPI\\Services\\EmailService.cs",
               "RelativeToolTip": "BioFXAPI\\Services\\EmailService.cs",
-              "ViewState": "AgIAAA4AAAAAAAAAAAAAwCAAAAA7AAAAAAAAAA==",
+              "ViewState": "AgIAAD4BAAAAAAAAAADwv1UBAAA5AAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-11-19T23:03:38.56Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-11-19T23:03:38.56Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 3,
+              "DocumentIndex": 6,
               "Title": "Persona.cs",
               "DocumentMoniker": "C:\\Users\\xmanc\\OneDrive\\Desktop\\BioFXAPI-Github\\BioFXAPI\\BioFXAPI\\Models\\Persona.cs",
               "RelativeDocumentMoniker": "BioFXAPI\\Models\\Persona.cs",
@@ -79,34 +111,32 @@
               "RelativeToolTip": "BioFXAPI\\Models\\Persona.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAEAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-11-19T22:24:39.034Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-11-19T22:24:39.034Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 0,
+              "DocumentIndex": 1,
               "Title": "OrdersController.cs",
               "DocumentMoniker": "C:\\Users\\xmanc\\OneDrive\\Desktop\\BioFXAPI-Github\\BioFXAPI\\BioFXAPI\\Controllers\\OrdersController.cs",
               "RelativeDocumentMoniker": "BioFXAPI\\Controllers\\OrdersController.cs",
               "ToolTip": "C:\\Users\\xmanc\\OneDrive\\Desktop\\BioFXAPI-Github\\BioFXAPI\\BioFXAPI\\Controllers\\OrdersController.cs",
               "RelativeToolTip": "BioFXAPI\\Controllers\\OrdersController.cs",
-              "ViewState": "AgIAAKgDAAAAAAAAAAAIwLsDAAAhAAAAAAAAAA==",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAHkBAABgAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2025-11-10T22:02:16.694Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 2,
+              "DocumentIndex": 4,
               "Title": "appsettings.json",
               "DocumentMoniker": "C:\\Users\\xmanc\\OneDrive\\Desktop\\BioFXAPI-Github\\BioFXAPI\\BioFXAPI\\appsettings.json",
               "RelativeDocumentMoniker": "BioFXAPI\\appsettings.json",
               "ToolTip": "C:\\Users\\xmanc\\OneDrive\\Desktop\\BioFXAPI-Github\\BioFXAPI\\BioFXAPI\\appsettings.json",
               "RelativeToolTip": "BioFXAPI\\appsettings.json",
-              "ViewState": "AgIAABQAAAAAAAAAAAAAwCcAAAAbAAAAAAAAAA==",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAwAAAATAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001642|",
-              "WhenOpened": "2025-11-19T22:13:11.337Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-11-19T22:13:11.337Z"
             },
             {
               "$type": "Document",
@@ -118,12 +148,11 @@
               "RelativeToolTip": "BioFXAPI\\Controllers\\AuthController.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAAYAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-11-19T22:24:53.96Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-11-19T22:24:53.96Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 6,
+              "DocumentIndex": 8,
               "Title": "Program.cs",
               "DocumentMoniker": "C:\\Users\\xmanc\\OneDrive\\Desktop\\BioFXAPI-Github\\BioFXAPI\\BioFXAPI\\Program.cs",
               "RelativeDocumentMoniker": "BioFXAPI\\Program.cs",
@@ -131,12 +160,11 @@
               "RelativeToolTip": "BioFXAPI\\Program.cs",
               "ViewState": "AgIAACIAAAAAAAAAAAD4vzYAAAA3AAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-11-19T23:05:49.396Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-11-19T23:05:49.396Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 7,
+              "DocumentIndex": 9,
               "Title": "OrderInfo.cs",
               "DocumentMoniker": "C:\\Users\\xmanc\\OneDrive\\Desktop\\BioFXAPI-Github\\BioFXAPI\\BioFXAPI\\Models\\OrderInfo.cs",
               "RelativeDocumentMoniker": "BioFXAPI\\Models\\OrderInfo.cs",
@@ -144,12 +172,11 @@
               "RelativeToolTip": "BioFXAPI\\Models\\OrderInfo.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAAsAAAA1AAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-11-19T22:22:48.855Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-11-19T22:22:48.855Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 4,
+              "DocumentIndex": 7,
               "Title": "TransactionsController.cs",
               "DocumentMoniker": "C:\\Users\\xmanc\\OneDrive\\Desktop\\BioFXAPI-Github\\BioFXAPI\\BioFXAPI\\Controllers\\TransactionsController.cs",
               "RelativeDocumentMoniker": "BioFXAPI\\Controllers\\TransactionsController.cs",
@@ -157,12 +184,11 @@
               "RelativeToolTip": "BioFXAPI\\Controllers\\TransactionsController.cs",
               "ViewState": "AgIAALcAAAAAAAAAAAAIwPgAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-11-13T19:42:14.865Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-11-13T19:42:14.865Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 8,
+              "DocumentIndex": 10,
               "Title": "IFileStorageService.cs",
               "DocumentMoniker": "C:\\Users\\xmanc\\OneDrive\\Desktop\\BioFXAPI-Github\\BioFXAPI\\BioFXAPI\\Services\\IFileStorageService.cs",
               "RelativeDocumentMoniker": "BioFXAPI\\Services\\IFileStorageService.cs",
@@ -174,7 +200,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 9,
+              "DocumentIndex": 11,
               "Title": "WebhookLogsController.cs",
               "DocumentMoniker": "C:\\Users\\xmanc\\OneDrive\\Desktop\\BioFXAPI-Github\\BioFXAPI\\BioFXAPI\\Controllers\\WebhookLogsController.cs",
               "RelativeDocumentMoniker": "BioFXAPI\\Controllers\\WebhookLogsController.cs",
@@ -182,12 +208,11 @@
               "RelativeToolTip": "BioFXAPI\\Controllers\\WebhookLogsController.cs",
               "ViewState": "AgIAAEgAAAAAAAAAAAAYwAAAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-11-15T04:53:13.658Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-11-15T04:53:13.658Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 10,
+              "DocumentIndex": 12,
               "Title": "Webhooklog.cs",
               "DocumentMoniker": "C:\\Users\\xmanc\\OneDrive\\Desktop\\BioFXAPI-Github\\BioFXAPI\\BioFXAPI\\Models\\Webhooklog.cs",
               "RelativeDocumentMoniker": "BioFXAPI\\Models\\Webhooklog.cs",
@@ -195,8 +220,7 @@
               "RelativeToolTip": "BioFXAPI\\Models\\Webhooklog.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAAcAAAAfAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-11-14T05:21:08.535Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-11-14T05:21:08.535Z"
             }
           ]
         }

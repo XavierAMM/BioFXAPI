@@ -59,7 +59,7 @@ namespace BioFXAPI.Notifications
 
             p.Nombre          AS FirstName,
             p.Apellido        AS LastName,
-            p.Celular         AS PhoneNumber,
+            p.Telefono         AS PhoneNumber,
 
             t.Id              AS TransactionId,
             t.RequestId,
@@ -137,16 +137,17 @@ namespace BioFXAPI.Notifications
             }
 
             // 3) Email SOLO a envios@biofx.com.ec
-            var shippingEmail = _configuration["EmailSettings:ShippingEmail"];
+            var shippingEmail = _configuration["OrderNotifications:ShippingEmail"];
 
             if (string.IsNullOrWhiteSpace(shippingEmail))
             {
                 shippingEmail = "envios@biofx.com.ec";
-                _logger.LogWarning("EmailSettings:ShippingEmail no configurado. Usando valor por defecto: {Email}", shippingEmail);
+                _logger.LogWarning("OrderNotifications:ShippingEmail no configurado. Usando valor por defecto: {Email}", shippingEmail);
             }
 
             try
             {
+
                 _logger.LogInformation("OrderNotificationService: enviando correo de orden pagada a {Email} para OrderId={OrderId}, RequestId={RequestId}",
                     shippingEmail, orderId, requestId);
 
@@ -158,7 +159,10 @@ namespace BioFXAPI.Notifications
                     orderReference: header.Reference,
                     requestId: header.RequestId,
                     orderStatus: header.OrderStatus,
-                    orderCreatedAt: header.OrderCreatedAt,
+                    orderCreatedAt: TimeZoneInfo.ConvertTimeFromUtc(
+                        header.OrderCreatedAt,
+                        TimeZoneInfo.FindSystemTimeZoneById("America/Guayaquil")
+                    ),
                     totalAmount: header.TotalAmount,
                     currency: header.Currency,
                     addressLine: header.AddressLine,
