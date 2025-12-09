@@ -214,12 +214,12 @@ namespace BioFXAPI.Controllers
                         INSERT INTO Producto
                         (Codigo, Disponible, Nombre, Precio, Imagen, Logo, Descripcion,
                          Desc_Principal, Desc_Otros, Descuento, Disclaimer, Activo,
-                         Stock, StockReservado, Contraindicaciones, RegistroSanitario)
+                         Stock, StockReservado, Contraindicaciones)
                         OUTPUT INSERTED.Id
                         VALUES
                         (@Codigo, @Disponible, @Nombre, @Precio, @Imagen, @Logo, @Descripcion,
                          @Desc_Principal, @Desc_Otros, @Descuento, @Disclaimer, @Activo,
-                         @Stock, @StockReservado, @Contraindicaciones, @RegistroSanitario)";
+                         @Stock, @StockReservado, @Contraindicaciones)";
 
                     var productoId = await connection.ExecuteScalarAsync<int>(insertQuery, dto, tx);
 
@@ -284,7 +284,6 @@ namespace BioFXAPI.Controllers
                             Descuento=@Descuento, Disclaimer=@Disclaimer,
                             Contraindicaciones=@Contraindicaciones,
                             Stock=@Stock, StockReservado=@StockReservado,
-                            RegistroSanitario=@RegistroSanitario,
                             ActualizadoEl = GETUTCDATE()
                         WHERE Id=@Id";
 
@@ -305,8 +304,7 @@ namespace BioFXAPI.Controllers
                         dto.Contraindicaciones,
                         dto.Stock,
                         dto.StockReservado,
-                        dto.RegistroSanitario,
-                    }, tx);
+                        }, tx);
 
                     // Reset de categorías actuales
                     await connection.ExecuteAsync(@"
@@ -409,7 +407,6 @@ namespace BioFXAPI.Controllers
         public string Contraindicaciones { get; set; }
         public int Stock { get; set; } = 0;
         public int StockReservado { get; set; } = 0;
-        public String RegistroSanitario { get; set; }
         public bool Activo { get; set; } = true;
         public List<int> Promocionados { get; set; } = new();
         public List<int> CategoriaIds { get; set; } = new();

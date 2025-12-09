@@ -70,9 +70,9 @@
               "Title": "ProductosController.cs",
               "DocumentMoniker": "C:\\Users\\xmanc\\OneDrive\\Desktop\\BioFXAPI-Github\\BioFXAPI\\BioFXAPI\\Controllers\\ProductosController.cs",
               "RelativeDocumentMoniker": "BioFXAPI\\Controllers\\ProductosController.cs",
-              "ToolTip": "C:\\Users\\xmanc\\OneDrive\\Desktop\\BioFXAPI-Github\\BioFXAPI\\BioFXAPI\\Controllers\\ProductosController.cs",
-              "RelativeToolTip": "BioFXAPI\\Controllers\\ProductosController.cs",
-              "ViewState": "AgIAAHwBAAAAAAAAAIAwwDMBAAAuAAAAAAAAAA==",
+              "ToolTip": "C:\\Users\\xmanc\\OneDrive\\Desktop\\BioFXAPI-Github\\BioFXAPI\\BioFXAPI\\Controllers\\ProductosController.cs*",
+              "RelativeToolTip": "BioFXAPI\\Controllers\\ProductosController.cs*",
+              "ViewState": "AgIAACcBAAAAAAAAAAAAADYBAAAyAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2025-11-27T04:01:12.697Z",
               "EditorCaption": ""
@@ -123,8 +123,7 @@
               "RelativeToolTip": "BioFXAPI\\Controllers\\OrdersController.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAHkBAABgAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-11-10T22:02:16.694Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-11-10T22:02:16.694Z"
             },
             {
               "$type": "Document",

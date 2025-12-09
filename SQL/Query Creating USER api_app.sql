@@ -4,7 +4,7 @@ USE [master];
 GO
 CREATE LOGIN [api_app] 
 WITH PASSWORD = '#Cliente2631',
-     CHECK_POLICY = ON, CHECK_EXPIRATION = ON;
+     CHECK_POLICY = ON, CHECK_EXPIRATION = OFF;
 GO
 
 /* 1) Usuario dentro de la BD */
