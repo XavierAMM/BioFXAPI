@@ -87,8 +87,7 @@
               "RelativeToolTip": "BioFXAPI\\Services\\OrderNotificationService.cs",
               "ViewState": "AgIAAJAAAAAAAAAAAADwv6EAAABEAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-11-21T00:03:26.703Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-11-21T00:03:26.703Z"
             },
             {
               "$type": "Document",
@@ -100,8 +99,7 @@
               "RelativeToolTip": "BioFXAPI\\Services\\EmailService.cs",
               "ViewState": "AgIAAD4BAAAAAAAAAADwv1UBAAA5AAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-11-19T23:03:38.56Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-11-19T23:03:38.56Z"
             },
             {
               "$type": "Document",
@@ -113,8 +111,7 @@
               "RelativeToolTip": "BioFXAPI\\Models\\Persona.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAEAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-11-19T22:24:39.034Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-11-19T22:24:39.034Z"
             },
             {
               "$type": "Document",
@@ -126,8 +123,7 @@
               "RelativeToolTip": "BioFXAPI\\Controllers\\OrdersController.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAHkBAABgAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-11-10T22:02:16.694Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-11-10T22:02:16.694Z"
             },
             {
               "$type": "Document",
@@ -151,8 +147,7 @@
               "RelativeToolTip": "BioFXAPI\\Controllers\\AuthController.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAAYAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-11-19T22:24:53.96Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-11-19T22:24:53.96Z"
             },
             {
               "$type": "Document",
@@ -164,8 +159,7 @@
               "RelativeToolTip": "BioFXAPI\\Program.cs",
               "ViewState": "AgIAACIAAAAAAAAAAAD4vzYAAAA3AAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-11-19T23:05:49.396Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-11-19T23:05:49.396Z"
             },
             {
               "$type": "Document",
@@ -177,8 +171,7 @@
               "RelativeToolTip": "BioFXAPI\\Models\\OrderInfo.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAAsAAAA1AAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-11-19T22:22:48.855Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-11-19T22:22:48.855Z"
             },
             {
               "$type": "Document",
@@ -190,8 +183,7 @@
               "RelativeToolTip": "BioFXAPI\\Controllers\\TransactionsController.cs",
               "ViewState": "AgIAALcAAAAAAAAAAAAIwPgAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-11-13T19:42:14.865Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-11-13T19:42:14.865Z"
             },
             {
               "$type": "Document",
@@ -215,8 +207,7 @@
               "RelativeToolTip": "BioFXAPI\\Controllers\\WebhookLogsController.cs",
               "ViewState": "AgIAAEgAAAAAAAAAAAAYwAAAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-11-15T04:53:13.658Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-11-15T04:53:13.658Z"
             },
             {
               "$type": "Document",
@@ -228,8 +219,7 @@
               "RelativeToolTip": "BioFXAPI\\Models\\Webhooklog.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAAcAAAAfAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-11-14T05:21:08.535Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-11-14T05:21:08.535Z"
             }
           ]
         }
