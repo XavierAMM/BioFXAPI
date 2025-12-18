@@ -12,7 +12,13 @@
         public string Currency { get; set; }
         public string Status { get; set; }
 
-        // NUEVOS CAMPOS
+
+        public decimal Subtotal { get; set; }          
+        public decimal CostoEnvio { get; set; }        
+        public decimal DescuentoUSD { get; set; }      
+        public bool tieneReceta { get; set; }
+
+
         public int? OrderAttachmentId { get; set; }
         public string? DocumentType { get; set; }      // CI / RUC / PASAPORTE
         public string? DocumentNumber { get; set; }

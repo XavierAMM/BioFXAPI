@@ -35,15 +35,17 @@ namespace BioFXAPI.Controllers
 			}
 
 			var items = await con.QueryAsync<dynamic>(
-				@"SELECT ci.Id,
-                         ci.ProductId,
-                         p.Nombre,
-                         p.Precio AS UnitPrice,
-                         ci.Quantity,
-                         (ci.Quantity * p.Precio) AS Subtotal
-                  FROM CartItem ci
-                  INNER JOIN Producto p ON p.Id = ci.ProductId
-                  WHERE ci.CartId = @CartId AND ci.Activo = 1",
+                @"SELECT ci.Id,
+					   ci.ProductId,
+					   p.Nombre,
+					   p.PrecioFinal AS UnitPriceFinal,
+					   p.Precio AS UnitPrice,
+					   p.Descuento AS Discount,
+					   ci.Quantity,
+					   (ci.Quantity * p.PrecioFinal) AS Subtotal
+				FROM CartItem ci
+				INNER JOIN Producto p ON p.Id = ci.ProductId
+				WHERE ci.CartId = @CartId AND ci.Activo = 1",
 				new { CartId = cartId });
 
 			var total = items.Any() ? items.Sum(i => (decimal)i.Subtotal) : 0m;

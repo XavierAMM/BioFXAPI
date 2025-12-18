@@ -37,7 +37,6 @@ namespace BioFXAPI.Controllers
                 using var connection = new SqlConnection(_connectionString);
                 await connection.OpenAsync();
 
-                // Consulta modificada para incluir información de categoría
                 var productos = (await connection.QueryAsync<Producto>(@"
                     SELECT *
                     FROM Producto

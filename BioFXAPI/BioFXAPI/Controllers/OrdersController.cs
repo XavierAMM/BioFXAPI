@@ -4,6 +4,7 @@ using Dapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using System;
 using System.Data.SqlClient;
 using System.Net.Http.Headers;
 using System.Security.Claims;
@@ -68,13 +69,14 @@ namespace BioFXAPI.Controllers
                         return BadRequest(new { message = "Carrito vacío." });
                     }
 
-                    var items = await con.QueryAsync<(int ProductId, int Quantity, decimal UnitPrice)>(
+                    var items = await con.QueryAsync<(int ProductId, int Quantity, decimal UnitPrice, decimal DiscountPRC)>(
                         @"SELECT ci.ProductId,
                          ci.Quantity,
-                         CAST(p.Precio AS decimal(18,2)) AS UnitPrice
-                  FROM CartItem ci
-                  INNER JOIN Producto p ON p.Id=ci.ProductId
-                  WHERE ci.CartId=@Cart AND ci.Activo=1",
+                         CAST(p.Precio AS decimal(18,2)) AS UnitPrice,
+                         CAST(p.Descuento AS decimal(18,2)) AS DiscountPRC
+                         FROM CartItem ci
+                         INNER JOIN Producto p ON p.Id=ci.ProductId
+                         WHERE ci.CartId=@Cart AND ci.Activo=1",
                         new { Cart = cartId.Value }, tx);
 
                     if (!items.Any())
@@ -83,7 +85,14 @@ namespace BioFXAPI.Controllers
                         return BadRequest(new { message = "Carrito sin items." });
                     }
 
-                    var total = items.Sum(i => i.Quantity * i.UnitPrice);
+                    var subtotalBase = Math.Round(items.Sum(i => i.Quantity * i.UnitPrice),2);
+                    var descuentoProductos = Math.Round(items.Sum(i => (i.UnitPrice * (i.DiscountPRC / 100m)) * i.Quantity),2);
+                    var subtotalNeto = Math.Round(Math.Max(0m, subtotalBase - descuentoProductos),2);
+                    var costoEnvio = subtotalNeto >= 50 ? 0m : 5.00m;
+                    costoEnvio = Math.Min(costoEnvio, subtotalNeto);
+                    var descuentoRecetaUSD = req.tieneReceta? Math.Round(subtotalNeto * 0.02m, 2): 0m;                                         
+                    var descuentoTotalUSD = Math.Round(descuentoProductos + descuentoRecetaUSD,2);
+                    var totalFinal = Math.Round(Math.Max(0m, subtotalNeto - descuentoRecetaUSD + costoEnvio),2);
                     var tax = 0m;
                     var referenceRaw = req.Reference ?? $"BIO-{DateTime.UtcNow:yyyyMMddHHmmss}-{userId}";
                     var reference = referenceRaw.Length > 32 ? referenceRaw[..32] : referenceRaw;
@@ -120,7 +129,11 @@ namespace BioFXAPI.Controllers
                                     OrderNumber,
                                     Reference,
                                     Description,
-                                    TotalAmount,
+                                    Subtotal,
+                                    CostoEnvio,
+                                    DescuentoUSD,
+                                    tieneReceta,
+                                    TotalAmount,                                   
                                     TaxAmount,
                                     Currency,
                                     Status,
@@ -142,6 +155,10 @@ namespace BioFXAPI.Controllers
                                     @OrderNumber,
                                     @Reference,
                                     @Desc,
+                                    @Subtotal,
+                                    @CostoEnvio,
+                                    @DescuentoUSD,
+                                    @TieneReceta,
                                     @Total,
                                     @Tax,
                                     'USD',
@@ -164,7 +181,11 @@ namespace BioFXAPI.Controllers
                                     OrderNumber = orderNumber,
                                     Reference = reference,
                                     Desc = req.Description ?? "Compra BioFX",
-                                    Total = total,
+                                    Subtotal = subtotalNeto,
+                                    CostoEnvio = costoEnvio,
+                                    DescuentoUSD = descuentoTotalUSD,
+                                    TieneReceta = req.tieneReceta ? 1 : 0,
+                                    Total = totalFinal,
                                     Tax = tax,
                                     DocumentType = docType,
                                     DocumentNumber = docNumber,
@@ -188,24 +209,36 @@ namespace BioFXAPI.Controllers
 
                     foreach (var it in items)
                     {
+                        var unitNet = Math.Round(it.UnitPrice * (1m - (it.DiscountPRC / 100m)),2);
+                        var lineTotal = Math.Round(unitNet * it.Quantity, 2);
+
                         await con.ExecuteAsync(
                             @"INSERT INTO OrderItem(OrderId, ProductId, Quantity, UnitPrice, TotalPrice, CreadoEl, Activo)
-                      VALUES(@Oid, @Pid, @Qty, @Price, @Sub, GETUTCDATE(), 1)",
+                            VALUES(@Oid, @Pid, @Qty, @Price, @Sub, GETUTCDATE(), 1)",
                             new
                             {
                                 Oid = orderId,
                                 Pid = it.ProductId,
                                 Qty = it.Quantity,
-                                Price = it.UnitPrice,
-                                Sub = it.Quantity * it.UnitPrice
-                            }, tx);
+                                Price = unitNet,
+                                Sub = lineTotal
+                            },
+                            tx
+                        );
 
-                        await con.ExecuteAsync(
-                            @"UPDATE Producto
-                      SET StockReservado = COALESCE(StockReservado,0) + @Qty,
-                          ActualizadoEl = GETUTCDATE()
-                      WHERE Id = @Pid",
+                        var rows = await con.ExecuteAsync(@"
+                            UPDATE Producto
+                            SET StockReservado = COALESCE(StockReservado,0) + @Qty,
+                                ActualizadoEl = GETUTCDATE()
+                            WHERE Id = @Pid
+                              AND (COALESCE(Stock,0) - COALESCE(StockReservado,0)) >= @Qty;",
                             new { Pid = it.ProductId, Qty = it.Quantity }, tx);
+
+                        if (rows <= 0)
+                        {
+                            await tx.RollbackAsync();
+                            return BadRequest(new { message = "Stock insuficiente para uno o más productos." });
+                        }
                     }
 
                     await con.ExecuteAsync(
@@ -215,7 +248,7 @@ namespace BioFXAPI.Controllers
                     await tx.CommitAsync();
 
                     _logger.LogInformation("Orden creada correctamente. OrderId={OrderId}, UserId={UserId}, Total={Total}",
-                     orderId, userId, total);
+                     orderId, userId, totalFinal);
 
                     return Ok(new
                     {
@@ -223,7 +256,7 @@ namespace BioFXAPI.Controllers
                         orderId = orderId,
                         OrderNumber = orderNumber,
                         Reference = reference,
-                        Total = total,
+                        Total = totalFinal,
                         Currency = "USD"
                     });
                 }
@@ -1065,14 +1098,15 @@ namespace BioFXAPI.Controllers
         public record CreateOrderRequest(
             string? Reference,
             string? Description,
-            string? DocumentType,    // CI, RUC, PASAPORTE
+            string? DocumentType,
             string? DocumentNumber,
             string? AddressLine,
             string? City,
             string? Province,
             string? PostalCode,
             string? Country,
-            string? DoctorName
+            string? DoctorName,
+            bool tieneReceta
         );
 
         public record ReturnUrlRequest(string ReturnUrl);

@@ -65,28 +65,30 @@ namespace BioFXAPI.Controllers
 
                     transaction.Commit();
 
+                    var emailSent = true;
+                    string? emailError = null;
+
                     try
                     {
                         await _emailService.SendVerificationEmailAsync(request.Email, emailToken);
                     }
                     catch (Exception ex)
                     {
+                        emailSent = false;
+                        emailError = ex.Message;
                         _logger.LogError(ex, "Error enviando email de verificación a {Email}", request.Email);
-                        return StatusCode(500, new
-                        {
-                            message = "Fallo al enviar correo",
-                            details = ex.Message,
-                            stack = ex.StackTrace
-                        });
                     }
-
 
                     return Ok(new
                     {
-                        message = "Registro satisfactorio. Por favor, verifique su correo para activar su cuenta.",
+                        message = emailSent
+                            ? "Registro satisfactorio. Por favor, verifique su correo para activar su cuenta."
+                            : "Cuenta creada, pero no se pudo enviar el correo de verificación. Intenta reenviar el correo.",
                         userId,
-                        email = request.Email
+                        email = request.Email,
+                        emailSent
                     });
+
                 }
                 catch
                 {

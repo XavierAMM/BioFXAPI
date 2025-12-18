@@ -10,7 +10,7 @@
         public string Imagen { get; set; }
         public string Logo { get; set; }
         public string Descripcion { get; set; }
-
+        
         // Descripciones
         public string Desc_Principal { get; set; }
         public string Desc_Otros { get; set; }
@@ -21,12 +21,13 @@
         // Comerciales
         public int Descuento { get; set; } = 0;
         public string Disclaimer { get; set; }
-        public string Contraindicaciones { get; set; } 
+        public string Contraindicaciones { get; set; }
+        public decimal PrecioFinal { get; set; }
 
         // Stock
         public int Stock { get; set; } = 0;
         public int StockReservado { get; set; } = 0;
-
+        
         // Auditoría
         public bool Activo { get; set; } = true;
         public DateTime CreadoEl { get; set; } = DateTime.UtcNow;
