@@ -435,23 +435,35 @@ namespace BioFXAPI.Controllers
                 new { Id = orderId, Uid = userId });
             if (isMine == 0) return Forbid();
 
-            var order = await con.QueryFirstOrDefaultAsync<(decimal TotalAmount, string Currency, string Reference, string Description)>(
-                "SELECT TotalAmount, Currency, Reference, Description FROM [Order] WHERE Id=@Id AND Activo=1",
-                new { Id = orderId });
+            var order = await con.QueryFirstOrDefaultAsync<(
+                decimal TotalAmount,
+                string Currency,
+                string Reference,
+                string Description,
+                string DocumentType,
+                string DocumentNumber
+            )>(
+                @"SELECT TotalAmount, Currency, Reference, Description, DocumentType, DocumentNumber
+          FROM [Order]
+          WHERE Id=@Id AND Activo=1",
+                new { Id = orderId }
+            );
+
             if (order == default) return NotFound(new { message = "Orden no encontrada." });
 
             var status = await con.ExecuteScalarAsync<string>(
                 "SELECT Status FROM [Order] WHERE Id=@Id AND Activo=1", new { Id = orderId });
+
             if (string.Equals(status, "PAID", StringComparison.OrdinalIgnoreCase))
                 return BadRequest(new { message = "La orden ya está pagada." });
 
             // Idempotencia por Transaction pendiente
             var pendingTx = await con.QueryFirstOrDefaultAsync<(int RequestId, string ProcessUrl)>(
-            @"SELECT TOP 1 RequestId, ProcessUrl
-              FROM [Transaction]
-              WHERE OrderId=@Id AND Activo=1 AND Status='PENDING'
-              ORDER BY Id DESC",
-            new { Id = orderId });
+                @"SELECT TOP 1 RequestId, ProcessUrl
+          FROM [Transaction]
+          WHERE OrderId=@Id AND Activo=1 AND Status='PENDING'
+          ORDER BY Id DESC",
+                new { Id = orderId });
 
             bool sameHost = false;
             if (pendingTx != default && !string.IsNullOrWhiteSpace(pendingTx.ProcessUrl))
@@ -460,13 +472,13 @@ namespace BioFXAPI.Controllers
                 var bu = new Uri(_cfg["PlacetoPay:BaseUrl"]);
                 sameHost = string.Equals(pu.Host, bu.Host, StringComparison.OrdinalIgnoreCase);
             }
+
             if (pendingTx != default && sameHost)
                 return Ok(new { requestId = pendingTx.RequestId, processUrl = pendingTx.ProcessUrl });
 
+            // Auth (seed/nonce/tranKey)
             var seed = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:sszzz", System.Globalization.CultureInfo.InvariantCulture);
-
             var nonceBytes = RandomNumberGenerator.GetBytes(16);
-
             var nonce = Convert.ToBase64String(nonceBytes);
 
             var secret = _cfg["PlacetoPay:SecretKey"]!.Trim();
@@ -476,49 +488,86 @@ namespace BioFXAPI.Controllers
 
             var tranKey = Convert.ToBase64String(SHA256.HashData(input));
 
+            // IP
             var ip = HttpContext.Connection.RemoteIpAddress?.ToString();
             if (string.IsNullOrWhiteSpace(ip)) ip = "127.0.0.1";
 
-            var notificationUrl = _cfg["PlacetoPay:NotificationUrl"];
-            var buyer = await con.QueryFirstOrDefaultAsync<(string Nombre, string Apellido, string Email, string Telefono)>(
+            // Buyer (Persona + Usuario)
+            var buyer = await con.QueryFirstOrDefaultAsync<(string Nombre, string Apellido, string Email, string? Telefono)>(
                 @"SELECT TOP 1 p.Nombre,
-                         p.Apellido,
-                         u.email AS Email,
-                         p.Telefono
-                  FROM Persona p
-                  INNER JOIN Usuario u ON u.id = p.UsuarioId
-                  WHERE p.UsuarioId = (SELECT UserId FROM [Order] WHERE Id=@Id)
-                    AND p.Activo = 1
-                    AND u.Activo = 1",
+                 p.Apellido,
+                 u.email AS Email,
+                 p.Telefono
+          FROM Persona p
+          INNER JOIN Usuario u ON u.id = p.UsuarioId
+          WHERE p.UsuarioId = (SELECT UserId FROM [Order] WHERE Id=@Id)
+            AND p.Activo = 1
+            AND u.Activo = 1",
                 new { Id = orderId });
+
+            if (buyer == default)
+                return BadRequest(new { message = "No se encontró información de Persona/Usuario para el comprador." });
+
+            string? mobile = null;
+            if (!string.IsNullOrWhiteSpace(buyer.Telefono))
+            {
+                var digits = new string(buyer.Telefono.Where(char.IsDigit).ToArray());
+                mobile = string.IsNullOrWhiteSpace(digits) ? null : digits;
+            }
+
+            var docType = (order.DocumentType ?? "").Trim();
+            var docNumber = (order.DocumentNumber ?? "").Trim();
+
+            var expiration = DateTime.UtcNow
+                .AddMinutes(int.Parse(_cfg["PlacetoPay:TimeoutMinutes"]!))
+                .ToString("yyyy-MM-ddTHH:mm:sszzz", System.Globalization.CultureInfo.InvariantCulture);
+
+            var notificationUrl = _cfg["PlacetoPay:NotificationUrl"];
 
             var body = new
             {
                 locale = "es_EC",
-                auth = new { login = _cfg["PlacetoPay:Login"], tranKey, nonce, seed },
+                buyer = new
+                {
+                    name = buyer.Nombre,
+                    surname = buyer.Apellido,
+                    email = buyer.Email,
+                    document = docNumber,
+                    documentType = docType,
+                    mobile = mobile
+                },
                 payment = new
                 {
                     reference = order.Reference,
                     description = order.Description,
-                    amount = new { currency = (order.Currency ?? "USD").Trim().ToUpperInvariant(), total = order.TotalAmount },
-                    buyer = new
+                    amount = new
                     {
-                        name = buyer.Nombre,
-                        surname = buyer.Apellido,
-                        email = buyer.Email,
-                        mobile = buyer.Telefono
+                        currency = (order.Currency ?? "USD").Trim().ToUpperInvariant(),
+                        total = order.TotalAmount
                     }
                 },
-                expiration = DateTime.UtcNow.AddMinutes(int.Parse(_cfg["PlacetoPay:TimeoutMinutes"]!))
-                             .ToString("yyyy-MM-ddTHH:mm:sszzz"),
-                returnUrl = req.ReturnUrl,
-                notificationUrl,
+                expiration = expiration,
                 ipAddress = ip,
-                userAgent = Request.Headers["User-Agent"].ToString()
+                returnUrl = req.ReturnUrl,
+                userAgent = Request.Headers["User-Agent"].ToString(),
+                paymentMethod = (string?)null,
+                notificationUrl = notificationUrl,
+                auth = new
+                {
+                    login = _cfg["PlacetoPay:Login"],
+                    tranKey,
+                    nonce,
+                    seed
+                }
             };
 
-            var json = JsonSerializer.Serialize(body);
+            var json = JsonSerializer.Serialize(body, new JsonSerializerOptions
+            {
+                DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull
+            });
+
             _logger.LogInformation("PlacetoPay CreateSession para Order {OrderId}. JSON: {Json}", orderId, json);
+
             var resp = await _http.PostAsync("api/session", new StringContent(json, Encoding.UTF8, "application/json"));
             var payload = await resp.Content.ReadAsStringAsync();
 
@@ -530,15 +579,17 @@ namespace BioFXAPI.Controllers
             using var doc = JsonDocument.Parse(payload);
             if (!doc.RootElement.TryGetProperty("requestId", out var ridEl) || !ridEl.TryGetInt32(out var requestId))
                 return StatusCode(502, new { message = "Respuesta sin requestId.", raw = payload });
+
             var processUrl = doc.RootElement.GetProperty("processUrl").GetString() ?? "";
 
             await con.ExecuteAsync(
                 @"INSERT INTO [Transaction](OrderId, RequestId, InternalReference, ProcessUrl, Status, Reason, Message, PaymentMethod, PaymentMethodName, IssuerName, Refunded, RefundedAmount, CreadoEl, ActualizadoEl, Activo)
-                  VALUES(@OrderId, @RequestId, NULL, @ProcessUrl, 'PENDING', NULL, NULL, NULL, NULL, NULL, 0, NULL, GETUTCDATE(), GETUTCDATE(), 1)",
+          VALUES(@OrderId, @RequestId, NULL, @ProcessUrl, 'PENDING', NULL, NULL, NULL, NULL, NULL, 0, NULL, GETUTCDATE(), GETUTCDATE(), 1)",
                 new { OrderId = orderId, RequestId = requestId, ProcessUrl = processUrl });
 
             return Ok(new { requestId, processUrl });
         }
+
 
         [HttpGet("{orderId:int}/status")]
         public async Task<IActionResult> RefreshStatus(int orderId)

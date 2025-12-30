@@ -1376,6 +1376,9 @@
           "doctorName": {
             "type": "string",
             "nullable": true
+          },
+          "tieneReceta": {
+            "type": "boolean"
           }
         },
         "additionalProperties": false

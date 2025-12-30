@@ -33,12 +33,6 @@ namespace BioFXAPI.Services
                 _smtpServer, _smtpPort, _senderEmail, _enableSsl);
         }
 
-        private async Task SendEmailAsync(string toEmail, string subject, string htmlContent)
-        {
-            await SendEmailAsync(toEmail, subject, htmlContent, null, null, null);
-        }
-
-
         private async Task SendEmailAsync(
             string toEmail,
             string subject,
