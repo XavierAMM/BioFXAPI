@@ -128,16 +128,38 @@ namespace BioFXAPI.Controllers
             // Disparar reconsulta si tenemos requestId
             if (requestId > 0)
             {
-                var apiBase = $"{Request.Scheme}://{Request.Host}";
+                var apiBase = cfg["Webhook:InternalApiBaseUrl"];
+                if (string.IsNullOrWhiteSpace(apiBase))
+                    apiBase = $"{Request.Scheme}://{Request.Host}";
                 using var http = new HttpClient();
                 var content = new StringContent(JsonSerializer.Serialize(new { requestId }), Encoding.UTF8, "application/json");
 
                 try
                 {
-                    var r = await http.PostAsync($"{apiBase}/api/Transactions/refresh-by-request", content);
+                    var internalKey = cfg["InternalApiKey"];
+                    if (string.IsNullOrWhiteSpace(internalKey))
+                    {
+                        await con.ExecuteAsync(
+                            "UPDATE WebhookLog SET Status='ERROR', Processed=0, ActualizadoEl=GETUTCDATE() WHERE Id=@Id",
+                            new { Id = logId });
+                        return StatusCode(500, new { message = "InternalApiKey no configurada." });
+                    }
+
+                    http.DefaultRequestHeaders.Remove("X-Internal-Api-Key");
+                    http.DefaultRequestHeaders.Add("X-Internal-Api-Key", internalKey);
+
+                    var r = await http.PostAsync($"{apiBase}/api/Transactions/internal/refresh-by-request", content);
+                    var respBody = await r.Content.ReadAsStringAsync();
+
                     await con.ExecuteAsync(
-                        "UPDATE WebhookLog SET Status=@S, Processed=@P, ActualizadoEl=GETUTCDATE() WHERE Id=@Id",
-                        new { S = r.IsSuccessStatusCode ? "PROCESSED" : "ERROR", P = r.IsSuccessStatusCode ? 1 : 0, Id = logId });
+                      "UPDATE WebhookLog SET Status=@S, Processed=@P, ActualizadoEl=GETUTCDATE(), Payload = @Payload WHERE Id=@Id",
+                      new
+                      {
+                          S = r.IsSuccessStatusCode ? "PROCESSED" : "ERROR",
+                          P = r.IsSuccessStatusCode ? 1 : 0,
+                          Id = logId,
+                          Payload = body + "\n\nINTERNAL_RESPONSE_STATUS=" + (int)r.StatusCode + "\nINTERNAL_RESPONSE_BODY=" + respBody
+                      });
                 }
                 catch
                 {

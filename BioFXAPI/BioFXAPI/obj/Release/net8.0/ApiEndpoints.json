@@ -738,6 +738,22 @@
   },
   {
     "ContainingType": "BioFXAPI.Controllers.TransactionsController",
+    "Method": "RefreshByRequestIdInternal",
+    "RelativePath": "api/Transactions/internal/refresh-by-request",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "r",
+        "Type": "BioFXAPI.Controllers.TransactionsController\u002BRefreshRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "BioFXAPI.Controllers.TransactionsController",
     "Method": "RefreshByRequestId",
     "RelativePath": "api/Transactions/refresh-by-request",
     "HttpMethod": "POST",

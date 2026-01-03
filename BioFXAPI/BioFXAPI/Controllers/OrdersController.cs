@@ -670,17 +670,16 @@ namespace BioFXAPI.Controllers
             int? internalReference = null;
             bool? refunded = null;
             decimal? refundedAmount = null;
+            string? authorization = null;
 
             if (root.TryGetProperty("payment", out var payArr) && payArr.ValueKind == JsonValueKind.Array && payArr.GetArrayLength() > 0)
             {
                 var p0 = payArr[0];
 
-                // estado del pago (puedes usarlo si quieres diferenciar)
                 var payStatus = p0.TryGetProperty("status", out var payStEl) && payStEl.ValueKind == JsonValueKind.Object
                     ? payStEl.GetProperty("status").GetString()
                     : null;
 
-                // internalReference (viene como string en tu ejemplo)
                 if (p0.TryGetProperty("internalReference", out var irEl))
                 {
                     if (irEl.ValueKind == JsonValueKind.Number && irEl.TryGetInt32(out var irNum))
@@ -704,8 +703,6 @@ namespace BioFXAPI.Controllers
                     refunded = refEl.GetBoolean();
                 }
 
-
-                // refundedAmount: si quisieras tomar el total como "monto afectado" en caso de reembolso
                 if (p0.TryGetProperty("amount", out var amountEl) && amountEl.ValueKind == JsonValueKind.Object)
                 {
                     if (amountEl.TryGetProperty("to", out var toEl) && toEl.ValueKind == JsonValueKind.Object)
@@ -716,6 +713,10 @@ namespace BioFXAPI.Controllers
                         }
                     }
                 }
+
+                if (p0.TryGetProperty("authorization", out var authEl) && authEl.ValueKind == JsonValueKind.String)
+                    authorization = authEl.GetString();
+
             }
 
             // 3) mapping del estado a tu modelo local
@@ -728,13 +729,11 @@ namespace BioFXAPI.Controllers
                 _ => "PENDING"
             };
 
-            // ¿Acaba de pasar a PAID en esta llamada?
             var justPaid = !string.Equals(txRow.Status, "PAID", StringComparison.OrdinalIgnoreCase)
                            && mapped == "PAID";
 
             using var dbtx = con.BeginTransaction();
 
-            // Descontar stock al pasar a PAID
             if (justPaid)
             {
                 await con.ExecuteAsync(@"
@@ -770,6 +769,7 @@ namespace BioFXAPI.Controllers
                       PaymentMethodName= @PaymentMethodName,
                       IssuerName       = @IssuerName,
                       Refunded         = CASE WHEN @Refunded IS NULL THEN Refunded ELSE @Refunded END,
+                      [Authorization]    = @Authorization,
                       RefundedAmount   = CASE WHEN @RefundedAmount IS NULL THEN RefundedAmount ELSE @RefundedAmount END,
                       ActualizadoEl    = GETUTCDATE()
                   WHERE Id=@TxId;",
@@ -785,6 +785,7 @@ namespace BioFXAPI.Controllers
                     PaymentMethodName = (object?)paymentMethodName ?? DBNull.Value,
                     IssuerName = (object?)issuerName ?? DBNull.Value,
                     Refunded = refunded.HasValue ? (refunded.Value ? 1 : 0) : (int?)null,
+                    Authorization = (object?)authorization ?? DBNull.Value,
                     RefundedAmount = (object?)refundedAmount ?? DBNull.Value
                 }, dbtx);
 
@@ -958,13 +959,15 @@ namespace BioFXAPI.Controllers
             CASE WHEN o.OrderAttachmentId IS NULL THEN 0 ELSE 1 END AS HasAttachment,
             tx.PaymentMethod      AS PaymentMethod,
             tx.PaymentMethodName  AS PaymentMethodName,
-            tx.IssuerName         AS IssuerName
+            tx.IssuerName         AS IssuerName,
+            tx.[Authorization]      AS [Authorization]
         FROM [Order] o
         OUTER APPLY (
             SELECT TOP 1 
                 t.PaymentMethod,
                 t.PaymentMethodName,
-                t.IssuerName
+                t.IssuerName,
+                t.[Authorization]
             FROM [Transaction] t
             WHERE t.OrderId = o.Id AND t.Activo = 1
             ORDER BY t.Id DESC
@@ -1027,6 +1030,7 @@ namespace BioFXAPI.Controllers
                     PaymentMethod: o.PaymentMethod,
                     PaymentMethodName: o.PaymentMethodName,
                     IssuerName: o.IssuerName,
+                    Authorization: o.Authorization,
                     Items: oItems.Select(i => new OrderItemHistoryDto
                     (
                         ProductId: i.ProductId,
@@ -1102,6 +1106,7 @@ namespace BioFXAPI.Controllers
             string? PaymentMethod,
             string? PaymentMethodName,
             string? IssuerName,
+            string? Authorization,
             List<OrderItemHistoryDto> Items
 );
 
@@ -1133,7 +1138,8 @@ namespace BioFXAPI.Controllers
             int HasAttachment,
             string? PaymentMethod,
             string? PaymentMethodName,
-            string? IssuerName
+            string? IssuerName,
+            string? Authorization
         );
 
         public record OrderItemHistoryRow(
