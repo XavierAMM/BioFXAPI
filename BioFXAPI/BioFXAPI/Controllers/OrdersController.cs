@@ -26,8 +26,10 @@ namespace BioFXAPI.Controllers
         private readonly ILogger<OrdersController> _logger;
         private readonly IFileStorageService _fileStorage;
         private readonly OrderNotificationService _orderNotificationService;
+        private readonly PlacetoPayRefreshService _refresh;
 
-        public OrdersController(IConfiguration cfg, ILogger<OrdersController> logger, IFileStorageService fileStorage, OrderNotificationService orderNotificationService)
+
+        public OrdersController(IConfiguration cfg, ILogger<OrdersController> logger, IFileStorageService fileStorage, OrderNotificationService orderNotificationService, PlacetoPayRefreshService refresh)
         {
             _cfg = cfg;
             _cs = cfg.GetConnectionString("DefaultConnection");
@@ -36,6 +38,7 @@ namespace BioFXAPI.Controllers
             _logger = logger;
             _fileStorage = fileStorage;
             _orderNotificationService = orderNotificationService;
+            _refresh = refresh;
         }
 
         [HttpPost("create")]
@@ -229,9 +232,13 @@ namespace BioFXAPI.Controllers
                         var rows = await con.ExecuteAsync(@"
                             UPDATE Producto
                             SET StockReservado = COALESCE(StockReservado,0) + @Qty,
+                                Disponible = CASE 
+                                    WHEN (COALESCE(Stock,0) - (COALESCE(StockReservado,0) + @Qty)) > 0 THEN 1 
+                                    ELSE 0 
+                                END,
                                 ActualizadoEl = GETUTCDATE()
                             WHERE Id = @Pid
-                              AND (COALESCE(Stock,0) - COALESCE(StockReservado,0)) >= @Qty;",
+                                AND (COALESCE(Stock,0) - COALESCE(StockReservado,0)) >= @Qty;",
                             new { Pid = it.ProductId, Qty = it.Quantity }, tx);
 
                         if (rows <= 0)
@@ -457,26 +464,45 @@ namespace BioFXAPI.Controllers
             if (string.Equals(status, "PAID", StringComparison.OrdinalIgnoreCase))
                 return BadRequest(new { message = "La orden ya está pagada." });
 
-            // Idempotencia por Transaction pendiente
-            var pendingTx = await con.QueryFirstOrDefaultAsync<(int RequestId, string ProcessUrl)>(
-                @"SELECT TOP 1 RequestId, ProcessUrl
+            // ===== NUEVO: revisar última transacción "abierta" =====
+            var lastTx = await con.QueryFirstOrDefaultAsync<(int RequestId, string ProcessUrl, string Status)>(
+                @"SELECT TOP 1 RequestId, ProcessUrl, Status
           FROM [Transaction]
-          WHERE OrderId=@Id AND Activo=1 AND Status='PENDING'
+          WHERE OrderId=@Id AND Activo=1
           ORDER BY Id DESC",
                 new { Id = orderId });
 
             bool sameHost = false;
-            if (pendingTx != default && !string.IsNullOrWhiteSpace(pendingTx.ProcessUrl))
+            if (lastTx != default && !string.IsNullOrWhiteSpace(lastTx.ProcessUrl))
             {
-                var pu = new Uri(pendingTx.ProcessUrl);
+                var pu = new Uri(lastTx.ProcessUrl);
                 var bu = new Uri(_cfg["PlacetoPay:BaseUrl"]);
                 sameHost = string.Equals(pu.Host, bu.Host, StringComparison.OrdinalIgnoreCase);
             }
 
-            if (pendingTx != default && sameHost)
-                return Ok(new { requestId = pendingTx.RequestId, processUrl = pendingTx.ProcessUrl });
+            // Si está en validación, NO crear una sesión nueva (bloquear reintento)
+            if (lastTx != default &&
+                sameHost &&
+                string.Equals(lastTx.Status, "PENDING_VALIDATION", StringComparison.OrdinalIgnoreCase))
+            {
+                return StatusCode(409, new
+                {
+                    message = "Existe un pago en validación. Intenta refrescar el estado antes de crear otra sesión.",
+                    status = lastTx.Status,
+                    requestId = lastTx.RequestId
+                });
+            }
 
-            // Auth (seed/nonce/tranKey)
+            // Si está pendiente por abandono, reusar processUrl
+            if (lastTx != default &&
+                sameHost &&
+                string.Equals(lastTx.Status, "PENDING", StringComparison.OrdinalIgnoreCase))
+            {
+                return Ok(new { requestId = lastTx.RequestId, processUrl = lastTx.ProcessUrl, reused = true });
+            }
+
+            // ===== resto del método igual (crear sesión nueva) =====
+
             var seed = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:sszzz", System.Globalization.CultureInfo.InvariantCulture);
             var nonceBytes = RandomNumberGenerator.GetBytes(16);
             var nonce = Convert.ToBase64String(nonceBytes);
@@ -488,11 +514,9 @@ namespace BioFXAPI.Controllers
 
             var tranKey = Convert.ToBase64String(SHA256.HashData(input));
 
-            // IP
             var ip = HttpContext.Connection.RemoteIpAddress?.ToString();
             if (string.IsNullOrWhiteSpace(ip)) ip = "127.0.0.1";
 
-            // Buyer (Persona + Usuario)
             var buyer = await con.QueryFirstOrDefaultAsync<(string Nombre, string Apellido, string Email, string? Telefono)>(
                 @"SELECT TOP 1 p.Nombre,
                  p.Apellido,
@@ -566,13 +590,8 @@ namespace BioFXAPI.Controllers
                 DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull
             });
 
-            _logger.LogInformation("PlacetoPay CreateSession para Order {OrderId}. JSON: {Json}", orderId, json);
-
             var resp = await _http.PostAsync("api/session", new StringContent(json, Encoding.UTF8, "application/json"));
             var payload = await resp.Content.ReadAsStringAsync();
-
-            _logger.LogInformation("PlacetoPay respuesta para Order {OrderId}. StatusCode={StatusCode}, Payload={Payload}",
-                orderId, (int)resp.StatusCode, payload);
 
             if (!resp.IsSuccessStatusCode) return StatusCode((int)resp.StatusCode, payload);
 
@@ -587,15 +606,15 @@ namespace BioFXAPI.Controllers
           VALUES(@OrderId, @RequestId, NULL, @ProcessUrl, 'PENDING', NULL, NULL, NULL, NULL, NULL, 0, NULL, GETUTCDATE(), GETUTCDATE(), 1)",
                 new { OrderId = orderId, RequestId = requestId, ProcessUrl = processUrl });
 
-            return Ok(new { requestId, processUrl });
+            return Ok(new { requestId, processUrl, reused = false });
         }
 
 
         [HttpGet("{orderId:int}/status")]
-        public async Task<IActionResult> RefreshStatus(int orderId)
+        public async Task<IActionResult> RefreshStatus(int orderId, CancellationToken ct)
         {
             using var con = new SqlConnection(_cs);
-            await con.OpenAsync();
+            await con.OpenAsync(ct);
 
             var (ok, userId, err) = await TryResolveUserIdAsync(con, null);
             if (!ok) return err!;
@@ -605,214 +624,40 @@ namespace BioFXAPI.Controllers
                 new { Id = orderId, Uid = userId });
             if (isMine == 0) return Forbid();
 
-            var txRow = await con.QueryFirstOrDefaultAsync<(int Id, int RequestId, string Status)>(
-                @"SELECT TOP 1 Id, RequestId, Status
+            var requestId = await con.ExecuteScalarAsync<int?>(
+                @"SELECT TOP 1 RequestId
                   FROM [Transaction]
                   WHERE OrderId=@Id AND Activo=1
                   ORDER BY Id DESC", new { Id = orderId });
-            if (txRow == default) return BadRequest(new { message = "Orden sin transacción." });
 
-            var seed = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:sszzz", System.Globalization.CultureInfo.InvariantCulture);
+            if (!requestId.HasValue || requestId.Value <= 0)
+                return BadRequest(new { message = "Orden sin transacción." });
 
-            var nonceBytes = RandomNumberGenerator.GetBytes(16);
-            var nonce = Convert.ToBase64String(nonceBytes);
+            var (error2, result) = await _refresh.RefreshByRequestIdAsync(
+                requestId: requestId.Value,
+                validateOwner: false,
+                callerUser: null,
+                ct: ct);
 
-            var secret = _cfg["PlacetoPay:SecretKey"]!.Trim();
-            var input = new byte[nonceBytes.Length + Encoding.UTF8.GetByteCount(seed + secret)];
-            Buffer.BlockCopy(nonceBytes, 0, input, 0, nonceBytes.Length);
-            Encoding.UTF8.GetBytes(seed + secret, 0, seed.Length + secret.Length, input, nonceBytes.Length);
+            if (error2 != null) return error2;
 
-            var tranKey = Convert.ToBase64String(SHA256.HashData(input));
+            var orderInfo = await con.QueryFirstOrDefaultAsync<(string Reference, decimal TotalAmount, string Currency)>(
+                @"SELECT Reference, TotalAmount, Currency
+                  FROM [Order]
+                  WHERE Id = @Id AND Activo = 1;",
+                new { Id = orderId });
 
-            var authJson = JsonSerializer.Serialize(new
+            if (orderInfo == default)
+                return NotFound(new { message = "Orden no encontrada." });
+
+            return Ok(new
             {
-                auth = new { login = _cfg["PlacetoPay:Login"], tranKey, nonce, seed }
+                orderId = result!.OrderId,
+                status = result.Status,
+                reference = orderInfo.Reference,
+                total = orderInfo.TotalAmount,
+                currency = orderInfo.Currency
             });
-
-            var pUrl = await con.ExecuteScalarAsync<string>(
-                "SELECT TOP 1 ProcessUrl FROM [Transaction] WHERE Id=@TxId",
-                new { TxId = txRow.Id });
-
-            var baseUri = _http.BaseAddress!;
-            if (!string.IsNullOrWhiteSpace(pUrl))
-            {
-                var u = new Uri(pUrl);
-                baseUri = new Uri($"{u.Scheme}://{u.Host}/");
-            }
-            using var http = new HttpClient { BaseAddress = baseUri };
-            http.DefaultRequestHeaders.Accept.ParseAdd("application/json");
-
-            var resp = await http.PostAsync($"api/session/{txRow.RequestId}",
-                new StringContent(authJson, Encoding.UTF8, "application/json"));
-
-            var payload = await resp.Content.ReadAsStringAsync();
-            if (!resp.IsSuccessStatusCode) return StatusCode((int)resp.StatusCode, payload);
-
-            using var doc = JsonDocument.Parse(payload);
-            var root = doc.RootElement;
-
-            // 1) status global de la solicitud
-            var statusEl = root.GetProperty("status");
-            var status = statusEl.GetProperty("status").GetString();
-
-            var reason = statusEl.TryGetProperty("reason", out var reasonEl) && reasonEl.ValueKind == JsonValueKind.String
-                ? reasonEl.GetString()
-                : null;
-
-            var message = statusEl.TryGetProperty("message", out var msgEl) && msgEl.ValueKind == JsonValueKind.String
-                ? msgEl.GetString()
-                : null;
-
-            // 2) datos específicos del pago (primer elemento de payment[])
-            string? paymentMethod = null;
-            string? paymentMethodName = null;
-            string? issuerName = null;
-            int? internalReference = null;
-            bool? refunded = null;
-            decimal? refundedAmount = null;
-            string? authorization = null;
-
-            if (root.TryGetProperty("payment", out var payArr) && payArr.ValueKind == JsonValueKind.Array && payArr.GetArrayLength() > 0)
-            {
-                var p0 = payArr[0];
-
-                var payStatus = p0.TryGetProperty("status", out var payStEl) && payStEl.ValueKind == JsonValueKind.Object
-                    ? payStEl.GetProperty("status").GetString()
-                    : null;
-
-                if (p0.TryGetProperty("internalReference", out var irEl))
-                {
-                    if (irEl.ValueKind == JsonValueKind.Number && irEl.TryGetInt32(out var irNum))
-                        internalReference = irNum;
-                    else if (irEl.ValueKind == JsonValueKind.String && int.TryParse(irEl.GetString(), out var irNum2))
-                        internalReference = irNum2;
-                }
-
-                if (p0.TryGetProperty("paymentMethod", out var pmEl) && pmEl.ValueKind == JsonValueKind.String)
-                    paymentMethod = pmEl.GetString();
-
-                if (p0.TryGetProperty("paymentMethodName", out var pmnEl) && pmnEl.ValueKind == JsonValueKind.String)
-                    paymentMethodName = pmnEl.GetString();
-
-                if (p0.TryGetProperty("issuerName", out var issEl) && issEl.ValueKind == JsonValueKind.String)
-                    issuerName = issEl.GetString();
-
-                if (p0.TryGetProperty("refunded", out var refEl) &&
-    (refEl.ValueKind == JsonValueKind.True || refEl.ValueKind == JsonValueKind.False))
-                {
-                    refunded = refEl.GetBoolean();
-                }
-
-                if (p0.TryGetProperty("amount", out var amountEl) && amountEl.ValueKind == JsonValueKind.Object)
-                {
-                    if (amountEl.TryGetProperty("to", out var toEl) && toEl.ValueKind == JsonValueKind.Object)
-                    {
-                        if (toEl.TryGetProperty("total", out var totEl) && totEl.ValueKind == JsonValueKind.Number && totEl.TryGetDecimal(out var tot))
-                        {
-                            refundedAmount = tot;
-                        }
-                    }
-                }
-
-                if (p0.TryGetProperty("authorization", out var authEl) && authEl.ValueKind == JsonValueKind.String)
-                    authorization = authEl.GetString();
-
-            }
-
-            // 3) mapping del estado a tu modelo local
-            var mapped = status switch
-            {
-                "APPROVED" or "OK" => "PAID",
-                "PENDING" or "PENDING_PAYMENT" or "PENDING_VALIDATION" => "PENDING",
-                "REJECTED" or "FAILED" => "REJECTED",
-                "EXPIRED" => "EXPIRED",
-                _ => "PENDING"
-            };
-
-            var justPaid = !string.Equals(txRow.Status, "PAID", StringComparison.OrdinalIgnoreCase)
-                           && mapped == "PAID";
-
-            using var dbtx = con.BeginTransaction();
-
-            if (justPaid)
-            {
-                await con.ExecuteAsync(@"
-                    UPDATE p
-                    SET p.Stock = p.Stock - oi.Quantity,
-                        p.StockReservado = CASE WHEN p.StockReservado >= oi.Quantity THEN p.StockReservado - oi.Quantity ELSE 0 END,
-                        p.ActualizadoEl = GETUTCDATE()
-                    FROM Producto p INNER JOIN OrderItem oi ON oi.ProductId = p.Id
-                    WHERE oi.OrderId = @OrderId;", new { OrderId = orderId }, dbtx);
-            }
-            else if (mapped == "REJECTED" || mapped == "EXPIRED")
-            {
-                await con.ExecuteAsync(@"
-                    UPDATE p
-                    SET p.StockReservado = CASE WHEN p.StockReservado >= oi.Quantity THEN p.StockReservado - oi.Quantity ELSE 0 END,
-                        p.ActualizadoEl = GETUTCDATE()
-                    FROM Producto p INNER JOIN OrderItem oi ON oi.ProductId = p.Id
-                    WHERE oi.OrderId = @OrderId;", new { OrderId = orderId }, dbtx);
-            }
-
-            // 4) Actualizar Order + Transaction con datos enriquecidos
-            await con.ExecuteAsync(
-                @"UPDATE [Order] 
-                  SET Status=@E, ActualizadoEl=GETUTCDATE() 
-                  WHERE Id=@Id;
-
-                  UPDATE [Transaction]
-                  SET Status=@E,
-                      InternalReference = @InternalReference,
-                      Reason           = @Reason,
-                      Message          = @Message,
-                      PaymentMethod    = @PaymentMethod,
-                      PaymentMethodName= @PaymentMethodName,
-                      IssuerName       = @IssuerName,
-                      Refunded         = CASE WHEN @Refunded IS NULL THEN Refunded ELSE @Refunded END,
-                      [Authorization]    = @Authorization,
-                      RefundedAmount   = CASE WHEN @RefundedAmount IS NULL THEN RefundedAmount ELSE @RefundedAmount END,
-                      ActualizadoEl    = GETUTCDATE()
-                  WHERE Id=@TxId;",
-                new
-                {
-                    Id = orderId,
-                    E = mapped,
-                    TxId = txRow.Id,
-                    InternalReference = (object?)internalReference ?? DBNull.Value,
-                    Reason = (object?)reason ?? DBNull.Value,
-                    Message = (object?)message ?? DBNull.Value,
-                    PaymentMethod = (object?)paymentMethod ?? DBNull.Value,
-                    PaymentMethodName = (object?)paymentMethodName ?? DBNull.Value,
-                    IssuerName = (object?)issuerName ?? DBNull.Value,
-                    Refunded = refunded.HasValue ? (refunded.Value ? 1 : 0) : (int?)null,
-                    Authorization = (object?)authorization ?? DBNull.Value,
-                    RefundedAmount = (object?)refundedAmount ?? DBNull.Value
-                }, dbtx);
-
-            dbtx.Commit();
-
-            // 5) Enviar correos solo si la orden acaba de pasar a PAID
-            if (justPaid)
-            {
-                try
-                {
-                    await _orderNotificationService.SendOrderPaidNotificationsAsync(
-                        orderId,
-                        txRow.RequestId,
-                        HttpContext.RequestAborted);
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogError(ex,
-                        "Error al enviar notificaciones de orden pagada (OrderId={OrderId}, RequestId={RequestId}) desde RefreshStatus",
-                        orderId,
-                        txRow.RequestId);
-                    // No hacemos rollback ni cambiamos la respuesta; solo logueamos el problema de email.
-                }
-            }
-
-            return Ok(new { orderId, status = mapped });
-
 
         }
 
@@ -838,8 +683,17 @@ namespace BioFXAPI.Controllers
           FROM [Transaction] WHERE OrderId=@Id AND Activo=1 ORDER BY Id DESC",
                 new { Id = orderId });
             if (last == default) return BadRequest(new { message = "Orden sin transacción." });
+
             if (string.Equals(last.Status, "PAID", StringComparison.OrdinalIgnoreCase))
                 return BadRequest(new { message = "La orden ya está pagada." });
+
+            // ✅ NUEVO: no permitir cancelar si está en validación/processing
+            if (string.Equals(last.Status, "PENDING_VALIDATION", StringComparison.OrdinalIgnoreCase))
+                return StatusCode(409, new
+                {
+                    message = "Existe un pago en validación. No se puede cancelar en este momento. Refresca el estado.",
+                    status = last.Status
+                });
 
             // 3) Reconsulta rápida a P2P si hay requestId
             if (last.RequestId is int rid && rid > 0)
@@ -856,17 +710,24 @@ namespace BioFXAPI.Controllers
                 var authJson = JsonSerializer.Serialize(new { auth = new { login = _cfg["PlacetoPay:Login"], tranKey, nonce, seed } });
 
                 // baseUri según ProcessUrl
-                var pUrl = await con.ExecuteScalarAsync<string>("SELECT TOP 1 ProcessUrl FROM [Transaction] WHERE Id=@TxId", new { TxId = last.TxId });
+                var pUrl = await con.ExecuteScalarAsync<string>(
+                    "SELECT TOP 1 ProcessUrl FROM [Transaction] WHERE Id=@TxId",
+                    new { TxId = last.TxId });
+
                 var baseUri = _http.BaseAddress!;
                 if (!string.IsNullOrWhiteSpace(pUrl))
                 {
                     var u = new Uri(pUrl);
                     baseUri = new Uri($"{u.Scheme}://{u.Host}/");
                 }
+
                 using var http = new HttpClient { BaseAddress = baseUri };
                 http.DefaultRequestHeaders.Accept.ParseAdd("application/json");
 
-                var resp = await http.PostAsync($"api/session/{rid}", new StringContent(authJson, Encoding.UTF8, "application/json"));
+                var resp = await http.PostAsync(
+                    $"api/session/{rid}",
+                    new StringContent(authJson, Encoding.UTF8, "application/json"));
+
                 if (resp.IsSuccessStatusCode)
                 {
                     var payload = await resp.Content.ReadAsStringAsync();
@@ -880,22 +741,72 @@ namespace BioFXAPI.Controllers
             // 4) Cancelación local y liberar reserva
             using var tx = con.BeginTransaction();
 
-            await con.ExecuteAsync(@"
-        UPDATE p
-        SET p.StockReservado = CASE WHEN p.StockReservado >= oi.Quantity THEN p.StockReservado - oi.Quantity ELSE 0 END,
-            p.ActualizadoEl = GETUTCDATE()
-        FROM Producto p INNER JOIN OrderItem oi ON oi.ProductId = p.Id
-        WHERE oi.OrderId = @OrderId;", new { OrderId = orderId }, tx);
+            // 1) Lock del estado actual de la orden (idempotencia)
+            var currentOrderStatus = await con.ExecuteScalarAsync<string>(@"
+                SELECT Status
+                FROM [Order] WITH (UPDLOCK, ROWLOCK)
+                WHERE Id=@Id AND Activo=1;",
+                new { Id = orderId }, tx);
 
+            currentOrderStatus ??= "PENDING";
+
+            // Si ya es final, no tocar stockreservado (idempotente)
+            bool isFinal =
+                currentOrderStatus.Equals("PAID", StringComparison.OrdinalIgnoreCase) ||
+                currentOrderStatus.Equals("REJECTED", StringComparison.OrdinalIgnoreCase) ||
+                currentOrderStatus.Equals("EXPIRED", StringComparison.OrdinalIgnoreCase) ||
+                currentOrderStatus.Equals("CANCELLED", StringComparison.OrdinalIgnoreCase);
+
+            if (isFinal)
+            {
+                if (currentOrderStatus.Equals("CANCELLED", StringComparison.OrdinalIgnoreCase))
+                {
+                    await con.ExecuteAsync(@"
+                        UPDATE [Transaction]
+                        SET Activo = 0,
+                            ActualizadoEl = GETUTCDATE()
+                        WHERE OrderId = @Id
+                          AND Status = 'CANCELLED'
+                          AND Activo = 1;",
+                    new { Id = orderId }, tx);
+                }
+
+                tx.Commit();
+                return Ok(new { orderId, status = currentOrderStatus, idempotent = true });
+            }
+
+
+            // 2) Side-effect único: liberar reservado + recalcular disponible
             await con.ExecuteAsync(@"
-        UPDATE [Order] SET Status='CANCELLED', ActualizadoEl=GETUTCDATE() WHERE Id=@Id;
-        UPDATE [Transaction] SET Status='CANCELLED', ActualizadoEl=GETUTCDATE()
-        WHERE OrderId=@Id AND Activo=1;", new { Id = orderId }, tx);
+                UPDATE p
+                SET p.StockReservado = CASE WHEN p.StockReservado >= oi.Quantity THEN p.StockReservado - oi.Quantity ELSE 0 END,
+                    p.Disponible = CASE 
+                        WHEN (COALESCE(p.Stock,0) - 
+                                (CASE WHEN p.StockReservado >= oi.Quantity THEN p.StockReservado - oi.Quantity ELSE 0 END)
+                             ) > 0 THEN 1 ELSE 0 END,
+                    p.ActualizadoEl = GETUTCDATE()
+                FROM Producto p 
+                INNER JOIN OrderItem oi ON oi.ProductId = p.Id
+                WHERE oi.OrderId = @OrderId;",
+                new { OrderId = orderId }, tx);
+
+            // 3) Marcar CANCELLED (solo una vez)
+            await con.ExecuteAsync(@"
+                UPDATE [Order] 
+                SET Status='CANCELLED', ActualizadoEl=GETUTCDATE()
+                WHERE Id=@Id AND Activo=1;
+
+                UPDATE [Transaction] 
+                SET Status='CANCELLED',
+                    Activo=0,
+                    ActualizadoEl=GETUTCDATE()
+                WHERE OrderId=@Id AND Activo=1;",
+                new { Id = orderId }, tx);
 
             tx.Commit();
             return Ok(new { orderId, status = "CANCELLED" });
-        }
 
+        }
 
         [Authorize]
         [HttpPost("{orderId:int}/placetopay/retry")]
@@ -920,7 +831,7 @@ namespace BioFXAPI.Controllers
                 return BadRequest(new { message = "La orden ya está pagada." });
 
             var tooOld = (DateTime.UtcNow - txRow.CreadoEl).TotalMinutes > 15;
-            if (!(tooOld || txRow.Status.Equals("EXPIRED", StringComparison.OrdinalIgnoreCase) || txRow.Status.Equals("REJECTED", StringComparison.OrdinalIgnoreCase)))
+            if (!(tooOld || txRow.Status.Equals("EXPIRED", StringComparison.OrdinalIgnoreCase)))
                 return BadRequest(new { message = "La sesión actual aún es válida." });
 
             // Reutiliza tu POST api/session (CreatePlacetoPaySession) y devuelve { processUrl, requestId }
@@ -955,7 +866,7 @@ namespace BioFXAPI.Controllers
             o.Province       AS Province,
             o.PostalCode     AS PostalCode,
             o.Country        AS Country,
-            o.DoctorName     AS DoctorName,
+            o.DoctorName     AS DoctorName,            
             CASE WHEN o.OrderAttachmentId IS NULL THEN 0 ELSE 1 END AS HasAttachment,
             tx.PaymentMethod      AS PaymentMethod,
             tx.PaymentMethodName  AS PaymentMethodName,
@@ -974,8 +885,7 @@ namespace BioFXAPI.Controllers
         ) tx
         WHERE 
             o.UserId = @Uid
-            AND o.Activo = 1
-            AND o.Status = 'PAID'
+            AND o.Activo = 1            
         ORDER BY o.CreadoEl DESC;", new { Uid = userId }))
                 .ToList();
 
@@ -1020,17 +930,18 @@ namespace BioFXAPI.Controllers
                     CreatedAt: o.CreatedAt,
                     TotalAmount: o.TotalAmount,
                     Currency: o.Currency,
+                    Status: o.Status,
                     HasAttachment: o.HasAttachment != 0,
                     AddressLine: o.AddressLine,
                     City: o.City,
                     Province: o.Province,
                     PostalCode: o.PostalCode,
                     Country: o.Country,
-                    DoctorName: o.DoctorName,
+                    DoctorName: o.DoctorName,                    
                     PaymentMethod: o.PaymentMethod,
                     PaymentMethodName: o.PaymentMethodName,
                     IssuerName: o.IssuerName,
-                    Authorization: o.Authorization,
+                    Authorization: o.Authorization,                    
                     Items: oItems.Select(i => new OrderItemHistoryDto
                     (
                         ProductId: i.ProductId,
@@ -1046,8 +957,6 @@ namespace BioFXAPI.Controllers
 
             return Ok(result);
         }
-
-
 
         private async Task<(bool ok, int userId, IActionResult? error)> TryResolveUserIdAsync(SqlConnection con, SqlTransaction? tx)
         {
@@ -1107,6 +1016,7 @@ namespace BioFXAPI.Controllers
             string? PaymentMethodName,
             string? IssuerName,
             string? Authorization,
+            string? Status,
             List<OrderItemHistoryDto> Items
 );
 
