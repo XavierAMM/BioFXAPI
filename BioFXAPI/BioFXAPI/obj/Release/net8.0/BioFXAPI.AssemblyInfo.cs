@@ -15,7 +15,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("BioFXAPI")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Release")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+b44c170c84cb008b524ab1c3016cda28d8e56baa")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+f36204c69d7949ce4c7f0bcb00c211d4696b4971")]
 [assembly: System.Reflection.AssemblyProductAttribute("BioFXAPI")]
 [assembly: System.Reflection.AssemblyTitleAttribute("BioFXAPI")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

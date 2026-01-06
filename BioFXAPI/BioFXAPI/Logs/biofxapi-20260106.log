@@ -1,0 +1,539 @@
+2026-01-06 18:39:53.478 -05:00 [DBG] Registered model binder providers, in the following order: ["Microsoft.AspNetCore.Mvc.ModelBinding.Binders.BinderTypeModelBinderProvider","Microsoft.AspNetCore.Mvc.ModelBinding.Binders.ServicesModelBinderProvider","Microsoft.AspNetCore.Mvc.ModelBinding.Binders.BodyModelBinderProvider","Microsoft.AspNetCore.Mvc.ModelBinding.Binders.HeaderModelBinderProvider","Microsoft.AspNetCore.Mvc.ModelBinding.Binders.FloatingPointTypeModelBinderProvider","Microsoft.AspNetCore.Mvc.ModelBinding.Binders.EnumTypeModelBinderProvider","Microsoft.AspNetCore.Mvc.ModelBinding.Binders.DateTimeModelBinderProvider","Microsoft.AspNetCore.Mvc.ModelBinding.Binders.SimpleTypeModelBinderProvider","Microsoft.AspNetCore.Mvc.ModelBinding.Binders.TryParseModelBinderProvider","Microsoft.AspNetCore.Mvc.ModelBinding.Binders.CancellationTokenModelBinderProvider","Microsoft.AspNetCore.Mvc.ModelBinding.Binders.ByteArrayModelBinderProvider","Microsoft.AspNetCore.Mvc.ModelBinding.Binders.FormFileModelBinderProvider","Microsoft.AspNetCore.Mvc.ModelBinding.Binders.FormCollectionModelBinderProvider","Microsoft.AspNetCore.Mvc.ModelBinding.Binders.KeyValuePairModelBinderProvider","Microsoft.AspNetCore.Mvc.ModelBinding.Binders.DictionaryModelBinderProvider","Microsoft.AspNetCore.Mvc.ModelBinding.Binders.ArrayModelBinderProvider","Microsoft.AspNetCore.Mvc.ModelBinding.Binders.CollectionModelBinderProvider","Microsoft.AspNetCore.Mvc.ModelBinding.Binders.ComplexObjectModelBinderProvider"]
+2026-01-06 18:39:53.731 -05:00 [DBG] Hosting starting
+2026-01-06 18:39:53.772 -05:00 [INF] User profile is available. Using 'C:\Users\xmanc\AppData\Local\ASP.NET\DataProtection-Keys' as key repository and Windows DPAPI to encrypt keys at rest.
+2026-01-06 18:39:53.782 -05:00 [DBG] Reading data from file 'C:\Users\xmanc\AppData\Local\ASP.NET\DataProtection-Keys\key-3390bb48-7b52-40b9-a5cd-8587ed8f0a32.xml'.
+2026-01-06 18:39:53.839 -05:00 [DBG] Reading data from file 'C:\Users\xmanc\AppData\Local\ASP.NET\DataProtection-Keys\key-a53364e5-c8f1-4abd-b63f-f57292da94bd.xml'.
+2026-01-06 18:39:53.901 -05:00 [DBG] Found key {3390bb48-7b52-40b9-a5cd-8587ed8f0a32}.
+2026-01-06 18:39:53.915 -05:00 [DBG] Found key {a53364e5-c8f1-4abd-b63f-f57292da94bd}.
+2026-01-06 18:39:53.925 -05:00 [DBG] Considering key {a53364e5-c8f1-4abd-b63f-f57292da94bd} with expiration date 2026-03-30 22:04:56Z as default key.
+2026-01-06 18:39:53.935 -05:00 [DBG] Forwarded activator type request from Microsoft.AspNetCore.DataProtection.XmlEncryption.DpapiXmlDecryptor, Microsoft.AspNetCore.DataProtection, Version=8.0.0.0, Culture=neutral, PublicKeyToken=adb9793829ddae60 to Microsoft.AspNetCore.DataProtection.XmlEncryption.DpapiXmlDecryptor, Microsoft.AspNetCore.DataProtection, Culture=neutral, PublicKeyToken=adb9793829ddae60
+2026-01-06 18:39:53.943 -05:00 [DBG] Decrypting secret element using Windows DPAPI.
+2026-01-06 18:39:53.947 -05:00 [DBG] Forwarded activator type request from Microsoft.AspNetCore.DataProtection.AuthenticatedEncryption.ConfigurationModel.AuthenticatedEncryptorDescriptorDeserializer, Microsoft.AspNetCore.DataProtection, Version=8.0.0.0, Culture=neutral, PublicKeyToken=adb9793829ddae60 to Microsoft.AspNetCore.DataProtection.AuthenticatedEncryption.ConfigurationModel.AuthenticatedEncryptorDescriptorDeserializer, Microsoft.AspNetCore.DataProtection, Culture=neutral, PublicKeyToken=adb9793829ddae60
+2026-01-06 18:39:53.954 -05:00 [DBG] Opening CNG algorithm 'AES' from provider 'null' with chaining mode CBC.
+2026-01-06 18:39:53.959 -05:00 [DBG] Opening CNG algorithm 'SHA256' from provider 'null' with HMAC.
+2026-01-06 18:39:53.965 -05:00 [DBG] Using key {a53364e5-c8f1-4abd-b63f-f57292da94bd} as the default key.
+2026-01-06 18:39:53.968 -05:00 [DBG] Key ring with default key {a53364e5-c8f1-4abd-b63f-f57292da94bd} was loaded during application startup.
+2026-01-06 18:39:54.000 -05:00 [DBG] Middleware loaded
+2026-01-06 18:39:54.002 -05:00 [DBG] Middleware loaded. Script /_framework/aspnetcore-browser-refresh.js (16501 B).
+2026-01-06 18:39:54.005 -05:00 [DBG] Middleware loaded. Script /_framework/blazor-hotreload.js (799 B).
+2026-01-06 18:39:54.104 -05:00 [DBG] Middleware loaded: DOTNET_MODIFIABLE_ASSEMBLIES=null, __ASPNETCORE_BROWSER_TOOLS=true
+2026-01-06 18:39:54.210 -05:00 [INF] Now listening on: https://localhost:7177
+2026-01-06 18:39:54.221 -05:00 [INF] Now listening on: http://localhost:5160
+2026-01-06 18:39:54.229 -05:00 [DBG] Loaded hosting startup assembly BioFXAPI
+2026-01-06 18:39:54.241 -05:00 [DBG] Loaded hosting startup assembly Microsoft.WebTools.ApiEndpointDiscovery
+2026-01-06 18:39:54.253 -05:00 [DBG] Loaded hosting startup assembly Microsoft.AspNetCore.Watch.BrowserRefresh
+2026-01-06 18:39:54.267 -05:00 [DBG] Loaded hosting startup assembly Microsoft.WebTools.BrowserLink.Net
+2026-01-06 18:39:54.347 -05:00 [INF] Application started. Press Ctrl+C to shut down.
+2026-01-06 18:39:54.356 -05:00 [INF] Hosting environment: Development
+2026-01-06 18:39:54.370 -05:00 [INF] Content root path: C:\Users\xmanc\OneDrive\Desktop\BioFXAPI-Github\BioFXAPI\BioFXAPI
+2026-01-06 18:39:54.385 -05:00 [DBG] Hosting started
+2026-01-06 18:39:54.454 -05:00 [DBG] Connection id "0HNIDFJIE5G07" accepted.
+2026-01-06 18:39:54.454 -05:00 [DBG] Connection id "0HNIDFJIE5G06" accepted.
+2026-01-06 18:39:54.457 -05:00 [DBG] Connection id "0HNIDFJIE5G07" started.
+2026-01-06 18:39:54.459 -05:00 [DBG] Connection id "0HNIDFJIE5G06" started.
+2026-01-06 18:39:54.473 -05:00 [DBG] Connection id "0HNIDFJIE5G07" received FIN.
+2026-01-06 18:39:54.473 -05:00 [DBG] Connection id "0HNIDFJIE5G06" received FIN.
+2026-01-06 18:39:54.484 -05:00 [DBG] Failed to authenticate HTTPS connection.
+System.IO.IOException: Received an unexpected EOF or 0 bytes from the transport stream.
+   at System.Net.Security.SslStream.ReceiveHandshakeFrameAsync[TIOAdapter](CancellationToken cancellationToken)
+   at System.Net.Security.SslStream.ForceAuthenticationAsync[TIOAdapter](Boolean receiveFirst, Byte[] reAuthenticationData, CancellationToken cancellationToken)
+   at System.Net.Security.SslStream.ProcessAuthenticationWithTelemetryAsync(Boolean isAsync, CancellationToken cancellationToken)
+   at Microsoft.AspNetCore.Server.Kestrel.Https.Internal.HttpsConnectionMiddleware.OnConnectionAsync(ConnectionContext context)
+2026-01-06 18:39:54.484 -05:00 [DBG] Failed to authenticate HTTPS connection.
+System.IO.IOException: Received an unexpected EOF or 0 bytes from the transport stream.
+   at System.Net.Security.SslStream.ReceiveHandshakeFrameAsync[TIOAdapter](CancellationToken cancellationToken)
+   at System.Net.Security.SslStream.ForceAuthenticationAsync[TIOAdapter](Boolean receiveFirst, Byte[] reAuthenticationData, CancellationToken cancellationToken)
+   at System.Net.Security.SslStream.ProcessAuthenticationWithTelemetryAsync(Boolean isAsync, CancellationToken cancellationToken)
+   at Microsoft.AspNetCore.Server.Kestrel.Https.Internal.HttpsConnectionMiddleware.OnConnectionAsync(ConnectionContext context)
+2026-01-06 18:39:54.532 -05:00 [DBG] Connection id "0HNIDFJIE5G07" stopped.
+2026-01-06 18:39:54.536 -05:00 [DBG] Connection id "0HNIDFJIE5G06" stopped.
+2026-01-06 18:39:54.542 -05:00 [DBG] Connection id "0HNIDFJIE5G06" sending FIN because: "The Socket transport's send loop completed gracefully."
+2026-01-06 18:39:54.540 -05:00 [DBG] Connection id "0HNIDFJIE5G07" sending FIN because: "The Socket transport's send loop completed gracefully."
+2026-01-06 18:39:55.607 -05:00 [DBG] Connection id "0HNIDFJIE5G08" accepted.
+2026-01-06 18:39:55.630 -05:00 [DBG] Connection id "0HNIDFJIE5G08" started.
+2026-01-06 18:39:55.692 -05:00 [DBG] Connection id "0HNIDFJIE5G09" accepted.
+2026-01-06 18:39:55.722 -05:00 [DBG] Connection id "0HNIDFJIE5G09" started.
+2026-01-06 18:39:55.825 -05:00 [DBG] Connection id "0HNIDFJIE5G09" received FIN.
+2026-01-06 18:39:55.863 -05:00 [DBG] Connection 0HNIDFJIE5G08 established using the following protocol: "Tls13"
+2026-01-06 18:39:55.864 -05:00 [DBG] Connection 0HNIDFJIE5G09 established using the following protocol: "Tls13"
+2026-01-06 18:39:56.113 -05:00 [DBG] Connection id "0HNIDFJIE5G09" is closed. The last processed stream ID was 0.
+2026-01-06 18:39:56.126 -05:00 [DBG] Connection id "0HNIDFJIE5G09" sending FIN because: "The Socket transport's send loop completed gracefully."
+2026-01-06 18:39:56.134 -05:00 [DBG] The connection queue processing loop for 0HNIDFJIE5G09 completed.
+2026-01-06 18:39:56.138 -05:00 [DBG] Connection id "0HNIDFJIE5G09" stopped.
+2026-01-06 18:39:56.139 -05:00 [INF] Request starting HTTP/2 GET https://localhost:7177/swagger/index.html - null null
+2026-01-06 18:39:56.358 -05:00 [DBG] Wildcard detected, all requests with hosts will be allowed.
+2026-01-06 18:39:56.406 -05:00 [DBG] No candidates found for the request path '/swagger/index.html'
+2026-01-06 18:39:56.411 -05:00 [DBG] Request did not match any endpoints
+2026-01-06 18:39:56.483 -05:00 [DBG] Response markup is scheduled to include Browser Link script injection.
+2026-01-06 18:39:56.516 -05:00 [DBG] Response markup is scheduled to include browser refresh script injection.
+2026-01-06 18:39:56.560 -05:00 [DBG] Response markup was updated to include Browser Link script injection.
+2026-01-06 18:39:56.600 -05:00 [DBG] Response markup was updated to include browser refresh script injection.
+2026-01-06 18:39:56.623 -05:00 [INF] Request finished HTTP/2 GET https://localhost:7177/swagger/index.html - 200 null text/html;charset=utf-8 497.8658ms
+2026-01-06 18:39:56.750 -05:00 [INF] Request starting HTTP/2 GET https://localhost:7177/_vs/browserLink - null null
+2026-01-06 18:39:56.750 -05:00 [INF] Request starting HTTP/2 GET https://localhost:7177/_framework/aspnetcore-browser-refresh.js - null null
+2026-01-06 18:39:56.785 -05:00 [DBG] Script injected: /_framework/aspnetcore-browser-refresh.js
+2026-01-06 18:39:56.809 -05:00 [INF] Request finished HTTP/2 GET https://localhost:7177/_framework/aspnetcore-browser-refresh.js - 200 16501 application/javascript; charset=utf-8 58.9008ms
+2026-01-06 18:39:57.177 -05:00 [INF] Request finished HTTP/2 GET https://localhost:7177/_vs/browserLink - 200 null text/javascript; charset=UTF-8 426.9225ms
+2026-01-06 18:39:57.260 -05:00 [INF] Request starting HTTP/2 GET https://localhost:7177/swagger/v1/swagger.json - null null
+2026-01-06 18:39:57.265 -05:00 [INF] Request starting HTTP/2 GET https://localhost:7177/swagger/favicon-32x32.png - null null
+2026-01-06 18:39:57.387 -05:00 [DBG] No candidates found for the request path '/swagger/v1/swagger.json'
+2026-01-06 18:39:57.391 -05:00 [DBG] No candidates found for the request path '/swagger/favicon-32x32.png'
+2026-01-06 18:39:57.392 -05:00 [DBG] Request did not match any endpoints
+2026-01-06 18:39:57.396 -05:00 [DBG] Request did not match any endpoints
+2026-01-06 18:39:57.411 -05:00 [INF] Sending file. Request path: '/favicon-32x32.png'. Physical path: 'N/A'
+2026-01-06 18:39:57.414 -05:00 [INF] Request finished HTTP/2 GET https://localhost:7177/swagger/favicon-32x32.png - 200 628 image/png 149.2777ms
+2026-01-06 18:39:57.424 -05:00 [INF] Request finished HTTP/2 GET https://localhost:7177/swagger/v1/swagger.json - 200 null application/json;charset=utf-8 163.6442ms
+2026-01-06 18:40:15.034 -05:00 [INF] Request starting HTTP/2 POST https://localhost:7177/api/Transactions/refresh-by-request - application/json 25
+2026-01-06 18:40:15.045 -05:00 [DBG] 1 candidate(s) found for the request path '/api/Transactions/refresh-by-request'
+2026-01-06 18:40:15.050 -05:00 [DBG] Endpoint 'BioFXAPI.Controllers.TransactionsController.RefreshByRequestId (BioFXAPI)' with route pattern 'api/Transactions/refresh-by-request' is valid for the request path '/api/Transactions/refresh-by-request'
+2026-01-06 18:40:15.053 -05:00 [DBG] Request matched endpoint 'BioFXAPI.Controllers.TransactionsController.RefreshByRequestId (BioFXAPI)'
+2026-01-06 18:40:15.056 -05:00 [DBG] Static files was skipped as the request already matched an endpoint.
+2026-01-06 18:40:15.058 -05:00 [DBG] The request has an origin header: 'https://localhost:7177'.
+2026-01-06 18:40:15.059 -05:00 [INF] CORS policy execution failed.
+2026-01-06 18:40:15.061 -05:00 [INF] Request origin https://localhost:7177 does not have permission to access the resource.
+2026-01-06 18:40:15.136 -05:00 [DBG] AuthenticationScheme: Bearer was not authenticated.
+2026-01-06 18:40:15.141 -05:00 [DBG] Policy authentication schemes  did not succeed
+2026-01-06 18:40:15.144 -05:00 [INF] Authorization failed. These requirements were not met:
+DenyAnonymousAuthorizationRequirement: Requires an authenticated user.
+2026-01-06 18:40:15.149 -05:00 [INF] AuthenticationScheme: Bearer was challenged.
+2026-01-06 18:40:15.151 -05:00 [INF] Request finished HTTP/2 POST https://localhost:7177/api/Transactions/refresh-by-request - 401 0 null 116.9336ms
+2026-01-06 18:40:15.156 -05:00 [DBG] Connection id "0HNIDFJIE5G08", Request id "0HNIDFJIE5G08:0000000B": started reading request body.
+2026-01-06 18:40:15.158 -05:00 [DBG] Connection id "0HNIDFJIE5G08", Request id "0HNIDFJIE5G08:0000000B": done reading request body.
+2026-01-06 18:40:23.036 -05:00 [INF] Request starting HTTP/2 POST https://localhost:7177/api/Transactions/refresh-by-request - application/json 25
+2026-01-06 18:40:23.044 -05:00 [DBG] 1 candidate(s) found for the request path '/api/Transactions/refresh-by-request'
+2026-01-06 18:40:23.048 -05:00 [DBG] Endpoint 'BioFXAPI.Controllers.TransactionsController.RefreshByRequestId (BioFXAPI)' with route pattern 'api/Transactions/refresh-by-request' is valid for the request path '/api/Transactions/refresh-by-request'
+2026-01-06 18:40:23.051 -05:00 [DBG] Request matched endpoint 'BioFXAPI.Controllers.TransactionsController.RefreshByRequestId (BioFXAPI)'
+2026-01-06 18:40:23.053 -05:00 [DBG] Static files was skipped as the request already matched an endpoint.
+2026-01-06 18:40:23.054 -05:00 [DBG] The request has an origin header: 'https://localhost:7177'.
+2026-01-06 18:40:23.055 -05:00 [INF] CORS policy execution failed.
+2026-01-06 18:40:23.056 -05:00 [INF] Request origin https://localhost:7177 does not have permission to access the resource.
+2026-01-06 18:40:23.059 -05:00 [DBG] AuthenticationScheme: Bearer was not authenticated.
+2026-01-06 18:40:23.061 -05:00 [DBG] Policy authentication schemes  did not succeed
+2026-01-06 18:40:23.062 -05:00 [INF] Authorization failed. These requirements were not met:
+DenyAnonymousAuthorizationRequirement: Requires an authenticated user.
+2026-01-06 18:40:23.063 -05:00 [INF] AuthenticationScheme: Bearer was challenged.
+2026-01-06 18:40:23.065 -05:00 [INF] Request finished HTTP/2 POST https://localhost:7177/api/Transactions/refresh-by-request - 401 0 null 29.0192ms
+2026-01-06 18:40:23.068 -05:00 [DBG] Connection id "0HNIDFJIE5G08", Request id "0HNIDFJIE5G08:0000000D": started reading request body.
+2026-01-06 18:40:23.070 -05:00 [DBG] Connection id "0HNIDFJIE5G08", Request id "0HNIDFJIE5G08:0000000D": done reading request body.
+2026-01-06 18:40:38.151 -05:00 [INF] Request starting HTTP/2 POST https://localhost:7177/api/Transactions/refresh-by-request - application/json 25
+2026-01-06 18:40:38.200 -05:00 [DBG] 1 candidate(s) found for the request path '/api/Transactions/refresh-by-request'
+2026-01-06 18:40:38.228 -05:00 [DBG] Endpoint 'BioFXAPI.Controllers.TransactionsController.RefreshByRequestId (BioFXAPI)' with route pattern 'api/Transactions/refresh-by-request' is valid for the request path '/api/Transactions/refresh-by-request'
+2026-01-06 18:40:38.235 -05:00 [DBG] Request matched endpoint 'BioFXAPI.Controllers.TransactionsController.RefreshByRequestId (BioFXAPI)'
+2026-01-06 18:40:38.241 -05:00 [DBG] Static files was skipped as the request already matched an endpoint.
+2026-01-06 18:40:38.245 -05:00 [DBG] The request has an origin header: 'https://localhost:7177'.
+2026-01-06 18:40:38.249 -05:00 [INF] CORS policy execution failed.
+2026-01-06 18:40:38.253 -05:00 [INF] Request origin https://localhost:7177 does not have permission to access the resource.
+2026-01-06 18:40:38.263 -05:00 [DBG] AuthenticationScheme: Bearer was not authenticated.
+2026-01-06 18:40:38.284 -05:00 [DBG] Policy authentication schemes  did not succeed
+2026-01-06 18:40:38.304 -05:00 [INF] Authorization failed. These requirements were not met:
+DenyAnonymousAuthorizationRequirement: Requires an authenticated user.
+2026-01-06 18:40:38.316 -05:00 [INF] AuthenticationScheme: Bearer was challenged.
+2026-01-06 18:40:38.323 -05:00 [INF] Request finished HTTP/2 POST https://localhost:7177/api/Transactions/refresh-by-request - 401 0 null 172.6299ms
+2026-01-06 18:40:38.331 -05:00 [DBG] Connection id "0HNIDFJIE5G08", Request id "0HNIDFJIE5G08:0000000F": started reading request body.
+2026-01-06 18:40:38.335 -05:00 [DBG] Connection id "0HNIDFJIE5G08", Request id "0HNIDFJIE5G08:0000000F": done reading request body.
+2026-01-06 18:40:55.034 -05:00 [INF] Request starting HTTP/2 POST https://localhost:7177/api/Transactions/refresh-by-request - application/json 25
+2026-01-06 18:40:55.075 -05:00 [DBG] 1 candidate(s) found for the request path '/api/Transactions/refresh-by-request'
+2026-01-06 18:40:55.081 -05:00 [DBG] Endpoint 'BioFXAPI.Controllers.TransactionsController.RefreshByRequestId (BioFXAPI)' with route pattern 'api/Transactions/refresh-by-request' is valid for the request path '/api/Transactions/refresh-by-request'
+2026-01-06 18:40:55.088 -05:00 [DBG] Request matched endpoint 'BioFXAPI.Controllers.TransactionsController.RefreshByRequestId (BioFXAPI)'
+2026-01-06 18:40:55.095 -05:00 [DBG] Static files was skipped as the request already matched an endpoint.
+2026-01-06 18:40:55.097 -05:00 [DBG] The request has an origin header: 'https://localhost:7177'.
+2026-01-06 18:40:55.101 -05:00 [INF] CORS policy execution failed.
+2026-01-06 18:40:55.104 -05:00 [INF] Request origin https://localhost:7177 does not have permission to access the resource.
+2026-01-06 18:40:55.108 -05:00 [DBG] AuthenticationScheme: Bearer was not authenticated.
+2026-01-06 18:40:55.112 -05:00 [DBG] Policy authentication schemes  did not succeed
+2026-01-06 18:40:55.116 -05:00 [INF] Authorization failed. These requirements were not met:
+DenyAnonymousAuthorizationRequirement: Requires an authenticated user.
+2026-01-06 18:40:55.118 -05:00 [INF] AuthenticationScheme: Bearer was challenged.
+2026-01-06 18:40:55.121 -05:00 [INF] Request finished HTTP/2 POST https://localhost:7177/api/Transactions/refresh-by-request - 401 0 null 87.4038ms
+2026-01-06 18:40:55.132 -05:00 [DBG] Connection id "0HNIDFJIE5G08", Request id "0HNIDFJIE5G08:00000011": started reading request body.
+2026-01-06 18:40:55.137 -05:00 [DBG] Connection id "0HNIDFJIE5G08", Request id "0HNIDFJIE5G08:00000011": done reading request body.
+2026-01-06 18:41:53.980 -05:00 [INF] Request starting HTTP/2 POST https://localhost:7177/api/Transactions/refresh-by-request - application/json 25
+2026-01-06 18:41:53.992 -05:00 [DBG] 1 candidate(s) found for the request path '/api/Transactions/refresh-by-request'
+2026-01-06 18:41:53.995 -05:00 [DBG] Endpoint 'BioFXAPI.Controllers.TransactionsController.RefreshByRequestId (BioFXAPI)' with route pattern 'api/Transactions/refresh-by-request' is valid for the request path '/api/Transactions/refresh-by-request'
+2026-01-06 18:41:53.999 -05:00 [INF] EmailSettings cargados: SmtpServer=mail.biofx.com.ec, SmtpPort=465, SenderEmail=info@biofx.com.ec, EnableSsl=true
+2026-01-06 18:41:54.007 -05:00 [DBG] Request matched endpoint 'BioFXAPI.Controllers.TransactionsController.RefreshByRequestId (BioFXAPI)'
+2026-01-06 18:41:54.030 -05:00 [DBG] Static files was skipped as the request already matched an endpoint.
+2026-01-06 18:41:54.047 -05:00 [DBG] The request has an origin header: 'https://localhost:7177'.
+2026-01-06 18:41:54.057 -05:00 [INF] CORS policy execution failed.
+2026-01-06 18:41:54.065 -05:00 [INF] Request origin https://localhost:7177 does not have permission to access the resource.
+2026-01-06 18:41:54.074 -05:00 [DBG] AuthenticationScheme: Bearer was not authenticated.
+2026-01-06 18:41:54.086 -05:00 [DBG] Policy authentication schemes  did not succeed
+2026-01-06 18:41:54.095 -05:00 [INF] Authorization failed. These requirements were not met:
+DenyAnonymousAuthorizationRequirement: Requires an authenticated user.
+2026-01-06 18:41:54.096 -05:00 [INF] AuthenticationScheme: Bearer was challenged.
+2026-01-06 18:41:54.098 -05:00 [INF] Request finished HTTP/2 POST https://localhost:7177/api/Transactions/refresh-by-request - 401 0 null 117.4925ms
+2026-01-06 18:41:54.107 -05:00 [DBG] Connection id "0HNIDFJIE5G08", Request id "0HNIDFJIE5G08:00000013": started reading request body.
+2026-01-06 18:41:54.109 -05:00 [DBG] Connection id "0HNIDFJIE5G08", Request id "0HNIDFJIE5G08:00000013": done reading request body.
+2026-01-06 18:41:54.932 -05:00 [INF] PlacetoPay AutoRefresh: lock no adquirido (code=-1). Se omite el tick.
+2026-01-06 18:44:29.014 -05:00 [DBG] Registered model binder providers, in the following order: ["Microsoft.AspNetCore.Mvc.ModelBinding.Binders.BinderTypeModelBinderProvider","Microsoft.AspNetCore.Mvc.ModelBinding.Binders.ServicesModelBinderProvider","Microsoft.AspNetCore.Mvc.ModelBinding.Binders.BodyModelBinderProvider","Microsoft.AspNetCore.Mvc.ModelBinding.Binders.HeaderModelBinderProvider","Microsoft.AspNetCore.Mvc.ModelBinding.Binders.FloatingPointTypeModelBinderProvider","Microsoft.AspNetCore.Mvc.ModelBinding.Binders.EnumTypeModelBinderProvider","Microsoft.AspNetCore.Mvc.ModelBinding.Binders.DateTimeModelBinderProvider","Microsoft.AspNetCore.Mvc.ModelBinding.Binders.SimpleTypeModelBinderProvider","Microsoft.AspNetCore.Mvc.ModelBinding.Binders.TryParseModelBinderProvider","Microsoft.AspNetCore.Mvc.ModelBinding.Binders.CancellationTokenModelBinderProvider","Microsoft.AspNetCore.Mvc.ModelBinding.Binders.ByteArrayModelBinderProvider","Microsoft.AspNetCore.Mvc.ModelBinding.Binders.FormFileModelBinderProvider","Microsoft.AspNetCore.Mvc.ModelBinding.Binders.FormCollectionModelBinderProvider","Microsoft.AspNetCore.Mvc.ModelBinding.Binders.KeyValuePairModelBinderProvider","Microsoft.AspNetCore.Mvc.ModelBinding.Binders.DictionaryModelBinderProvider","Microsoft.AspNetCore.Mvc.ModelBinding.Binders.ArrayModelBinderProvider","Microsoft.AspNetCore.Mvc.ModelBinding.Binders.CollectionModelBinderProvider","Microsoft.AspNetCore.Mvc.ModelBinding.Binders.ComplexObjectModelBinderProvider"]
+2026-01-06 18:44:29.149 -05:00 [DBG] Hosting starting
+2026-01-06 18:44:29.175 -05:00 [INF] User profile is available. Using 'C:\Users\xmanc\AppData\Local\ASP.NET\DataProtection-Keys' as key repository and Windows DPAPI to encrypt keys at rest.
+2026-01-06 18:44:29.187 -05:00 [DBG] Reading data from file 'C:\Users\xmanc\AppData\Local\ASP.NET\DataProtection-Keys\key-3390bb48-7b52-40b9-a5cd-8587ed8f0a32.xml'.
+2026-01-06 18:44:29.194 -05:00 [DBG] Reading data from file 'C:\Users\xmanc\AppData\Local\ASP.NET\DataProtection-Keys\key-a53364e5-c8f1-4abd-b63f-f57292da94bd.xml'.
+2026-01-06 18:44:29.198 -05:00 [DBG] Found key {3390bb48-7b52-40b9-a5cd-8587ed8f0a32}.
+2026-01-06 18:44:29.203 -05:00 [DBG] Found key {a53364e5-c8f1-4abd-b63f-f57292da94bd}.
+2026-01-06 18:44:29.208 -05:00 [DBG] Considering key {a53364e5-c8f1-4abd-b63f-f57292da94bd} with expiration date 2026-03-30 22:04:56Z as default key.
+2026-01-06 18:44:29.212 -05:00 [DBG] Forwarded activator type request from Microsoft.AspNetCore.DataProtection.XmlEncryption.DpapiXmlDecryptor, Microsoft.AspNetCore.DataProtection, Version=8.0.0.0, Culture=neutral, PublicKeyToken=adb9793829ddae60 to Microsoft.AspNetCore.DataProtection.XmlEncryption.DpapiXmlDecryptor, Microsoft.AspNetCore.DataProtection, Culture=neutral, PublicKeyToken=adb9793829ddae60
+2026-01-06 18:44:29.216 -05:00 [DBG] Decrypting secret element using Windows DPAPI.
+2026-01-06 18:44:29.218 -05:00 [DBG] Forwarded activator type request from Microsoft.AspNetCore.DataProtection.AuthenticatedEncryption.ConfigurationModel.AuthenticatedEncryptorDescriptorDeserializer, Microsoft.AspNetCore.DataProtection, Version=8.0.0.0, Culture=neutral, PublicKeyToken=adb9793829ddae60 to Microsoft.AspNetCore.DataProtection.AuthenticatedEncryption.ConfigurationModel.AuthenticatedEncryptorDescriptorDeserializer, Microsoft.AspNetCore.DataProtection, Culture=neutral, PublicKeyToken=adb9793829ddae60
+2026-01-06 18:44:29.224 -05:00 [DBG] Opening CNG algorithm 'AES' from provider 'null' with chaining mode CBC.
+2026-01-06 18:44:29.230 -05:00 [DBG] Opening CNG algorithm 'SHA256' from provider 'null' with HMAC.
+2026-01-06 18:44:29.235 -05:00 [DBG] Using key {a53364e5-c8f1-4abd-b63f-f57292da94bd} as the default key.
+2026-01-06 18:44:29.238 -05:00 [DBG] Key ring with default key {a53364e5-c8f1-4abd-b63f-f57292da94bd} was loaded during application startup.
+2026-01-06 18:44:29.258 -05:00 [DBG] Middleware loaded
+2026-01-06 18:44:29.261 -05:00 [DBG] Middleware loaded. Script /_framework/aspnetcore-browser-refresh.js (16501 B).
+2026-01-06 18:44:29.263 -05:00 [DBG] Middleware loaded. Script /_framework/blazor-hotreload.js (799 B).
+2026-01-06 18:44:29.330 -05:00 [DBG] Middleware loaded: DOTNET_MODIFIABLE_ASSEMBLIES=null, __ASPNETCORE_BROWSER_TOOLS=true
+2026-01-06 18:44:29.447 -05:00 [INF] Now listening on: https://localhost:7177
+2026-01-06 18:44:29.448 -05:00 [INF] Now listening on: http://localhost:5160
+2026-01-06 18:44:29.449 -05:00 [DBG] Loaded hosting startup assembly BioFXAPI
+2026-01-06 18:44:29.450 -05:00 [DBG] Loaded hosting startup assembly Microsoft.WebTools.ApiEndpointDiscovery
+2026-01-06 18:44:29.451 -05:00 [DBG] Loaded hosting startup assembly Microsoft.AspNetCore.Watch.BrowserRefresh
+2026-01-06 18:44:29.452 -05:00 [DBG] Loaded hosting startup assembly Microsoft.WebTools.BrowserLink.Net
+2026-01-06 18:44:29.535 -05:00 [INF] Application started. Press Ctrl+C to shut down.
+2026-01-06 18:44:29.536 -05:00 [INF] Hosting environment: Development
+2026-01-06 18:44:29.538 -05:00 [INF] Content root path: C:\Users\xmanc\OneDrive\Desktop\BioFXAPI-Github\BioFXAPI\BioFXAPI
+2026-01-06 18:44:29.539 -05:00 [DBG] Hosting started
+2026-01-06 18:44:29.680 -05:00 [DBG] Connection id "0HNIDFM4EU2HH" accepted.
+2026-01-06 18:44:29.680 -05:00 [DBG] Connection id "0HNIDFM4EU2HI" accepted.
+2026-01-06 18:44:29.683 -05:00 [DBG] Connection id "0HNIDFM4EU2HH" started.
+2026-01-06 18:44:29.684 -05:00 [DBG] Connection id "0HNIDFM4EU2HI" started.
+2026-01-06 18:44:29.705 -05:00 [DBG] Connection id "0HNIDFM4EU2HH" received FIN.
+2026-01-06 18:44:29.705 -05:00 [DBG] Connection id "0HNIDFM4EU2HI" received FIN.
+2026-01-06 18:44:29.713 -05:00 [DBG] Failed to authenticate HTTPS connection.
+System.IO.IOException: Received an unexpected EOF or 0 bytes from the transport stream.
+   at System.Net.Security.SslStream.ReceiveHandshakeFrameAsync[TIOAdapter](CancellationToken cancellationToken)
+   at System.Net.Security.SslStream.ForceAuthenticationAsync[TIOAdapter](Boolean receiveFirst, Byte[] reAuthenticationData, CancellationToken cancellationToken)
+   at System.Net.Security.SslStream.ProcessAuthenticationWithTelemetryAsync(Boolean isAsync, CancellationToken cancellationToken)
+   at Microsoft.AspNetCore.Server.Kestrel.Https.Internal.HttpsConnectionMiddleware.OnConnectionAsync(ConnectionContext context)
+2026-01-06 18:44:29.713 -05:00 [DBG] Failed to authenticate HTTPS connection.
+System.IO.IOException: Received an unexpected EOF or 0 bytes from the transport stream.
+   at System.Net.Security.SslStream.ReceiveHandshakeFrameAsync[TIOAdapter](CancellationToken cancellationToken)
+   at System.Net.Security.SslStream.ForceAuthenticationAsync[TIOAdapter](Boolean receiveFirst, Byte[] reAuthenticationData, CancellationToken cancellationToken)
+   at System.Net.Security.SslStream.ProcessAuthenticationWithTelemetryAsync(Boolean isAsync, CancellationToken cancellationToken)
+   at Microsoft.AspNetCore.Server.Kestrel.Https.Internal.HttpsConnectionMiddleware.OnConnectionAsync(ConnectionContext context)
+2026-01-06 18:44:29.745 -05:00 [DBG] Connection id "0HNIDFM4EU2HI" stopped.
+2026-01-06 18:44:29.745 -05:00 [DBG] Connection id "0HNIDFM4EU2HH" stopped.
+2026-01-06 18:44:29.748 -05:00 [DBG] Connection id "0HNIDFM4EU2HH" sending FIN because: "The Socket transport's send loop completed gracefully."
+2026-01-06 18:44:29.748 -05:00 [DBG] Connection id "0HNIDFM4EU2HI" sending FIN because: "The Socket transport's send loop completed gracefully."
+2026-01-06 18:44:29.871 -05:00 [DBG] Connection id "0HNIDFM4EU2HJ" accepted.
+2026-01-06 18:44:29.873 -05:00 [DBG] Connection id "0HNIDFM4EU2HJ" started.
+2026-01-06 18:44:29.919 -05:00 [DBG] Connection 0HNIDFM4EU2HJ established using the following protocol: "Tls13"
+2026-01-06 18:44:30.226 -05:00 [INF] Request starting HTTP/2 GET https://localhost:7177/swagger/index.html - null null
+2026-01-06 18:44:30.369 -05:00 [DBG] Wildcard detected, all requests with hosts will be allowed.
+2026-01-06 18:44:30.417 -05:00 [DBG] No candidates found for the request path '/swagger/index.html'
+2026-01-06 18:44:30.421 -05:00 [DBG] Request did not match any endpoints
+2026-01-06 18:44:30.520 -05:00 [DBG] Response markup is scheduled to include Browser Link script injection.
+2026-01-06 18:44:30.602 -05:00 [DBG] Response markup is scheduled to include browser refresh script injection.
+2026-01-06 18:44:30.626 -05:00 [DBG] Response markup was updated to include Browser Link script injection.
+2026-01-06 18:44:30.630 -05:00 [DBG] Response markup was updated to include browser refresh script injection.
+2026-01-06 18:44:30.642 -05:00 [INF] Request finished HTTP/2 GET https://localhost:7177/swagger/index.html - 200 null text/html;charset=utf-8 428.9836ms
+2026-01-06 18:44:30.704 -05:00 [INF] Request starting HTTP/2 GET https://localhost:7177/_framework/aspnetcore-browser-refresh.js - null null
+2026-01-06 18:44:30.704 -05:00 [INF] Request starting HTTP/2 GET https://localhost:7177/_vs/browserLink - null null
+2026-01-06 18:44:30.712 -05:00 [DBG] Script injected: /_framework/aspnetcore-browser-refresh.js
+2026-01-06 18:44:30.715 -05:00 [INF] Request finished HTTP/2 GET https://localhost:7177/_framework/aspnetcore-browser-refresh.js - 200 16501 application/javascript; charset=utf-8 11.9804ms
+2026-01-06 18:44:30.766 -05:00 [INF] Request finished HTTP/2 GET https://localhost:7177/_vs/browserLink - 200 null text/javascript; charset=UTF-8 62.4037ms
+2026-01-06 18:44:30.823 -05:00 [INF] Request starting HTTP/2 GET https://localhost:7177/swagger/v1/swagger.json - null null
+2026-01-06 18:44:30.951 -05:00 [DBG] No candidates found for the request path '/swagger/v1/swagger.json'
+2026-01-06 18:44:30.955 -05:00 [DBG] Request did not match any endpoints
+2026-01-06 18:44:30.974 -05:00 [INF] Request finished HTTP/2 GET https://localhost:7177/swagger/v1/swagger.json - 200 null application/json;charset=utf-8 151.7004ms
+2026-01-06 18:44:48.185 -05:00 [INF] Request starting HTTP/2 POST https://localhost:7177/api/Auth/login - application/json 69
+2026-01-06 18:44:48.194 -05:00 [DBG] 1 candidate(s) found for the request path '/api/Auth/login'
+2026-01-06 18:44:48.199 -05:00 [DBG] Endpoint 'BioFXAPI.Controllers.AuthController.Login (BioFXAPI)' with route pattern 'api/Auth/login' is valid for the request path '/api/Auth/login'
+2026-01-06 18:44:48.201 -05:00 [DBG] Request matched endpoint 'BioFXAPI.Controllers.AuthController.Login (BioFXAPI)'
+2026-01-06 18:44:48.205 -05:00 [DBG] Static files was skipped as the request already matched an endpoint.
+2026-01-06 18:44:48.207 -05:00 [DBG] The request has an origin header: 'https://localhost:7177'.
+2026-01-06 18:44:48.209 -05:00 [INF] CORS policy execution failed.
+2026-01-06 18:44:48.210 -05:00 [INF] Request origin https://localhost:7177 does not have permission to access the resource.
+2026-01-06 18:44:48.262 -05:00 [DBG] AuthenticationScheme: Bearer was not authenticated.
+2026-01-06 18:44:48.266 -05:00 [INF] Executing endpoint 'BioFXAPI.Controllers.AuthController.Login (BioFXAPI)'
+2026-01-06 18:44:48.296 -05:00 [INF] Route matched with {action = "Login", controller = "Auth"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] Login(BioFXAPI.Models.LoginRequest) on controller BioFXAPI.Controllers.AuthController (BioFXAPI).
+2026-01-06 18:44:48.299 -05:00 [DBG] Execution plan of authorization filters (in the following order): ["None"]
+2026-01-06 18:44:48.301 -05:00 [DBG] Execution plan of resource filters (in the following order): ["None"]
+2026-01-06 18:44:48.303 -05:00 [DBG] Execution plan of action filters (in the following order): ["Microsoft.AspNetCore.Mvc.ModelBinding.UnsupportedContentTypeFilter (Order: -3000)","Microsoft.AspNetCore.Mvc.Infrastructure.ModelStateInvalidFilter (Order: -2000)"]
+2026-01-06 18:44:48.306 -05:00 [DBG] Execution plan of exception filters (in the following order): ["None"]
+2026-01-06 18:44:48.309 -05:00 [DBG] Execution plan of result filters (in the following order): ["Microsoft.AspNetCore.Mvc.Infrastructure.ClientErrorResultFilter (Order: -2000)"]
+2026-01-06 18:44:48.313 -05:00 [DBG] Executing controller factory for controller BioFXAPI.Controllers.AuthController (BioFXAPI)
+2026-01-06 18:44:48.315 -05:00 [DBG] Executed controller factory for controller BioFXAPI.Controllers.AuthController (BioFXAPI)
+2026-01-06 18:44:48.328 -05:00 [DBG] Attempting to bind parameter 'request' of type 'BioFXAPI.Models.LoginRequest' ...
+2026-01-06 18:44:48.332 -05:00 [DBG] Attempting to bind parameter 'request' of type 'BioFXAPI.Models.LoginRequest' using the name '' in request data ...
+2026-01-06 18:44:48.335 -05:00 [DBG] Selected input formatter 'Microsoft.AspNetCore.Mvc.Formatters.SystemTextJsonInputFormatter' for content type 'application/json'.
+2026-01-06 18:44:48.344 -05:00 [DBG] Connection id "0HNIDFM4EU2HJ", Request id "0HNIDFM4EU2HJ:00000009": started reading request body.
+2026-01-06 18:44:48.346 -05:00 [DBG] Connection id "0HNIDFM4EU2HJ", Request id "0HNIDFM4EU2HJ:00000009": done reading request body.
+2026-01-06 18:44:48.357 -05:00 [DBG] JSON input formatter succeeded, deserializing to type 'BioFXAPI.Models.LoginRequest'
+2026-01-06 18:44:48.359 -05:00 [DBG] Done attempting to bind parameter 'request' of type 'BioFXAPI.Models.LoginRequest'.
+2026-01-06 18:44:48.361 -05:00 [DBG] Done attempting to bind parameter 'request' of type 'BioFXAPI.Models.LoginRequest'.
+2026-01-06 18:44:48.363 -05:00 [DBG] Attempting to validate the bound parameter 'request' of type 'BioFXAPI.Models.LoginRequest' ...
+2026-01-06 18:44:48.370 -05:00 [DBG] Done attempting to validate the bound parameter 'request' of type 'BioFXAPI.Models.LoginRequest'.
+2026-01-06 18:44:49.746 -05:00 [DBG] List of registered output formatters, in the following order: ["Microsoft.AspNetCore.Mvc.Formatters.HttpNoContentOutputFormatter","Microsoft.AspNetCore.Mvc.Formatters.StringOutputFormatter","Microsoft.AspNetCore.Mvc.Formatters.StreamOutputFormatter","Microsoft.AspNetCore.Mvc.Formatters.SystemTextJsonOutputFormatter"]
+2026-01-06 18:44:49.750 -05:00 [DBG] No information found on request to perform content negotiation.
+2026-01-06 18:44:49.752 -05:00 [DBG] Attempting to select an output formatter without using a content type as no explicit content types were specified for the response.
+2026-01-06 18:44:49.753 -05:00 [DBG] Attempting to select the first formatter in the output formatters list which can write the result.
+2026-01-06 18:44:49.756 -05:00 [DBG] Selected output formatter 'Microsoft.AspNetCore.Mvc.Formatters.SystemTextJsonOutputFormatter' and content type 'application/json' to write the response.
+2026-01-06 18:44:49.760 -05:00 [INF] Executing OkObjectResult, writing value of type 'BioFXAPI.Models.LoginResponse'.
+2026-01-06 18:44:49.773 -05:00 [INF] Executed action BioFXAPI.Controllers.AuthController.Login (BioFXAPI) in 1460.9409ms
+2026-01-06 18:44:49.777 -05:00 [INF] Executed endpoint 'BioFXAPI.Controllers.AuthController.Login (BioFXAPI)'
+2026-01-06 18:44:49.780 -05:00 [INF] Request finished HTTP/2 POST https://localhost:7177/api/Auth/login - 200 null application/json; charset=utf-8 1595.0932ms
+2026-01-06 18:45:04.198 -05:00 [INF] Request starting HTTP/2 POST https://localhost:7177/api/Transactions/refresh-by-request - application/json 25
+2026-01-06 18:45:04.204 -05:00 [DBG] 1 candidate(s) found for the request path '/api/Transactions/refresh-by-request'
+2026-01-06 18:45:04.205 -05:00 [DBG] Endpoint 'BioFXAPI.Controllers.TransactionsController.RefreshByRequestId (BioFXAPI)' with route pattern 'api/Transactions/refresh-by-request' is valid for the request path '/api/Transactions/refresh-by-request'
+2026-01-06 18:45:04.207 -05:00 [DBG] Request matched endpoint 'BioFXAPI.Controllers.TransactionsController.RefreshByRequestId (BioFXAPI)'
+2026-01-06 18:45:04.209 -05:00 [DBG] Static files was skipped as the request already matched an endpoint.
+2026-01-06 18:45:04.210 -05:00 [DBG] The request has an origin header: 'https://localhost:7177'.
+2026-01-06 18:45:04.211 -05:00 [INF] CORS policy execution failed.
+2026-01-06 18:45:04.212 -05:00 [INF] Request origin https://localhost:7177 does not have permission to access the resource.
+2026-01-06 18:45:04.246 -05:00 [DBG] Successfully validated the token.
+2026-01-06 18:45:04.248 -05:00 [DBG] AuthenticationScheme: Bearer was successfully authenticated.
+2026-01-06 18:45:04.253 -05:00 [DBG] Authorization was successful.
+2026-01-06 18:45:04.254 -05:00 [INF] Executing endpoint 'BioFXAPI.Controllers.TransactionsController.RefreshByRequestId (BioFXAPI)'
+2026-01-06 18:45:04.261 -05:00 [INF] Route matched with {action = "RefreshByRequestId", controller = "Transactions"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] RefreshByRequestId(RefreshRequest, System.Threading.CancellationToken) on controller BioFXAPI.Controllers.TransactionsController (BioFXAPI).
+2026-01-06 18:45:04.263 -05:00 [DBG] Execution plan of authorization filters (in the following order): ["None"]
+2026-01-06 18:45:04.265 -05:00 [DBG] Execution plan of resource filters (in the following order): ["None"]
+2026-01-06 18:45:04.267 -05:00 [DBG] Execution plan of action filters (in the following order): ["Microsoft.AspNetCore.Mvc.ModelBinding.UnsupportedContentTypeFilter (Order: -3000)","Microsoft.AspNetCore.Mvc.Infrastructure.ModelStateInvalidFilter (Order: -2000)"]
+2026-01-06 18:45:04.269 -05:00 [DBG] Execution plan of exception filters (in the following order): ["None"]
+2026-01-06 18:45:04.270 -05:00 [DBG] Execution plan of result filters (in the following order): ["Microsoft.AspNetCore.Mvc.Infrastructure.ClientErrorResultFilter (Order: -2000)"]
+2026-01-06 18:45:04.272 -05:00 [DBG] Executing controller factory for controller BioFXAPI.Controllers.TransactionsController (BioFXAPI)
+2026-01-06 18:45:04.274 -05:00 [INF] EmailSettings cargados: SmtpServer=mail.biofx.com.ec, SmtpPort=465, SenderEmail=info@biofx.com.ec, EnableSsl=true
+2026-01-06 18:45:04.348 -05:00 [DBG] Executed controller factory for controller BioFXAPI.Controllers.TransactionsController (BioFXAPI)
+2026-01-06 18:45:04.350 -05:00 [DBG] Attempting to bind parameter 'r' of type 'BioFXAPI.Controllers.TransactionsController+RefreshRequest' ...
+2026-01-06 18:45:04.352 -05:00 [DBG] Attempting to bind parameter 'r' of type 'BioFXAPI.Controllers.TransactionsController+RefreshRequest' using the name '' in request data ...
+2026-01-06 18:45:04.353 -05:00 [DBG] Selected input formatter 'Microsoft.AspNetCore.Mvc.Formatters.SystemTextJsonInputFormatter' for content type 'application/json'.
+2026-01-06 18:45:04.356 -05:00 [DBG] Connection id "0HNIDFM4EU2HJ", Request id "0HNIDFM4EU2HJ:0000000B": started reading request body.
+2026-01-06 18:45:04.358 -05:00 [DBG] Connection id "0HNIDFM4EU2HJ", Request id "0HNIDFM4EU2HJ:0000000B": done reading request body.
+2026-01-06 18:45:04.363 -05:00 [DBG] JSON input formatter succeeded, deserializing to type 'BioFXAPI.Controllers.TransactionsController+RefreshRequest'
+2026-01-06 18:45:04.364 -05:00 [DBG] Done attempting to bind parameter 'r' of type 'BioFXAPI.Controllers.TransactionsController+RefreshRequest'.
+2026-01-06 18:45:04.366 -05:00 [DBG] Done attempting to bind parameter 'r' of type 'BioFXAPI.Controllers.TransactionsController+RefreshRequest'.
+2026-01-06 18:45:04.367 -05:00 [DBG] Attempting to validate the bound parameter 'r' of type 'BioFXAPI.Controllers.TransactionsController+RefreshRequest' ...
+2026-01-06 18:45:04.371 -05:00 [DBG] Done attempting to validate the bound parameter 'r' of type 'BioFXAPI.Controllers.TransactionsController+RefreshRequest'.
+2026-01-06 18:45:04.373 -05:00 [DBG] Attempting to bind parameter 'ct' of type 'System.Threading.CancellationToken' ...
+2026-01-06 18:45:04.374 -05:00 [DBG] Done attempting to bind parameter 'ct' of type 'System.Threading.CancellationToken'.
+2026-01-06 18:45:04.376 -05:00 [DBG] Attempting to validate the bound parameter 'ct' of type 'System.Threading.CancellationToken' ...
+2026-01-06 18:45:04.378 -05:00 [DBG] Done attempting to validate the bound parameter 'ct' of type 'System.Threading.CancellationToken'.
+2026-01-06 18:45:04.663 -05:00 [INF] Start processing HTTP request POST https://checkout-test.placetopay.ec/api/session/988526
+2026-01-06 18:45:04.666 -05:00 [INF] Sending HTTP request POST https://checkout-test.placetopay.ec/api/session/988526
+2026-01-06 18:45:05.311 -05:00 [INF] Received HTTP response headers after 636.7591ms - 200
+2026-01-06 18:45:05.313 -05:00 [INF] End processing HTTP request after 651.0785ms - 200
+2026-01-06 18:45:05.777 -05:00 [DBG] List of registered output formatters, in the following order: ["Microsoft.AspNetCore.Mvc.Formatters.HttpNoContentOutputFormatter","Microsoft.AspNetCore.Mvc.Formatters.StringOutputFormatter","Microsoft.AspNetCore.Mvc.Formatters.StreamOutputFormatter","Microsoft.AspNetCore.Mvc.Formatters.SystemTextJsonOutputFormatter"]
+2026-01-06 18:45:05.780 -05:00 [DBG] No information found on request to perform content negotiation.
+2026-01-06 18:45:05.781 -05:00 [DBG] Attempting to select an output formatter without using a content type as no explicit content types were specified for the response.
+2026-01-06 18:45:05.782 -05:00 [DBG] Attempting to select the first formatter in the output formatters list which can write the result.
+2026-01-06 18:45:05.782 -05:00 [DBG] Selected output formatter 'Microsoft.AspNetCore.Mvc.Formatters.SystemTextJsonOutputFormatter' and content type 'application/json' to write the response.
+2026-01-06 18:45:05.785 -05:00 [INF] Executing OkObjectResult, writing value of type '<>f__AnonymousType43`2[[System.Int32, System.Private.CoreLib, Version=8.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e],[System.String, System.Private.CoreLib, Version=8.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]'.
+2026-01-06 18:45:05.787 -05:00 [INF] Executed action BioFXAPI.Controllers.TransactionsController.RefreshByRequestId (BioFXAPI) in 1515.3897ms
+2026-01-06 18:45:05.789 -05:00 [INF] Executed endpoint 'BioFXAPI.Controllers.TransactionsController.RefreshByRequestId (BioFXAPI)'
+2026-01-06 18:45:05.790 -05:00 [INF] Request finished HTTP/2 POST https://localhost:7177/api/Transactions/refresh-by-request - 200 null application/json; charset=utf-8 1593.307ms
+2026-01-06 18:45:51.405 -05:00 [INF] Request starting HTTP/2 POST https://localhost:7177/api/Transactions/refresh-by-request - application/json 25
+2026-01-06 18:45:51.412 -05:00 [DBG] 1 candidate(s) found for the request path '/api/Transactions/refresh-by-request'
+2026-01-06 18:45:51.414 -05:00 [DBG] Endpoint 'BioFXAPI.Controllers.TransactionsController.RefreshByRequestId (BioFXAPI)' with route pattern 'api/Transactions/refresh-by-request' is valid for the request path '/api/Transactions/refresh-by-request'
+2026-01-06 18:45:51.416 -05:00 [DBG] Request matched endpoint 'BioFXAPI.Controllers.TransactionsController.RefreshByRequestId (BioFXAPI)'
+2026-01-06 18:45:51.417 -05:00 [DBG] Static files was skipped as the request already matched an endpoint.
+2026-01-06 18:45:51.418 -05:00 [DBG] The request has an origin header: 'https://localhost:7177'.
+2026-01-06 18:45:51.419 -05:00 [INF] CORS policy execution failed.
+2026-01-06 18:45:51.420 -05:00 [INF] Request origin https://localhost:7177 does not have permission to access the resource.
+2026-01-06 18:45:51.423 -05:00 [DBG] Successfully validated the token.
+2026-01-06 18:45:51.424 -05:00 [DBG] AuthenticationScheme: Bearer was successfully authenticated.
+2026-01-06 18:45:51.426 -05:00 [DBG] Authorization was successful.
+2026-01-06 18:45:51.427 -05:00 [INF] Executing endpoint 'BioFXAPI.Controllers.TransactionsController.RefreshByRequestId (BioFXAPI)'
+2026-01-06 18:45:51.428 -05:00 [INF] Route matched with {action = "RefreshByRequestId", controller = "Transactions"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] RefreshByRequestId(RefreshRequest, System.Threading.CancellationToken) on controller BioFXAPI.Controllers.TransactionsController (BioFXAPI).
+2026-01-06 18:45:51.431 -05:00 [DBG] Execution plan of authorization filters (in the following order): ["None"]
+2026-01-06 18:45:51.433 -05:00 [DBG] Execution plan of resource filters (in the following order): ["None"]
+2026-01-06 18:45:51.434 -05:00 [DBG] Execution plan of action filters (in the following order): ["Microsoft.AspNetCore.Mvc.ModelBinding.UnsupportedContentTypeFilter (Order: -3000)","Microsoft.AspNetCore.Mvc.Infrastructure.ModelStateInvalidFilter (Order: -2000)"]
+2026-01-06 18:45:51.436 -05:00 [DBG] Execution plan of exception filters (in the following order): ["None"]
+2026-01-06 18:45:51.438 -05:00 [DBG] Execution plan of result filters (in the following order): ["Microsoft.AspNetCore.Mvc.Infrastructure.ClientErrorResultFilter (Order: -2000)"]
+2026-01-06 18:45:51.439 -05:00 [DBG] Executing controller factory for controller BioFXAPI.Controllers.TransactionsController (BioFXAPI)
+2026-01-06 18:45:51.442 -05:00 [INF] EmailSettings cargados: SmtpServer=mail.biofx.com.ec, SmtpPort=465, SenderEmail=info@biofx.com.ec, EnableSsl=true
+2026-01-06 18:45:51.445 -05:00 [DBG] Executed controller factory for controller BioFXAPI.Controllers.TransactionsController (BioFXAPI)
+2026-01-06 18:45:51.447 -05:00 [DBG] Attempting to bind parameter 'r' of type 'BioFXAPI.Controllers.TransactionsController+RefreshRequest' ...
+2026-01-06 18:45:51.449 -05:00 [DBG] Attempting to bind parameter 'r' of type 'BioFXAPI.Controllers.TransactionsController+RefreshRequest' using the name '' in request data ...
+2026-01-06 18:45:51.450 -05:00 [DBG] Selected input formatter 'Microsoft.AspNetCore.Mvc.Formatters.SystemTextJsonInputFormatter' for content type 'application/json'.
+2026-01-06 18:45:51.452 -05:00 [DBG] Connection id "0HNIDFM4EU2HJ", Request id "0HNIDFM4EU2HJ:0000000D": started reading request body.
+2026-01-06 18:45:51.453 -05:00 [DBG] Connection id "0HNIDFM4EU2HJ", Request id "0HNIDFM4EU2HJ:0000000D": done reading request body.
+2026-01-06 18:45:51.455 -05:00 [DBG] JSON input formatter succeeded, deserializing to type 'BioFXAPI.Controllers.TransactionsController+RefreshRequest'
+2026-01-06 18:45:51.456 -05:00 [DBG] Done attempting to bind parameter 'r' of type 'BioFXAPI.Controllers.TransactionsController+RefreshRequest'.
+2026-01-06 18:45:51.458 -05:00 [DBG] Done attempting to bind parameter 'r' of type 'BioFXAPI.Controllers.TransactionsController+RefreshRequest'.
+2026-01-06 18:45:51.459 -05:00 [DBG] Attempting to validate the bound parameter 'r' of type 'BioFXAPI.Controllers.TransactionsController+RefreshRequest' ...
+2026-01-06 18:45:51.461 -05:00 [DBG] Done attempting to validate the bound parameter 'r' of type 'BioFXAPI.Controllers.TransactionsController+RefreshRequest'.
+2026-01-06 18:45:51.463 -05:00 [DBG] Attempting to bind parameter 'ct' of type 'System.Threading.CancellationToken' ...
+2026-01-06 18:45:51.464 -05:00 [DBG] Done attempting to bind parameter 'ct' of type 'System.Threading.CancellationToken'.
+2026-01-06 18:45:51.466 -05:00 [DBG] Attempting to validate the bound parameter 'ct' of type 'System.Threading.CancellationToken' ...
+2026-01-06 18:45:51.467 -05:00 [DBG] Done attempting to validate the bound parameter 'ct' of type 'System.Threading.CancellationToken'.
+2026-01-06 18:45:51.689 -05:00 [INF] Start processing HTTP request POST https://checkout-test.placetopay.ec/api/session/988528
+2026-01-06 18:45:51.690 -05:00 [INF] Sending HTTP request POST https://checkout-test.placetopay.ec/api/session/988528
+2026-01-06 18:45:52.143 -05:00 [INF] Received HTTP response headers after 450.6114ms - 200
+2026-01-06 18:45:52.144 -05:00 [INF] End processing HTTP request after 454.7069ms - 200
+2026-01-06 18:45:52.585 -05:00 [DBG] List of registered output formatters, in the following order: ["Microsoft.AspNetCore.Mvc.Formatters.HttpNoContentOutputFormatter","Microsoft.AspNetCore.Mvc.Formatters.StringOutputFormatter","Microsoft.AspNetCore.Mvc.Formatters.StreamOutputFormatter","Microsoft.AspNetCore.Mvc.Formatters.SystemTextJsonOutputFormatter"]
+2026-01-06 18:45:52.590 -05:00 [DBG] No information found on request to perform content negotiation.
+2026-01-06 18:45:52.591 -05:00 [DBG] Attempting to select an output formatter without using a content type as no explicit content types were specified for the response.
+2026-01-06 18:45:52.592 -05:00 [DBG] Attempting to select the first formatter in the output formatters list which can write the result.
+2026-01-06 18:45:52.593 -05:00 [DBG] Selected output formatter 'Microsoft.AspNetCore.Mvc.Formatters.SystemTextJsonOutputFormatter' and content type 'application/json' to write the response.
+2026-01-06 18:45:52.594 -05:00 [INF] Executing OkObjectResult, writing value of type '<>f__AnonymousType43`2[[System.Int32, System.Private.CoreLib, Version=8.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e],[System.String, System.Private.CoreLib, Version=8.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]'.
+2026-01-06 18:45:52.596 -05:00 [INF] Executed action BioFXAPI.Controllers.TransactionsController.RefreshByRequestId (BioFXAPI) in 1156.7441ms
+2026-01-06 18:45:52.598 -05:00 [INF] Executed endpoint 'BioFXAPI.Controllers.TransactionsController.RefreshByRequestId (BioFXAPI)'
+2026-01-06 18:45:52.599 -05:00 [INF] Request finished HTTP/2 POST https://localhost:7177/api/Transactions/refresh-by-request - 200 null application/json; charset=utf-8 1193.9073ms
+2026-01-06 18:46:16.980 -05:00 [INF] Request starting HTTP/2 POST https://localhost:7177/api/Transactions/refresh-by-request - application/json 25
+2026-01-06 18:46:16.985 -05:00 [DBG] 1 candidate(s) found for the request path '/api/Transactions/refresh-by-request'
+2026-01-06 18:46:16.988 -05:00 [DBG] Endpoint 'BioFXAPI.Controllers.TransactionsController.RefreshByRequestId (BioFXAPI)' with route pattern 'api/Transactions/refresh-by-request' is valid for the request path '/api/Transactions/refresh-by-request'
+2026-01-06 18:46:16.990 -05:00 [DBG] Request matched endpoint 'BioFXAPI.Controllers.TransactionsController.RefreshByRequestId (BioFXAPI)'
+2026-01-06 18:46:16.992 -05:00 [DBG] Static files was skipped as the request already matched an endpoint.
+2026-01-06 18:46:16.993 -05:00 [DBG] The request has an origin header: 'https://localhost:7177'.
+2026-01-06 18:46:16.994 -05:00 [INF] CORS policy execution failed.
+2026-01-06 18:46:16.995 -05:00 [INF] Request origin https://localhost:7177 does not have permission to access the resource.
+2026-01-06 18:46:16.997 -05:00 [DBG] Successfully validated the token.
+2026-01-06 18:46:16.998 -05:00 [DBG] AuthenticationScheme: Bearer was successfully authenticated.
+2026-01-06 18:46:17.000 -05:00 [DBG] Authorization was successful.
+2026-01-06 18:46:17.003 -05:00 [INF] Executing endpoint 'BioFXAPI.Controllers.TransactionsController.RefreshByRequestId (BioFXAPI)'
+2026-01-06 18:46:17.005 -05:00 [INF] Route matched with {action = "RefreshByRequestId", controller = "Transactions"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] RefreshByRequestId(RefreshRequest, System.Threading.CancellationToken) on controller BioFXAPI.Controllers.TransactionsController (BioFXAPI).
+2026-01-06 18:46:17.008 -05:00 [DBG] Execution plan of authorization filters (in the following order): ["None"]
+2026-01-06 18:46:17.009 -05:00 [DBG] Execution plan of resource filters (in the following order): ["None"]
+2026-01-06 18:46:17.011 -05:00 [DBG] Execution plan of action filters (in the following order): ["Microsoft.AspNetCore.Mvc.ModelBinding.UnsupportedContentTypeFilter (Order: -3000)","Microsoft.AspNetCore.Mvc.Infrastructure.ModelStateInvalidFilter (Order: -2000)"]
+2026-01-06 18:46:17.013 -05:00 [DBG] Execution plan of exception filters (in the following order): ["None"]
+2026-01-06 18:46:17.015 -05:00 [DBG] Execution plan of result filters (in the following order): ["Microsoft.AspNetCore.Mvc.Infrastructure.ClientErrorResultFilter (Order: -2000)"]
+2026-01-06 18:46:17.018 -05:00 [DBG] Executing controller factory for controller BioFXAPI.Controllers.TransactionsController (BioFXAPI)
+2026-01-06 18:46:17.021 -05:00 [INF] EmailSettings cargados: SmtpServer=mail.biofx.com.ec, SmtpPort=465, SenderEmail=info@biofx.com.ec, EnableSsl=true
+2026-01-06 18:46:17.025 -05:00 [DBG] Executed controller factory for controller BioFXAPI.Controllers.TransactionsController (BioFXAPI)
+2026-01-06 18:46:17.027 -05:00 [DBG] Attempting to bind parameter 'r' of type 'BioFXAPI.Controllers.TransactionsController+RefreshRequest' ...
+2026-01-06 18:46:17.029 -05:00 [DBG] Attempting to bind parameter 'r' of type 'BioFXAPI.Controllers.TransactionsController+RefreshRequest' using the name '' in request data ...
+2026-01-06 18:46:17.031 -05:00 [DBG] Selected input formatter 'Microsoft.AspNetCore.Mvc.Formatters.SystemTextJsonInputFormatter' for content type 'application/json'.
+2026-01-06 18:46:17.033 -05:00 [DBG] Connection id "0HNIDFM4EU2HJ", Request id "0HNIDFM4EU2HJ:0000000F": started reading request body.
+2026-01-06 18:46:17.038 -05:00 [DBG] Connection id "0HNIDFM4EU2HJ", Request id "0HNIDFM4EU2HJ:0000000F": done reading request body.
+2026-01-06 18:46:17.041 -05:00 [DBG] JSON input formatter succeeded, deserializing to type 'BioFXAPI.Controllers.TransactionsController+RefreshRequest'
+2026-01-06 18:46:17.042 -05:00 [DBG] Done attempting to bind parameter 'r' of type 'BioFXAPI.Controllers.TransactionsController+RefreshRequest'.
+2026-01-06 18:46:17.043 -05:00 [DBG] Done attempting to bind parameter 'r' of type 'BioFXAPI.Controllers.TransactionsController+RefreshRequest'.
+2026-01-06 18:46:17.045 -05:00 [DBG] Attempting to validate the bound parameter 'r' of type 'BioFXAPI.Controllers.TransactionsController+RefreshRequest' ...
+2026-01-06 18:46:17.046 -05:00 [DBG] Done attempting to validate the bound parameter 'r' of type 'BioFXAPI.Controllers.TransactionsController+RefreshRequest'.
+2026-01-06 18:46:17.048 -05:00 [DBG] Attempting to bind parameter 'ct' of type 'System.Threading.CancellationToken' ...
+2026-01-06 18:46:17.049 -05:00 [DBG] Done attempting to bind parameter 'ct' of type 'System.Threading.CancellationToken'.
+2026-01-06 18:46:17.050 -05:00 [DBG] Attempting to validate the bound parameter 'ct' of type 'System.Threading.CancellationToken' ...
+2026-01-06 18:46:17.052 -05:00 [DBG] Done attempting to validate the bound parameter 'ct' of type 'System.Threading.CancellationToken'.
+2026-01-06 18:46:17.269 -05:00 [INF] Start processing HTTP request POST https://checkout-test.placetopay.ec/api/session/988528
+2026-01-06 18:46:17.273 -05:00 [INF] Sending HTTP request POST https://checkout-test.placetopay.ec/api/session/988528
+2026-01-06 18:46:17.678 -05:00 [INF] Received HTTP response headers after 401.85ms - 200
+2026-01-06 18:46:17.680 -05:00 [INF] End processing HTTP request after 410.9415ms - 200
+2026-01-06 18:46:18.125 -05:00 [DBG] List of registered output formatters, in the following order: ["Microsoft.AspNetCore.Mvc.Formatters.HttpNoContentOutputFormatter","Microsoft.AspNetCore.Mvc.Formatters.StringOutputFormatter","Microsoft.AspNetCore.Mvc.Formatters.StreamOutputFormatter","Microsoft.AspNetCore.Mvc.Formatters.SystemTextJsonOutputFormatter"]
+2026-01-06 18:46:18.129 -05:00 [DBG] No information found on request to perform content negotiation.
+2026-01-06 18:46:18.131 -05:00 [DBG] Attempting to select an output formatter without using a content type as no explicit content types were specified for the response.
+2026-01-06 18:46:18.133 -05:00 [DBG] Attempting to select the first formatter in the output formatters list which can write the result.
+2026-01-06 18:46:18.135 -05:00 [DBG] Selected output formatter 'Microsoft.AspNetCore.Mvc.Formatters.SystemTextJsonOutputFormatter' and content type 'application/json' to write the response.
+2026-01-06 18:46:18.137 -05:00 [INF] Executing OkObjectResult, writing value of type '<>f__AnonymousType43`2[[System.Int32, System.Private.CoreLib, Version=8.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e],[System.String, System.Private.CoreLib, Version=8.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]'.
+2026-01-06 18:46:18.140 -05:00 [INF] Executed action BioFXAPI.Controllers.TransactionsController.RefreshByRequestId (BioFXAPI) in 1122.8952ms
+2026-01-06 18:46:18.146 -05:00 [INF] Executed endpoint 'BioFXAPI.Controllers.TransactionsController.RefreshByRequestId (BioFXAPI)'
+2026-01-06 18:46:18.149 -05:00 [INF] Request finished HTTP/2 POST https://localhost:7177/api/Transactions/refresh-by-request - 200 null application/json; charset=utf-8 1169.726ms
+2026-01-06 18:46:29.255 -05:00 [INF] EmailSettings cargados: SmtpServer=mail.biofx.com.ec, SmtpPort=465, SenderEmail=info@biofx.com.ec, EnableSsl=true
+2026-01-06 18:46:29.368 -05:00 [INF] PlacetoPay AutoRefresh: lock no adquirido (code=-1). Se omite el tick.
+2026-01-06 18:47:04.677 -05:00 [DBG] HttpMessageHandler expired after 120000ms for client ''
+2026-01-06 18:47:14.696 -05:00 [DBG] Starting HttpMessageHandler cleanup cycle with 1 items
+2026-01-06 18:47:14.702 -05:00 [DBG] Ending HttpMessageHandler cleanup cycle after 0.0263ms - processed: 0 items - remaining: 1 items
+2026-01-06 18:47:24.715 -05:00 [DBG] Starting HttpMessageHandler cleanup cycle with 1 items
+2026-01-06 18:47:24.718 -05:00 [DBG] Ending HttpMessageHandler cleanup cycle after 0.0036ms - processed: 0 items - remaining: 1 items
+2026-01-06 18:47:29.266 -05:00 [INF] EmailSettings cargados: SmtpServer=mail.biofx.com.ec, SmtpPort=465, SenderEmail=info@biofx.com.ec, EnableSsl=true
+2026-01-06 18:47:30.497 -05:00 [INF] Start processing HTTP request POST https://checkout-test.placetopay.ec/api/session/988529
+2026-01-06 18:47:30.499 -05:00 [INF] Sending HTTP request POST https://checkout-test.placetopay.ec/api/session/988529
+2026-01-06 18:47:31.042 -05:00 [INF] Received HTTP response headers after 542.0989ms - 200
+2026-01-06 18:47:31.044 -05:00 [INF] End processing HTTP request after 546.2702ms - 200
+2026-01-06 18:47:31.484 -05:00 [INF] PlacetoPay AutoRefresh: candidates=1 ok=1 paid=0 errors=0
+2026-01-06 18:47:34.722 -05:00 [DBG] Starting HttpMessageHandler cleanup cycle with 1 items
+2026-01-06 18:47:34.723 -05:00 [DBG] Ending HttpMessageHandler cleanup cycle after 0.0034ms - processed: 0 items - remaining: 1 items
+2026-01-06 18:47:44.730 -05:00 [DBG] Starting HttpMessageHandler cleanup cycle with 1 items
+2026-01-06 18:47:44.734 -05:00 [DBG] Ending HttpMessageHandler cleanup cycle after 0.0039ms - processed: 0 items - remaining: 1 items
+2026-01-06 18:47:54.754 -05:00 [DBG] Starting HttpMessageHandler cleanup cycle with 1 items
+2026-01-06 18:47:54.757 -05:00 [DBG] Ending HttpMessageHandler cleanup cycle after 0.0039ms - processed: 0 items - remaining: 1 items
+2026-01-06 18:47:55.878 -05:00 [INF] Request starting HTTP/2 POST https://localhost:7177/api/Transactions/refresh-by-request - application/json 25
+2026-01-06 18:47:55.889 -05:00 [DBG] 1 candidate(s) found for the request path '/api/Transactions/refresh-by-request'
+2026-01-06 18:47:55.891 -05:00 [DBG] Endpoint 'BioFXAPI.Controllers.TransactionsController.RefreshByRequestId (BioFXAPI)' with route pattern 'api/Transactions/refresh-by-request' is valid for the request path '/api/Transactions/refresh-by-request'
+2026-01-06 18:47:55.892 -05:00 [DBG] Request matched endpoint 'BioFXAPI.Controllers.TransactionsController.RefreshByRequestId (BioFXAPI)'
+2026-01-06 18:47:55.893 -05:00 [DBG] Static files was skipped as the request already matched an endpoint.
+2026-01-06 18:47:55.894 -05:00 [DBG] The request has an origin header: 'https://localhost:7177'.
+2026-01-06 18:47:55.895 -05:00 [INF] CORS policy execution failed.
+2026-01-06 18:47:55.896 -05:00 [INF] Request origin https://localhost:7177 does not have permission to access the resource.
+2026-01-06 18:47:55.898 -05:00 [DBG] Successfully validated the token.
+2026-01-06 18:47:55.899 -05:00 [DBG] AuthenticationScheme: Bearer was successfully authenticated.
+2026-01-06 18:47:55.900 -05:00 [DBG] Authorization was successful.
+2026-01-06 18:47:55.901 -05:00 [INF] Executing endpoint 'BioFXAPI.Controllers.TransactionsController.RefreshByRequestId (BioFXAPI)'
+2026-01-06 18:47:55.902 -05:00 [INF] Route matched with {action = "RefreshByRequestId", controller = "Transactions"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] RefreshByRequestId(RefreshRequest, System.Threading.CancellationToken) on controller BioFXAPI.Controllers.TransactionsController (BioFXAPI).
+2026-01-06 18:47:55.904 -05:00 [DBG] Execution plan of authorization filters (in the following order): ["None"]
+2026-01-06 18:47:55.905 -05:00 [DBG] Execution plan of resource filters (in the following order): ["None"]
+2026-01-06 18:47:55.907 -05:00 [DBG] Execution plan of action filters (in the following order): ["Microsoft.AspNetCore.Mvc.ModelBinding.UnsupportedContentTypeFilter (Order: -3000)","Microsoft.AspNetCore.Mvc.Infrastructure.ModelStateInvalidFilter (Order: -2000)"]
+2026-01-06 18:47:55.909 -05:00 [DBG] Execution plan of exception filters (in the following order): ["None"]
+2026-01-06 18:47:55.911 -05:00 [DBG] Execution plan of result filters (in the following order): ["Microsoft.AspNetCore.Mvc.Infrastructure.ClientErrorResultFilter (Order: -2000)"]
+2026-01-06 18:47:55.913 -05:00 [DBG] Executing controller factory for controller BioFXAPI.Controllers.TransactionsController (BioFXAPI)
+2026-01-06 18:47:55.914 -05:00 [INF] EmailSettings cargados: SmtpServer=mail.biofx.com.ec, SmtpPort=465, SenderEmail=info@biofx.com.ec, EnableSsl=true
+2026-01-06 18:47:55.916 -05:00 [DBG] Executed controller factory for controller BioFXAPI.Controllers.TransactionsController (BioFXAPI)
+2026-01-06 18:47:55.918 -05:00 [DBG] Attempting to bind parameter 'r' of type 'BioFXAPI.Controllers.TransactionsController+RefreshRequest' ...
+2026-01-06 18:47:55.919 -05:00 [DBG] Attempting to bind parameter 'r' of type 'BioFXAPI.Controllers.TransactionsController+RefreshRequest' using the name '' in request data ...
+2026-01-06 18:47:55.921 -05:00 [DBG] Selected input formatter 'Microsoft.AspNetCore.Mvc.Formatters.SystemTextJsonInputFormatter' for content type 'application/json'.
+2026-01-06 18:47:55.922 -05:00 [DBG] Connection id "0HNIDFM4EU2HJ", Request id "0HNIDFM4EU2HJ:00000011": started reading request body.
+2026-01-06 18:47:55.923 -05:00 [DBG] Connection id "0HNIDFM4EU2HJ", Request id "0HNIDFM4EU2HJ:00000011": done reading request body.
+2026-01-06 18:47:55.925 -05:00 [DBG] JSON input formatter succeeded, deserializing to type 'BioFXAPI.Controllers.TransactionsController+RefreshRequest'
+2026-01-06 18:47:55.926 -05:00 [DBG] Done attempting to bind parameter 'r' of type 'BioFXAPI.Controllers.TransactionsController+RefreshRequest'.
+2026-01-06 18:47:55.928 -05:00 [DBG] Done attempting to bind parameter 'r' of type 'BioFXAPI.Controllers.TransactionsController+RefreshRequest'.
+2026-01-06 18:47:55.929 -05:00 [DBG] Attempting to validate the bound parameter 'r' of type 'BioFXAPI.Controllers.TransactionsController+RefreshRequest' ...
+2026-01-06 18:47:55.931 -05:00 [DBG] Done attempting to validate the bound parameter 'r' of type 'BioFXAPI.Controllers.TransactionsController+RefreshRequest'.
+2026-01-06 18:47:55.932 -05:00 [DBG] Attempting to bind parameter 'ct' of type 'System.Threading.CancellationToken' ...
+2026-01-06 18:47:55.934 -05:00 [DBG] Done attempting to bind parameter 'ct' of type 'System.Threading.CancellationToken'.
+2026-01-06 18:47:55.936 -05:00 [DBG] Attempting to validate the bound parameter 'ct' of type 'System.Threading.CancellationToken' ...
+2026-01-06 18:47:55.937 -05:00 [DBG] Done attempting to validate the bound parameter 'ct' of type 'System.Threading.CancellationToken'.
+2026-01-06 18:47:56.157 -05:00 [INF] Start processing HTTP request POST https://checkout-test.placetopay.ec/api/session/988529
+2026-01-06 18:47:56.159 -05:00 [INF] Sending HTTP request POST https://checkout-test.placetopay.ec/api/session/988529
+2026-01-06 18:47:56.544 -05:00 [INF] Received HTTP response headers after 384.0946ms - 200
+2026-01-06 18:47:56.546 -05:00 [INF] End processing HTTP request after 388.6299ms - 200
+2026-01-06 18:47:56.989 -05:00 [DBG] List of registered output formatters, in the following order: ["Microsoft.AspNetCore.Mvc.Formatters.HttpNoContentOutputFormatter","Microsoft.AspNetCore.Mvc.Formatters.StringOutputFormatter","Microsoft.AspNetCore.Mvc.Formatters.StreamOutputFormatter","Microsoft.AspNetCore.Mvc.Formatters.SystemTextJsonOutputFormatter"]
+2026-01-06 18:47:56.991 -05:00 [DBG] No information found on request to perform content negotiation.
+2026-01-06 18:47:56.992 -05:00 [DBG] Attempting to select an output formatter without using a content type as no explicit content types were specified for the response.
+2026-01-06 18:47:56.993 -05:00 [DBG] Attempting to select the first formatter in the output formatters list which can write the result.
+2026-01-06 18:47:56.994 -05:00 [DBG] Selected output formatter 'Microsoft.AspNetCore.Mvc.Formatters.SystemTextJsonOutputFormatter' and content type 'application/json' to write the response.
+2026-01-06 18:47:56.995 -05:00 [INF] Executing OkObjectResult, writing value of type '<>f__AnonymousType43`2[[System.Int32, System.Private.CoreLib, Version=8.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e],[System.String, System.Private.CoreLib, Version=8.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]'.
+2026-01-06 18:47:56.996 -05:00 [INF] Executed action BioFXAPI.Controllers.TransactionsController.RefreshByRequestId (BioFXAPI) in 1083.2993ms
+2026-01-06 18:47:56.997 -05:00 [INF] Executed endpoint 'BioFXAPI.Controllers.TransactionsController.RefreshByRequestId (BioFXAPI)'
+2026-01-06 18:47:56.998 -05:00 [INF] Request finished HTTP/2 POST https://localhost:7177/api/Transactions/refresh-by-request - 200 null application/json; charset=utf-8 1120.9226ms
+2026-01-06 18:48:04.762 -05:00 [DBG] Starting HttpMessageHandler cleanup cycle with 1 items
+2026-01-06 18:48:04.763 -05:00 [DBG] Ending HttpMessageHandler cleanup cycle after 0.0628ms - processed: 0 items - remaining: 1 items
+2026-01-06 18:48:11.087 -05:00 [INF] Request starting HTTP/2 POST https://localhost:7177/api/Transactions/refresh-by-request - application/json 25
+2026-01-06 18:48:11.090 -05:00 [DBG] 1 candidate(s) found for the request path '/api/Transactions/refresh-by-request'
+2026-01-06 18:48:11.091 -05:00 [DBG] Endpoint 'BioFXAPI.Controllers.TransactionsController.RefreshByRequestId (BioFXAPI)' with route pattern 'api/Transactions/refresh-by-request' is valid for the request path '/api/Transactions/refresh-by-request'
+2026-01-06 18:48:11.095 -05:00 [DBG] Request matched endpoint 'BioFXAPI.Controllers.TransactionsController.RefreshByRequestId (BioFXAPI)'
+2026-01-06 18:48:11.096 -05:00 [DBG] Static files was skipped as the request already matched an endpoint.
+2026-01-06 18:48:11.098 -05:00 [DBG] The request has an origin header: 'https://localhost:7177'.
+2026-01-06 18:48:11.099 -05:00 [INF] CORS policy execution failed.
+2026-01-06 18:48:11.100 -05:00 [INF] Request origin https://localhost:7177 does not have permission to access the resource.
+2026-01-06 18:48:11.102 -05:00 [DBG] Successfully validated the token.
+2026-01-06 18:48:11.103 -05:00 [DBG] AuthenticationScheme: Bearer was successfully authenticated.
+2026-01-06 18:48:11.104 -05:00 [DBG] Authorization was successful.
+2026-01-06 18:48:11.105 -05:00 [INF] Executing endpoint 'BioFXAPI.Controllers.TransactionsController.RefreshByRequestId (BioFXAPI)'
+2026-01-06 18:48:11.106 -05:00 [INF] Route matched with {action = "RefreshByRequestId", controller = "Transactions"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] RefreshByRequestId(RefreshRequest, System.Threading.CancellationToken) on controller BioFXAPI.Controllers.TransactionsController (BioFXAPI).
+2026-01-06 18:48:11.108 -05:00 [DBG] Execution plan of authorization filters (in the following order): ["None"]
+2026-01-06 18:48:11.109 -05:00 [DBG] Execution plan of resource filters (in the following order): ["None"]
+2026-01-06 18:48:11.111 -05:00 [DBG] Execution plan of action filters (in the following order): ["Microsoft.AspNetCore.Mvc.ModelBinding.UnsupportedContentTypeFilter (Order: -3000)","Microsoft.AspNetCore.Mvc.Infrastructure.ModelStateInvalidFilter (Order: -2000)"]
+2026-01-06 18:48:11.113 -05:00 [DBG] Execution plan of exception filters (in the following order): ["None"]
+2026-01-06 18:48:11.115 -05:00 [DBG] Execution plan of result filters (in the following order): ["Microsoft.AspNetCore.Mvc.Infrastructure.ClientErrorResultFilter (Order: -2000)"]
+2026-01-06 18:48:11.116 -05:00 [DBG] Executing controller factory for controller BioFXAPI.Controllers.TransactionsController (BioFXAPI)
+2026-01-06 18:48:11.118 -05:00 [INF] EmailSettings cargados: SmtpServer=mail.biofx.com.ec, SmtpPort=465, SenderEmail=info@biofx.com.ec, EnableSsl=true
+2026-01-06 18:48:11.120 -05:00 [DBG] Executed controller factory for controller BioFXAPI.Controllers.TransactionsController (BioFXAPI)
+2026-01-06 18:48:11.122 -05:00 [DBG] Attempting to bind parameter 'r' of type 'BioFXAPI.Controllers.TransactionsController+RefreshRequest' ...
+2026-01-06 18:48:11.124 -05:00 [DBG] Attempting to bind parameter 'r' of type 'BioFXAPI.Controllers.TransactionsController+RefreshRequest' using the name '' in request data ...
+2026-01-06 18:48:11.125 -05:00 [DBG] Selected input formatter 'Microsoft.AspNetCore.Mvc.Formatters.SystemTextJsonInputFormatter' for content type 'application/json'.
+2026-01-06 18:48:11.127 -05:00 [DBG] Connection id "0HNIDFM4EU2HJ", Request id "0HNIDFM4EU2HJ:00000013": started reading request body.
+2026-01-06 18:48:11.129 -05:00 [DBG] Connection id "0HNIDFM4EU2HJ", Request id "0HNIDFM4EU2HJ:00000013": done reading request body.
+2026-01-06 18:48:11.132 -05:00 [DBG] JSON input formatter succeeded, deserializing to type 'BioFXAPI.Controllers.TransactionsController+RefreshRequest'
+2026-01-06 18:48:11.133 -05:00 [DBG] Done attempting to bind parameter 'r' of type 'BioFXAPI.Controllers.TransactionsController+RefreshRequest'.
+2026-01-06 18:48:11.134 -05:00 [DBG] Done attempting to bind parameter 'r' of type 'BioFXAPI.Controllers.TransactionsController+RefreshRequest'.
+2026-01-06 18:48:11.136 -05:00 [DBG] Attempting to validate the bound parameter 'r' of type 'BioFXAPI.Controllers.TransactionsController+RefreshRequest' ...
+2026-01-06 18:48:11.137 -05:00 [DBG] Done attempting to validate the bound parameter 'r' of type 'BioFXAPI.Controllers.TransactionsController+RefreshRequest'.
+2026-01-06 18:48:11.139 -05:00 [DBG] Attempting to bind parameter 'ct' of type 'System.Threading.CancellationToken' ...
+2026-01-06 18:48:11.140 -05:00 [DBG] Done attempting to bind parameter 'ct' of type 'System.Threading.CancellationToken'.
+2026-01-06 18:48:11.142 -05:00 [DBG] Attempting to validate the bound parameter 'ct' of type 'System.Threading.CancellationToken' ...
+2026-01-06 18:48:11.143 -05:00 [DBG] Done attempting to validate the bound parameter 'ct' of type 'System.Threading.CancellationToken'.
+2026-01-06 18:48:11.362 -05:00 [INF] Start processing HTTP request POST https://checkout-test.placetopay.ec/api/session/988529
+2026-01-06 18:48:11.364 -05:00 [INF] Sending HTTP request POST https://checkout-test.placetopay.ec/api/session/988529
+2026-01-06 18:48:11.686 -05:00 [INF] Received HTTP response headers after 320.8516ms - 200
+2026-01-06 18:48:11.688 -05:00 [INF] End processing HTTP request after 326.0055ms - 200
+2026-01-06 18:48:12.135 -05:00 [DBG] List of registered output formatters, in the following order: ["Microsoft.AspNetCore.Mvc.Formatters.HttpNoContentOutputFormatter","Microsoft.AspNetCore.Mvc.Formatters.StringOutputFormatter","Microsoft.AspNetCore.Mvc.Formatters.StreamOutputFormatter","Microsoft.AspNetCore.Mvc.Formatters.SystemTextJsonOutputFormatter"]
+2026-01-06 18:48:12.140 -05:00 [DBG] No information found on request to perform content negotiation.
+2026-01-06 18:48:12.142 -05:00 [DBG] Attempting to select an output formatter without using a content type as no explicit content types were specified for the response.
+2026-01-06 18:48:12.143 -05:00 [DBG] Attempting to select the first formatter in the output formatters list which can write the result.
+2026-01-06 18:48:12.145 -05:00 [DBG] Selected output formatter 'Microsoft.AspNetCore.Mvc.Formatters.SystemTextJsonOutputFormatter' and content type 'application/json' to write the response.
+2026-01-06 18:48:12.148 -05:00 [INF] Executing OkObjectResult, writing value of type '<>f__AnonymousType43`2[[System.Int32, System.Private.CoreLib, Version=8.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e],[System.String, System.Private.CoreLib, Version=8.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]'.
+2026-01-06 18:48:12.151 -05:00 [INF] Executed action BioFXAPI.Controllers.TransactionsController.RefreshByRequestId (BioFXAPI) in 1034.2239ms
+2026-01-06 18:48:12.153 -05:00 [INF] Executed endpoint 'BioFXAPI.Controllers.TransactionsController.RefreshByRequestId (BioFXAPI)'
+2026-01-06 18:48:12.156 -05:00 [INF] Request finished HTTP/2 POST https://localhost:7177/api/Transactions/refresh-by-request - 200 null application/json; charset=utf-8 1069.9766ms
+2026-01-06 18:48:14.777 -05:00 [DBG] Starting HttpMessageHandler cleanup cycle with 1 items
+2026-01-06 18:48:14.780 -05:00 [DBG] Ending HttpMessageHandler cleanup cycle after 0.005ms - processed: 0 items - remaining: 1 items

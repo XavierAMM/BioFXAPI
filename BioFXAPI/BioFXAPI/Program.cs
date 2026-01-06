@@ -107,6 +107,8 @@ if (string.IsNullOrEmpty(emailSettings["SmtpServer"]))
 }
 
 
+builder.Services.AddHttpClient();
+builder.Services.AddHostedService<PlacetoPayAutoRefreshHostedService>();
 builder.Services.AddScoped<PasswordService>();
 builder.Services.AddScoped<EmailService>();
 builder.Services.AddSwaggerGen(c =>

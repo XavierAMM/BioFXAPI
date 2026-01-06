@@ -14,12 +14,18 @@ namespace BioFXAPI.Services
         private readonly string _cs;
         private readonly IConfiguration _cfg;
         private readonly OrderNotificationService _orderNotificationService;
+        private readonly IHttpClientFactory _httpClientFactory;
 
-        public PlacetoPayRefreshService(IConfiguration cfg, OrderNotificationService orderNotificationService)
+
+        public PlacetoPayRefreshService(
+            IConfiguration cfg,
+            OrderNotificationService orderNotificationService,
+            IHttpClientFactory httpClientFactory)
         {
             _cfg = cfg;
             _cs = cfg.GetConnectionString("DefaultConnection");
             _orderNotificationService = orderNotificationService;
+            _httpClientFactory = httpClientFactory;
         }
 
         public async Task<(IActionResult? error, RefreshResult? result)> RefreshByRequestIdAsync(
@@ -79,8 +85,11 @@ namespace BioFXAPI.Services
                 baseUri = new Uri($"{u.Scheme}://{u.Host}/");
             }
 
-            using var http = new HttpClient { BaseAddress = baseUri };
+            var http = _httpClientFactory.CreateClient();
+            http.BaseAddress = baseUri;
+            http.DefaultRequestHeaders.Accept.Clear();
             http.DefaultRequestHeaders.Accept.ParseAdd("application/json");
+
 
             // ===== 4) Call getRequestInformation =====
             var resp = await http.PostAsync(
@@ -336,6 +345,78 @@ namespace BioFXAPI.Services
 
             return (null, new RefreshResult(txRow.OrderId, requestId, effective, justPaid));
         }
+
+        public async Task<BatchRefreshSummary> RefreshPendingBatchAsync(
+            int maxBatch,
+            int lookbackHours,
+            int maxConcurrency,
+            CancellationToken ct)
+        {
+            maxBatch = Math.Clamp(maxBatch, 1, 2000);
+            lookbackHours = Math.Clamp(lookbackHours, 1, 24 * 30);
+            maxConcurrency = Math.Clamp(maxConcurrency, 1, 10);
+
+            await using var con = new SqlConnection(_cs);
+            await con.OpenAsync(ct);
+
+            // Candidatos: solo no-finales y activos
+            var requestIds = (await con.QueryAsync<int>(@"
+                SELECT TOP (@MaxBatch) t.RequestId
+                FROM [Transaction] t
+                INNER JOIN [Order] o ON o.Id = t.OrderId
+                WHERE
+                    t.Activo = 1
+                    AND o.Activo = 1
+                    AND t.RequestId > 0
+                    AND o.Status IN ('PENDING', 'PENDING_VALIDATION')
+                    AND t.Status IN ('PENDING', 'PENDING_VALIDATION')
+                    AND t.CreadoEl >= DATEADD(HOUR, -@LookbackHours, GETUTCDATE())
+                ORDER BY t.ActualizadoEl ASC, t.Id ASC;",
+                new { MaxBatch = maxBatch, LookbackHours = lookbackHours }))
+                .Distinct()
+                .ToList();
+
+            if (requestIds.Count == 0)
+                return new BatchRefreshSummary(0, 0, 0, 0);
+
+            var sem = new SemaphoreSlim(maxConcurrency);
+            int ok = 0, paid = 0, errors = 0;
+
+            var tasks = requestIds.Select(async rid =>
+            {
+                await sem.WaitAsync(ct);
+                try
+                {
+                    var (err, res) = await RefreshByRequestIdAsync(
+                        requestId: rid,
+                        validateOwner: false,
+                        callerUser: null,
+                        ct: ct);
+
+                    if (err != null || res == null)
+                    {
+                        Interlocked.Increment(ref errors);
+                        return;
+                    }
+
+                    Interlocked.Increment(ref ok);
+                    if (res.JustPaid) Interlocked.Increment(ref paid);
+                }
+                catch
+                {
+                    Interlocked.Increment(ref errors);
+                }
+                finally
+                {
+                    sem.Release();
+                }
+            });
+
+            await Task.WhenAll(tasks);
+            return new BatchRefreshSummary(requestIds.Count, ok, paid, errors);
+        }
+
+        public record BatchRefreshSummary(int CandidateCount, int OkCount, int PaidCount, int ErrorCount);
 
 
         private static async Task<(bool ok, int userId, IActionResult? error)> TryResolveUserIdAsync(
