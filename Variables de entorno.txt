@@ -1,0 +1,11 @@
+*EmailSettings:*
+EnableSsl: true
+SenderPassword: #Cliente2631
+SmtpPort: 465
+SmtpServer: mail.biofx.com.ec
+
+*AwsS3*:
+AccessKeyId: AKIARHCOAWH42H63G6UY
+BucketName: biofx-invoices
+Region: us-east-2
+SecretAccessKey: t/jnFovjdjkh+CKBPcAB5D931pnNjEDJUhAnSPo6

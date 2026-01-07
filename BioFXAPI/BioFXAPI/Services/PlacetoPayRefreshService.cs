@@ -369,8 +369,8 @@ namespace BioFXAPI.Services
                     AND o.Activo = 1
                     AND t.RequestId > 0
                     AND o.Status IN ('PENDING', 'PENDING_VALIDATION')
-                    AND t.Status IN ('PENDING', 'PENDING_VALIDATION')
-                    AND t.CreadoEl >= DATEADD(HOUR, -@LookbackHours, GETUTCDATE())
+                    AND t.Status IN ('PENDING', 'PENDING_VALIDATION')                    
+                    AND t.ActualizadoEl >= DATEADD(HOUR, -@LookbackHours, GETUTCDATE())
                 ORDER BY t.ActualizadoEl ASC, t.Id ASC;",
                 new { MaxBatch = maxBatch, LookbackHours = lookbackHours }))
                 .Distinct()

@@ -49,6 +49,22 @@
   },
   {
     "ContainingType": "BioFXAPI.Controllers.AccountController",
+    "Method": "ResendVerification",
+    "RelativePath": "api/Account/resend-verification",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "BioFXAPI.Controllers.AccountController\u002BResendVerificationRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "BioFXAPI.Controllers.AccountController",
     "Method": "TestEmail",
     "RelativePath": "api/Account/test-email",
     "HttpMethod": "POST",

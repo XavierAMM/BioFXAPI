@@ -15,6 +15,10 @@ namespace BioFXAPI.Controllers
         private readonly PasswordService _passwordService;
         private readonly EmailService _emailService;
         private readonly ILogger<AccountController> _logger;
+        private const int VerificationTokenMinutes = 15;
+        private const int ResendCooldownMinutes = 2;
+        private const int ResendDailyLimit = 5;
+        private readonly string _frontendBaseUrl;
 
         public AccountController(IConfiguration configuration, PasswordService passwordService, EmailService emailService, ILogger<AccountController> logger)
         {
@@ -22,7 +26,9 @@ namespace BioFXAPI.Controllers
             _passwordService = passwordService;
             _emailService = emailService;
             _logger = logger;
+            _frontendBaseUrl = configuration["Frontend:BaseUrl"] ?? "https://biofx.com.ec/";
         }
+
 
         public record TestEmailRequest(string To, string Subject, string Body);
 
@@ -44,8 +50,12 @@ namespace BioFXAPI.Controllers
                 using var connection = new SqlConnection(_connectionString);
                 await connection.OpenAsync();
 
-                if (await EmailExists(request.Email, connection))
+                var normEmail = request.Email.Trim().ToLowerInvariant();
+
+                if (await EmailExists(normEmail, connection))
                     return Conflict(new { message = "El correo ya se encuentra registrado." });
+
+                var abandoned = await TryGetAbandonedUserAsync(normEmail, connection);
 
                 // Crear usuario, persona y datos de facturación automáticamente
                 using var transaction = connection.BeginTransaction();
@@ -53,42 +63,42 @@ namespace BioFXAPI.Controllers
                 {
                     var hashedPassword = _passwordService.HashPassword(request.Password);
                     var emailToken = GenerateSecureToken();
+                    var ip = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "Unknown";
 
-                    // 1. CREAR USUARIO
-                    var userId = await InsertUserAsync(request.Email, hashedPassword, emailToken, connection, transaction);
+                    int userId;
+                    bool wasReactivated = false;
 
-                    // 2. CREAR PERSONA
-                    await InsertPersonaAsync(userId, request.Nombre, request.Apellido, request.Telefono, connection, transaction);
+                    if (abandoned.Found)
+                    {
+                        userId = abandoned.UserId;
+                        wasReactivated = true;
 
-                    // 3. CREAR DATOS DE FACTURACIÓN (vacío)
-                    await InsertDatosFacturacionAsync(userId, connection, transaction);
+                        await ReactivateAbandonedUserAsync(userId, hashedPassword, connection, transaction);
+                    }
+                    else
+                    {
+                        userId = await InsertUserAsync(normEmail, hashedPassword, connection, transaction);
+
+                        await InsertPersonaAsync(userId, request.Nombre, request.Apellido, request.Telefono, connection, transaction);
+                        await InsertDatosFacturacionAsync(userId, connection, transaction);
+                    }
+
+                    await InvalidateEmailVerificationTokensAsync(userId, connection, transaction);
+                    await InsertEmailVerificationTokenAsync(userId, normEmail, emailToken, ip, connection, transaction);
 
                     transaction.Commit();
 
-                    var emailSent = true;
-                    string? emailError = null;
-
-                    try
-                    {
-                        await _emailService.SendVerificationEmailAsync(request.Email, emailToken);
-                    }
-                    catch (Exception ex)
-                    {
-                        emailSent = false;
-                        emailError = ex.Message;
-                        _logger.LogError(ex, "Error enviando email de verificación a {Email}", request.Email);
-                    }
+                    await _emailService.SendVerificationEmailAsync(normEmail, emailToken);
 
                     return Ok(new
                     {
-                        message = emailSent
-                            ? "Registro satisfactorio. Por favor, verifique su correo para activar su cuenta."
-                            : "Cuenta creada, pero no se pudo enviar el correo de verificación. Intenta reenviar el correo.",
+                        message = wasReactivated
+                            ? "Se reactivó tu registro. Por favor, revisa tu correo para confirmar."
+                            : "Registro satisfactorio. Por favor, verifique su correo para activar su cuenta.",
                         userId,
-                        email = request.Email,
-                        emailSent
+                        email = normEmail,
+                        emailSent = true
                     });
-
                 }
                 catch
                 {
@@ -105,123 +115,39 @@ namespace BioFXAPI.Controllers
         [HttpGet("verify-email")]
         public async Task<IActionResult> VerifyEmail([FromQuery] string token, [FromQuery] string email)
         {
-            String url = "https://biofx.com.ec/";
-            //String url = "http://127.0.0.1:5500/";
+            var url = _frontendBaseUrl.EndsWith("/") ? _frontendBaseUrl : _frontendBaseUrl + "/";
+
             try
             {
-                
+                if (string.IsNullOrWhiteSpace(token) || string.IsNullOrWhiteSpace(email))
+                    return Redirect(url + "verify-email/verify-email.html?status=invalid");
+
                 using var connection = new SqlConnection(_connectionString);
                 await connection.OpenAsync();
 
-                if (!await IsValidEmailToken(email, token, connection))
-                    return Redirect(url+ "verify-email/verify-email.html?status=invalid");
+                var result = await TryGetValidEmailTokenAsync(email, token, connection);
+                if (!result.IsValid)
+                    return Redirect(url + "verify-email/verify-email.html?status=invalid");
 
-                VerifyUserEmail(email, connection);
+                using var tx = connection.BeginTransaction();
+                try
+                {
+                    await VerifyUserEmailAsync(result.UserId, result.TokenId, connection, tx);
+                    tx.Commit();
+                }
+                catch
+                {
+                    tx.Rollback();
+                    throw;
+                }
 
-                return Redirect(url+"verify-email/verify-email.html?status=ok");
+                return Redirect(url + "verify-email/verify-email.html?status=ok");
             }
             catch
             {
-                return Redirect(url+"verify-email/verify-email.html?status=error");
+                return Redirect(url + "verify-email/verify-email.html?status=error");
             }
         }
-
-
-
-        #region Métodos Privados
-        private async Task InsertDatosFacturacionAsync(int usuarioId, SqlConnection connection, SqlTransaction transaction)
-        {
-            var query = @"INSERT INTO DatosFacturacion (UsuarioId, Activo, CreadoEl, ActualizadoEl)
-                  VALUES (@UsuarioId, 1, GETUTCDATE(), GETUTCDATE())";
-
-            using var command = new SqlCommand(query, connection, transaction);
-            command.Parameters.AddWithValue("@UsuarioId", usuarioId);
-            await command.ExecuteNonQueryAsync();
-        }
-
-        private async Task<int> InsertUserAsync(string email, string hashedPassword, string emailToken, SqlConnection connection, SqlTransaction transaction)
-        {
-            var query = @"INSERT INTO Usuario (email, contrasenaHash, creadoEl, emailConfirmado, 
-                  tokenVerificacionEmail, expiracionTokenVerificacion, Activo) 
-                  OUTPUT INSERTED.id 
-                  VALUES (@Email, @PasswordHash, GETUTCDATE(), 0, @Token, DATEADD(minute, 15, GETUTCDATE()), 1)";
-
-            using var command = new SqlCommand(query, connection, transaction);
-            command.Parameters.AddWithValue("@Email", email);
-            command.Parameters.AddWithValue("@PasswordHash", hashedPassword);
-            command.Parameters.AddWithValue("@Token", emailToken);
-
-            return (int)await command.ExecuteScalarAsync();
-        }
-
-        private async Task InsertPersonaAsync(int usuarioId, string nombre, string apellido, string telefono, SqlConnection connection, SqlTransaction transaction)
-        {
-            var query = @"INSERT INTO Persona (Nombre, Apellido, Telefono, UsuarioId, Activo, CreadoEl, ActualizadoEl)
-                  VALUES (@Nombre, @Apellido, @Telefono, @UsuarioId, 1, GETUTCDATE(), GETUTCDATE())";
-
-            using var command = new SqlCommand(query, connection, transaction);
-            command.Parameters.AddWithValue("@Nombre", nombre);
-            command.Parameters.AddWithValue("@Apellido", apellido);
-            command.Parameters.AddWithValue("@Telefono", telefono ?? (object)DBNull.Value);
-            command.Parameters.AddWithValue("@UsuarioId", usuarioId);
-
-            await command.ExecuteNonQueryAsync();
-        }
-        #endregion
-
-        
-
-        #region Métodos Privados
-        private async Task<bool> EmailExists(string email, SqlConnection connection)
-        {
-            var query = "SELECT 1 FROM Usuario WHERE email = @Email";
-            using var command = new SqlCommand(query, connection);
-            command.Parameters.AddWithValue("@Email", email);
-            return (await command.ExecuteScalarAsync()) != null;
-        }
-
-        private async Task<bool> IsValidEmailToken(string email, string token, SqlConnection connection)
-        {
-            var query = "SELECT expiracionTokenVerificacion FROM Usuario WHERE email = @Email AND tokenVerificacionEmail = @Token";
-            using var command = new SqlCommand(query, connection);
-            command.Parameters.AddWithValue("@Email", email);
-            command.Parameters.AddWithValue("@Token", token);
-
-            var expiration = await command.ExecuteScalarAsync() as DateTime?;
-            return expiration.HasValue && expiration.Value > DateTime.UtcNow;
-        }
-
-        private void VerifyUserEmail(string email, SqlConnection connection)
-        {
-            ExecuteNonQuery(
-                "UPDATE Usuario SET emailConfirmado = 1, tokenVerificacionEmail = NULL, expiracionTokenVerificacion = NULL WHERE email = @Email",
-                new { Email = email }, connection);
-        }
-
-        private string GenerateSecureToken()
-        {
-            var tokenData = new byte[32];
-            using var rng = System.Security.Cryptography.RandomNumberGenerator.Create();
-            rng.GetBytes(tokenData);
-            return Convert.ToBase64String(tokenData).Replace("+", "-").Replace("/", "_").Replace("=", "");
-        }
-
-        private string GenerateSixDigitCode()
-        {
-            const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-            var random = new Random();
-            return new string(Enumerable.Repeat(chars, 6)
-                .Select(s => s[random.Next(s.Length)]).ToArray());
-        }
-
-        private void ExecuteNonQuery(string query, object parameters, SqlConnection connection)
-        {
-            using var command = new SqlCommand(query, connection);
-            foreach (var prop in parameters.GetType().GetProperties())
-                command.Parameters.AddWithValue($"@{prop.Name}", prop.GetValue(parameters) ?? DBNull.Value);
-            command.ExecuteNonQuery();
-        }
-        #endregion
 
         [Authorize]
         [HttpPost("change-email-request")]
@@ -375,5 +301,331 @@ namespace BioFXAPI.Controllers
                 return StatusCode(500, new { error = "Fallo SMTP", details = ex.Message });
             }
         }
+
+        [HttpPost("resend-verification")]
+        public async Task<IActionResult> ResendVerification([FromBody] ResendVerificationRequest request)
+        {
+            // Respuesta genérica para evitar enumeración de correos
+            object GenericOk(string message, string action) => new { message, action };
+
+            if (string.IsNullOrWhiteSpace(request?.Email))
+                return BadRequest(new { message = "Se necesita el correo." });
+
+            var email = request.Email.Trim().ToLowerInvariant();
+            var ip = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "Unknown";
+
+            try
+            {
+                using var connection = new SqlConnection(_connectionString);
+                await connection.OpenAsync();
+
+                // 1) Buscar usuario
+                var userQuery = @"SELECT TOP 1 id, emailConfirmado, Activo FROM dbo.Usuario WHERE email = @Email";
+                using var userCmd = new SqlCommand(userQuery, connection);
+                userCmd.Parameters.AddWithValue("@Email", email);
+
+                int userId;
+                bool emailConfirmado = false;
+                bool activo = false;
+
+                using (var reader = await userCmd.ExecuteReaderAsync())
+                {
+                    if (!await reader.ReadAsync())
+                        return Ok(GenericOk("Si el correo existe y no está verificado, enviamos un enlace.", "GENERIC"));
+
+                    userId = reader.GetInt32(0);
+                    emailConfirmado = reader.GetBoolean(1);
+                    activo = reader.GetBoolean(2);
+                } // <- aquí se CIERRA el reader
+
+                if (!activo)
+                    return Ok(GenericOk("Si el correo existe y no está verificado, enviamos un enlace.", "GENERIC"));
+
+                if (emailConfirmado)
+                    return Ok(new { message = "El correo ya está verificado.", action = "ALREADY_VERIFIED" });
+
+
+                // 2) Límite diario
+                var dailyCountQuery = @"
+                    SELECT COUNT(1)
+                    FROM dbo.EmailVerificationTokens
+                    WHERE UsuarioId = @UserId
+                      AND CreadoEl > DATEADD(hour, -24, GETUTCDATE());";
+                using var dailyCmd = new SqlCommand(dailyCountQuery, connection);
+                dailyCmd.Parameters.AddWithValue("@UserId", userId);
+                var dailyCount = (int)await dailyCmd.ExecuteScalarAsync();
+
+                if (dailyCount >= ResendDailyLimit)
+                    return Ok(new { message = "Has alcanzado el límite de reenvíos por hoy. Intenta más tarde.", action = "DAILY_LIMIT" });
+
+                // 3) Cooldown
+                var lastSentQuery = @"
+                    SELECT TOP 1 CreadoEl
+                    FROM dbo.EmailVerificationTokens
+                    WHERE UsuarioId = @UserId
+                    ORDER BY CreadoEl DESC;";
+                using var lastCmd = new SqlCommand(lastSentQuery, connection);
+                lastCmd.Parameters.AddWithValue("@UserId", userId);
+                var lastSentObj = await lastCmd.ExecuteScalarAsync();
+
+                if (lastSentObj is DateTime lastSentUtc)
+                {
+                    var cooldownUntil = lastSentUtc.AddMinutes(ResendCooldownMinutes);
+                    if (cooldownUntil > DateTime.UtcNow)
+                        return Ok(new { message = "Revisa tu correo. Ya se envió un enlace recientemente.", action = "COOLDOWN" });
+                }
+
+                // 4) Generar token + invalidar previos + insertar nuevo
+                var newToken = GenerateSecureToken();
+
+                using var tx = connection.BeginTransaction();
+                try
+                {
+                    await InvalidateEmailVerificationTokensAsync(userId, connection, tx);
+                    await InsertEmailVerificationTokenAsync(userId, email, newToken, ip, connection, tx);
+                    tx.Commit();
+                }
+                catch
+                {
+                    tx.Rollback();
+                    throw;
+                }
+
+                // 5) Enviar correo
+                try
+                {
+                    await _emailService.SendVerificationEmailAsync(email, newToken);
+                    return Ok(new { message = "Se ha reenviado el correo de confirmación.", action = "RESENT" });
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Error reenviando email de verificación a {Email}", email);
+                    // No falles duro: el token ya existe, el usuario puede reintentar luego
+                    return Ok(new { message = "No se pudo enviar el correo en este momento. Intenta nuevamente.", action = "SEND_FAILED" });
+                }
+            }
+            catch (SqlException ex)
+            {
+                return StatusCode(500, new { error = "Error de base de datos", details = ex.Message });
+            }
+        }
+
+        private async Task InsertDatosFacturacionAsync(int usuarioId, SqlConnection connection, SqlTransaction transaction)
+        {
+            var query = @"INSERT INTO DatosFacturacion (UsuarioId, Activo, CreadoEl, ActualizadoEl)
+                  VALUES (@UsuarioId, 1, GETUTCDATE(), GETUTCDATE())";
+
+            using var command = new SqlCommand(query, connection, transaction);
+            command.Parameters.AddWithValue("@UsuarioId", usuarioId);
+            await command.ExecuteNonQueryAsync();
+        }
+
+        private async Task<int> InsertUserAsync(string email, string hashedPassword, SqlConnection connection, SqlTransaction transaction)
+        {
+            var query = @"INSERT INTO Usuario (email, contrasenaHash, creadoEl, emailConfirmado, Activo)
+                  OUTPUT INSERTED.id
+                  VALUES (@Email, @PasswordHash, GETUTCDATE(), 0, 1)";
+
+            using var command = new SqlCommand(query, connection, transaction);
+            command.Parameters.AddWithValue("@Email", email);
+            command.Parameters.AddWithValue("@PasswordHash", hashedPassword);
+
+            return (int)await command.ExecuteScalarAsync();
+        }
+
+        private static byte[] HashTokenSha256(string token)
+        {
+            using var sha = System.Security.Cryptography.SHA256.Create();
+            return sha.ComputeHash(System.Text.Encoding.UTF8.GetBytes(token));
+        }
+
+        private async Task InvalidateEmailVerificationTokensAsync(int userId, SqlConnection connection, SqlTransaction? tx = null)
+        {
+            var query = @"
+                UPDATE dbo.EmailVerificationTokens
+                SET Activo = 0,
+                    RevocadoEl = COALESCE(RevocadoEl, GETUTCDATE()),
+                    ActualizadoEl = GETUTCDATE()
+                WHERE UsuarioId = @UserId
+                  AND Activo = 1
+                  AND UsadoEl IS NULL;";
+
+            using var cmd = tx is null ? new SqlCommand(query, connection) : new SqlCommand(query, connection, tx);
+            cmd.Parameters.AddWithValue("@UserId", userId);
+            await cmd.ExecuteNonQueryAsync();
+        }
+
+        private async Task InsertEmailVerificationTokenAsync(int userId, string email, string rawToken, string ip,SqlConnection connection, SqlTransaction? tx = null)
+        {
+            var tokenHash = HashTokenSha256(rawToken);
+
+            var query = @"
+                INSERT INTO dbo.EmailVerificationTokens
+                    (UsuarioId, TokenHash, ExpiraEl, UsadoEl, RevocadoEl, EmailEnviadoA, IpCreacion, Activo)
+                VALUES
+                    (@UserId, @TokenHash, DATEADD(minute, @Minutes, GETUTCDATE()), NULL, NULL, @Email, @Ip, 1);";
+
+            using var cmd = tx is null ? new SqlCommand(query, connection) : new SqlCommand(query, connection, tx);
+            cmd.Parameters.AddWithValue("@UserId", userId);
+            cmd.Parameters.Add("@TokenHash", System.Data.SqlDbType.VarBinary, 32).Value = tokenHash;
+            cmd.Parameters.AddWithValue("@Minutes", VerificationTokenMinutes);
+            cmd.Parameters.AddWithValue("@Email", email);
+            cmd.Parameters.AddWithValue("@Ip", ip);
+
+            await cmd.ExecuteNonQueryAsync();
+        }
+
+        private async Task InsertPersonaAsync(int usuarioId, string nombre, string apellido, string telefono, SqlConnection connection, SqlTransaction transaction)
+        {
+            var query = @"INSERT INTO Persona (Nombre, Apellido, Telefono, UsuarioId, Activo, CreadoEl, ActualizadoEl)
+                  VALUES (@Nombre, @Apellido, @Telefono, @UsuarioId, 1, GETUTCDATE(), GETUTCDATE())";
+
+            using var command = new SqlCommand(query, connection, transaction);
+            command.Parameters.AddWithValue("@Nombre", nombre);
+            command.Parameters.AddWithValue("@Apellido", apellido);
+            command.Parameters.AddWithValue("@Telefono", telefono ?? (object)DBNull.Value);
+            command.Parameters.AddWithValue("@UsuarioId", usuarioId);
+
+            await command.ExecuteNonQueryAsync();
+        }
+        
+        private async Task<bool> EmailExists(string email, SqlConnection connection)
+        {
+            var query = "SELECT 1 FROM Usuario WHERE email = @Email and Activo = 1";
+            using var command = new SqlCommand(query, connection);
+            command.Parameters.AddWithValue("@Email", email);
+            return (await command.ExecuteScalarAsync()) != null;
+        }
+
+        private async Task<(bool Found, int UserId)> TryGetAbandonedUserAsync(string email, SqlConnection connection)
+        {
+            var query = @"
+                SELECT TOP 1 id
+                FROM dbo.Usuario
+                WHERE email = @Email
+                  AND Activo = 0
+                  AND emailConfirmado = 0
+                  AND creadoEl < DATEADD(day, -7, GETUTCDATE());";
+
+            using var cmd = new SqlCommand(query, connection);
+            cmd.Parameters.AddWithValue("@Email", email);
+            var obj = await cmd.ExecuteScalarAsync();
+            if (obj is int id) return (true, id);
+            return (false, 0);
+        }
+
+        private async Task ReactivateAbandonedUserAsync(int userId, string newPasswordHash, SqlConnection connection, SqlTransaction tx)
+        {
+            var query = @"
+                UPDATE dbo.Usuario
+                SET Activo = 1,
+                    contrasenaHash = @Hash,
+                    intentosFallidos = 0,
+                    bloqueadoHasta = NULL,
+                    actualizadoEl = GETUTCDATE()
+                WHERE id = @UserId
+                  AND Activo = 0
+                  AND emailConfirmado = 0;";
+
+            using var cmd = new SqlCommand(query, connection, tx);
+            cmd.Parameters.AddWithValue("@UserId", userId);
+            cmd.Parameters.AddWithValue("@Hash", newPasswordHash);
+            await cmd.ExecuteNonQueryAsync();
+        }
+
+        private async Task<(bool IsValid, int UserId, int TokenId)> TryGetValidEmailTokenAsync(string email,string rawToken,SqlConnection connection)
+        {
+            var normEmail = email.Trim().ToLowerInvariant();
+            var tokenHash = HashTokenSha256(rawToken);
+
+            var query = @"
+                SELECT TOP 1 t.Id AS TokenId, u.id AS UserId
+                FROM dbo.EmailVerificationTokens t
+                JOIN dbo.Usuario u ON u.id = t.UsuarioId
+                WHERE u.email = @Email
+                  AND u.Activo = 1
+                  AND u.emailConfirmado = 0
+                  AND t.Activo = 1
+                  AND t.UsadoEl IS NULL
+                  AND t.RevocadoEl IS NULL
+                  AND t.TokenHash = @TokenHash
+                  AND t.ExpiraEl > GETUTCDATE()
+                ORDER BY t.CreadoEl DESC;";
+
+            using var cmd = new SqlCommand(query, connection);
+            cmd.Parameters.AddWithValue("@Email", normEmail);
+            cmd.Parameters.Add("@TokenHash", System.Data.SqlDbType.VarBinary, 32).Value = tokenHash;
+
+            using var reader = await cmd.ExecuteReaderAsync();
+            if (!await reader.ReadAsync())
+                return (false, 0, 0);
+
+            var tokenId = reader.GetInt32(0);
+            var userId = reader.GetInt32(1);
+            return (true, userId, tokenId);
+        }
+
+        private async Task VerifyUserEmailAsync(int userId, int tokenId, SqlConnection connection, SqlTransaction tx)
+        {
+            // 1) Confirmar email del usuario
+            var confirmUserQuery = @"
+                UPDATE dbo.Usuario
+                SET emailConfirmado = 1,
+                    actualizadoEl = GETUTCDATE()
+                WHERE id = @UserId
+                  AND emailConfirmado = 0;";
+
+            using (var cmd = new SqlCommand(confirmUserQuery, connection, tx))
+            {
+                cmd.Parameters.AddWithValue("@UserId", userId);
+                await cmd.ExecuteNonQueryAsync();
+            }
+
+            // 2) Marcar token como usado y desactivarlo
+            var markUsedQuery = @"
+                UPDATE dbo.EmailVerificationTokens
+                SET UsadoEl = GETUTCDATE(),
+                    Activo = 0,
+                    ActualizadoEl = GETUTCDATE()
+                WHERE Id = @TokenId
+                  AND Activo = 1
+                  AND UsadoEl IS NULL;";
+
+            using (var cmd = new SqlCommand(markUsedQuery, connection, tx))
+            {
+                cmd.Parameters.AddWithValue("@TokenId", tokenId);
+                await cmd.ExecuteNonQueryAsync();
+            }
+
+            // 3) Invalidar cualquier otro token pendiente del usuario
+            await InvalidateEmailVerificationTokensAsync(userId, connection, tx);
+        }
+
+        private string GenerateSecureToken()
+        {
+            var tokenData = new byte[32];
+            using var rng = System.Security.Cryptography.RandomNumberGenerator.Create();
+            rng.GetBytes(tokenData);
+            return Convert.ToBase64String(tokenData).Replace("+", "-").Replace("/", "_").Replace("=", "");
+        }
+
+        private string GenerateSixDigitCode()
+        {
+            const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+            var random = new Random();
+            return new string(Enumerable.Repeat(chars, 6)
+                .Select(s => s[random.Next(s.Length)]).ToArray());
+        }
+
+        private void ExecuteNonQuery(string query, object parameters, SqlConnection connection)
+        {
+            using var command = new SqlCommand(query, connection);
+            foreach (var prop in parameters.GetType().GetProperties())
+                command.Parameters.AddWithValue($"@{prop.Name}", prop.GetValue(parameters) ?? DBNull.Value);
+            command.ExecuteNonQuery();
+        }
+
+        public record ResendVerificationRequest(string Email);
+
     }
 }
