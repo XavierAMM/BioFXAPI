@@ -3,6 +3,7 @@ using MailKit.Net.Smtp;
 using MailKit.Security;
 using MimeKit;
 using System.Diagnostics;
+using BioFXAPI.Models;
 using BioFXAPI.Notifications;
 
 
@@ -264,123 +265,137 @@ namespace BioFXAPI.Services
             }
         }
 
-        public async Task SendOrderPaidToShippingAsync(
-            string toEmail,
-            string customerFullName,
-            string customerEmail,
-            string? customerPhone,
-            string orderReference,
-            int requestId,
-            string orderStatus,
-            DateTime orderCreatedAt,
-            decimal totalAmount,
-            string currency,
-            string addressLine,
-            string city,
-            string province,
-            string country,
-            string? postalCode,
-            string documentType,
-            string documentNumber,
-            string? doctorName,
-            string paymentStatus,
-            string? paymentMethod,
-            string? paymentMethodName,
-            string? issuerName,
-            IEnumerable<OrderNotificationService.OrderEmailItem> items,
-            byte[]? attachmentBytes,
-            string? attachmentFileName,
-            string? attachmentContentType)
+        public async Task SendOrderPaidToShippingAsync(OrderPaidToShippingEmail model)
         {
-            var subject = $"Nueva orden pagada – Ref {orderReference} – Req {requestId}";
-
-            var createdLocal = orderCreatedAt.ToLocalTime();
+            var subject = $"Nueva orden pagada – Ref {model.OrderReference} – Req {model.RequestId}";
+            var createdLocalStr = FormatUtcInGuayaquil(model.OrderCreatedAt);
 
             string itemsHtml = "";
-            if (items != null)
+            if (model.Items != null && model.Items.Count > 0)
             {
                 itemsHtml = @"
-<table style='width:100%;border-collapse:collapse;font-size:13px;'>
-  <thead>
-    <tr>
-      <th style='border-bottom:1px solid #ddd;text-align:left;padding:6px;'>Producto</th>
-      <th style='border-bottom:1px solid #ddd;text-align:right;padding:6px;'>Cantidad</th>
-      <th style='border-bottom:1px solid #ddd;text-align:right;padding:6px;'>Precio unitario</th>
-      <th style='border-bottom:1px solid #ddd;text-align:right;padding:6px;'>Subtotal</th>
-    </tr>
-  </thead>
-  <tbody>";
-                foreach (var it in items)
+            <table style='width:100%;border-collapse:collapse;font-size:13px;'>
+              <thead>
+                <tr>
+                  <th style='border-bottom:1px solid #ddd;text-align:left;padding:6px;'>Producto</th>
+                  <th style='border-bottom:1px solid #ddd;text-align:right;padding:6px;'>Cantidad</th>
+                  <th style='border-bottom:1px solid #ddd;text-align:right;padding:6px;'>Precio unitario</th>
+                  <th style='border-bottom:1px solid #ddd;text-align:right;padding:6px;'>Subtotal</th>
+                </tr>
+              </thead>
+              <tbody>";
+
+                foreach (var it in model.Items)
                 {
                     itemsHtml += $@"
-    <tr>
-      <td style='border-bottom:1px solid #f0f0f0;padding:6px;'>{System.Net.WebUtility.HtmlEncode(it.ProductName)}</td>
-      <td style='border-bottom:1px solid #f0f0f0;padding:6px;text-align:right;'>{it.Quantity}</td>
-      <td style='border-bottom:1px solid #f0f0f0;padding:6px;text-align:right;'>{it.UnitPrice:0.00}</td>
-      <td style='border-bottom:1px solid #f0f0f0;padding:6px;text-align:right;'>{it.TotalPrice:0.00}</td>
-    </tr>";
+                        <tr>
+                          <td style='border-bottom:1px solid #f0f0f0;padding:6px;'>{System.Net.WebUtility.HtmlEncode(it.ProductName)}</td>
+                          <td style='border-bottom:1px solid #f0f0f0;padding:6px;text-align:right;'>{it.Quantity}</td>
+                          <td style='border-bottom:1px solid #f0f0f0;padding:6px;text-align:right;'>{it.UnitPrice:0.00}</td>
+                          <td style='border-bottom:1px solid #f0f0f0;padding:6px;text-align:right;'>{it.TotalPrice:0.00}</td>
+                        </tr>";
                 }
+
                 itemsHtml += @"
-  </tbody>
-</table>";
+                    </tbody>
+                </table>";
             }
 
             var html = $@"
-<div style='font-family:Arial,Helvetica,sans-serif;font-size:14px;color:#222;'>
-  <h2 style='margin-top:0;'>Nueva orden pagada para despacho</h2>
+                <div style='font-family:Arial,Helvetica,sans-serif;font-size:14px;color:#222;'>
+                    <h2 style='margin-top:0;'>Nueva orden pagada para despacho</h2>
 
-  <h3>Datos de la orden</h3>
-  <ul>
-    <li><strong>Referencia:</strong> {System.Net.WebUtility.HtmlEncode(orderReference)}</li>
-    <li><strong>RequestId (PlacetoPay):</strong> {requestId}</li>
-    <li><strong>Fecha de creación:</strong> {createdLocal:dd/MM/yyyy HH:mm}</li>
-    <li><strong>Estado de la orden:</strong> {System.Net.WebUtility.HtmlEncode(orderStatus)}</li>
-    <li><strong>Estado del pago:</strong> {System.Net.WebUtility.HtmlEncode(paymentStatus)}</li>
-  </ul>
+                    <h3>Datos de la orden</h3>
+                    <ul>
+                    <li><strong>Referencia:</strong> {System.Net.WebUtility.HtmlEncode(model.OrderReference)}</li>
+                    <li><strong>RequestId (PlacetoPay):</strong> {model.RequestId}</li>
+                    <li><strong>Fecha de creación:</strong> {createdLocalStr}</li>
+                    <li><strong>Estado de la orden:</strong> {System.Net.WebUtility.HtmlEncode(model.OrderStatus)}</li>
+                    <li><strong>Estado del pago:</strong> {System.Net.WebUtility.HtmlEncode(model.PaymentStatus)}</li>
+                    </ul>
 
-  <h3>Datos del comprador</h3>
-  <ul>
-    <li><strong>Nombre:</strong> {System.Net.WebUtility.HtmlEncode(customerFullName)}</li>
-    <li><strong>Email:</strong> {System.Net.WebUtility.HtmlEncode(customerEmail)}</li>
-    {(string.IsNullOrWhiteSpace(customerPhone) ? "" : $"<li><strong>Teléfono:</strong> {System.Net.WebUtility.HtmlEncode(customerPhone)}</li>")}
-    <li><strong>Tipo/Número documento:</strong> {System.Net.WebUtility.HtmlEncode(documentType)} – {System.Net.WebUtility.HtmlEncode(documentNumber)}</li>
-    {(string.IsNullOrWhiteSpace(doctorName) ? "" : $"<li><strong>Médico tratante:</strong> {System.Net.WebUtility.HtmlEncode(doctorName)}</li>")}
-  </ul>
+                    <h3>Datos del comprador</h3>
+                    <ul>
+                    <li><strong>Nombre:</strong> {System.Net.WebUtility.HtmlEncode(model.CustomerFullName)}</li>
+                    <li><strong>Email:</strong> {System.Net.WebUtility.HtmlEncode(model.CustomerEmail)}</li>
+                    {(string.IsNullOrWhiteSpace(model.CustomerPhone) ? "" : $"<li><strong>Teléfono:</strong> {System.Net.WebUtility.HtmlEncode(model.CustomerPhone)}</li>")}
+                    <li><strong>Tipo/Número documento:</strong> {System.Net.WebUtility.HtmlEncode(model.DocumentType)} – {System.Net.WebUtility.HtmlEncode(model.DocumentNumber)}</li>
+                    {(string.IsNullOrWhiteSpace(model.DoctorName) ? "" : $"<li><strong>Médico tratante:</strong> {System.Net.WebUtility.HtmlEncode(model.DoctorName)}</li>")}
+                    </ul>
 
-  <h3>Dirección de entrega</h3>
-  <ul>
-    <li>{System.Net.WebUtility.HtmlEncode(addressLine)}</li>
-    <li>{System.Net.WebUtility.HtmlEncode(city)}, {System.Net.WebUtility.HtmlEncode(province)}</li>
-    <li>{System.Net.WebUtility.HtmlEncode(country)}{(string.IsNullOrWhiteSpace(postalCode) ? "" : $" – CP {System.Net.WebUtility.HtmlEncode(postalCode)}")}</li>
-  </ul>
+                    <h3>Dirección de entrega</h3>
+                    <ul>
+                    <li>{System.Net.WebUtility.HtmlEncode(model.AddressLine)}</li>
+                    <li>{System.Net.WebUtility.HtmlEncode(model.City)}, {System.Net.WebUtility.HtmlEncode(model.Province)}</li>
+                    <li>{System.Net.WebUtility.HtmlEncode(model.Country)}{(string.IsNullOrWhiteSpace(model.PostalCode) ? "" : $" – CP {System.Net.WebUtility.HtmlEncode(model.PostalCode)}")}</li>
+                    </ul>
 
-  <h3>Detalle de pago</h3>
-  <ul>
-    <li><strong>Total:</strong> {totalAmount:0.00} {System.Net.WebUtility.HtmlEncode(currency)}</li>
-    {(string.IsNullOrWhiteSpace(paymentMethod) ? "" : $"<li><strong>Método de pago:</strong> {System.Net.WebUtility.HtmlEncode(paymentMethod)} – {System.Net.WebUtility.HtmlEncode(paymentMethodName ?? "")}</li>")}
-    {(string.IsNullOrWhiteSpace(issuerName) ? "" : $"<li><strong>Emisor:</strong> {System.Net.WebUtility.HtmlEncode(issuerName)}</li>")}
-  </ul>
+                    <h3>Detalle de pago</h3>
+                    <ul>
+                    <li><strong>Total:</strong> {model.TotalAmount:0.00} {System.Net.WebUtility.HtmlEncode(model.Currency)}</li>
+                    {(string.IsNullOrWhiteSpace(model.PaymentMethod) ? "" : $"<li><strong>Método de pago:</strong> {System.Net.WebUtility.HtmlEncode(model.PaymentMethod)} – {System.Net.WebUtility.HtmlEncode(model.PaymentMethodName ?? "")}</li>")}
+                    {(string.IsNullOrWhiteSpace(model.IssuerName) ? "" : $"<li><strong>Emisor:</strong> {System.Net.WebUtility.HtmlEncode(model.IssuerName)}</li>")}
+                    </ul>
 
-  {(string.IsNullOrEmpty(itemsHtml) ? "" : $@"
-  <h3>Detalle de productos</h3>
-  {itemsHtml}
-  ")}
+                    {(string.IsNullOrEmpty(itemsHtml) ? "" : $@"
+                    <h3>Detalle de productos</h3>
+                    {itemsHtml}
+                    ")}
 
-  <p style='margin-top:20px;'>
-    Esta orden ya está pagada y lista para gestión de envío. 
-    Usar la referencia y el RequestId para cualquier coordinación con el cliente.
-  </p>
-</div>";
+                    <p style='margin-top:20px;'>
+                    Esta orden ya está pagada y lista para gestión de envío. 
+                    Usar la referencia y el RequestId para cualquier coordinación con el cliente.
+                    </p>
+                </div>";
 
             await SendEmailAsync(
-                toEmail,
+                model.ToEmail,
                 subject,
                 html,
-                attachmentBytes,
-                attachmentFileName,
-                attachmentContentType);
+                model.AttachmentBytes,
+                model.AttachmentFileName,
+                model.AttachmentContentType);
         }
 
+        private static string FormatUtcInGuayaquil(DateTime utc)
+        {
+            // Asegurar UTC
+            if (utc.Kind == DateTimeKind.Local) utc = utc.ToUniversalTime();
+            if (utc.Kind == DateTimeKind.Unspecified) utc = DateTime.SpecifyKind(utc, DateTimeKind.Utc);
+
+            var tz = GetGuayaquilTimeZoneSafe();
+            var local = TimeZoneInfo.ConvertTimeFromUtc(utc, tz);
+
+            return local.ToString("dd/MM/yyyy HH:mm");
+        }
+
+        private static TimeZoneInfo GetGuayaquilTimeZoneSafe()
+        {
+            // 1) IANA (Linux)
+            // 2) Windows (Windows Server / IIS)
+            // 3) Fallback UTC
+            try
+            {
+                return TimeZoneInfo.FindSystemTimeZoneById("America/Guayaquil");
+            }
+            catch (TimeZoneNotFoundException)
+            {
+                // Windows ID (UTC-5, sin DST) común en Windows
+                try
+                {
+                    return TimeZoneInfo.FindSystemTimeZoneById("SA Pacific Standard Time");
+                }
+                catch
+                {
+                    return TimeZoneInfo.Utc;
+                }
+            }
+            catch (InvalidTimeZoneException)
+            {
+                // Si la zona está corrupta en el sistema
+                return TimeZoneInfo.Utc;
+            }
+        }
 
         public async Task SendEmailChangeConfirmationAsync(string email, string token)
         {

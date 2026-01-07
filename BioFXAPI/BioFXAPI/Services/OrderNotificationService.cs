@@ -3,6 +3,8 @@ using System.Data.SqlClient;
 using System.IO;
 using Dapper;
 using BioFXAPI.Services;
+using BioFXAPI.Models;
+using System.Linq;
 
 
 namespace BioFXAPI.Notifications
@@ -151,37 +153,52 @@ namespace BioFXAPI.Notifications
                 _logger.LogInformation("OrderNotificationService: enviando correo de orden pagada a {Email} para OrderId={OrderId}, RequestId={RequestId}",
                     shippingEmail, orderId, requestId);
 
-                await _emailService.SendOrderPaidToShippingAsync(
-                    toEmail: shippingEmail,
-                    customerFullName: $"{header.FirstName} {header.LastName}".Trim(),
-                    customerEmail: header.UserEmail!,
-                    customerPhone: header.PhoneNumber,
-                    orderReference: header.Reference,
-                    requestId: header.RequestId,
-                    orderStatus: header.OrderStatus,
-                    orderCreatedAt: TimeZoneInfo.ConvertTimeFromUtc(
-                        header.OrderCreatedAt,
-                        TimeZoneInfo.FindSystemTimeZoneById("America/Guayaquil")
-                    ),
-                    totalAmount: header.TotalAmount,
-                    currency: header.Currency,
-                    addressLine: header.AddressLine,
-                    city: header.City,
-                    province: header.Province,
-                    country: header.Country,
-                    postalCode: header.PostalCode,
-                    documentType: header.DocumentType,
-                    documentNumber: header.DocumentNumber,
-                    doctorName: header.DoctorName,
-                    paymentStatus: header.TxStatus,
-                    paymentMethod: header.PaymentMethod,
-                    paymentMethodName: header.PaymentMethodName,
-                    issuerName: header.IssuerName,
-                    items: items,
-                    attachmentBytes: attachmentBytes,
-                    attachmentFileName: attachmentFileName,
-                    attachmentContentType: attachmentContentType
-                );
+                var model = new OrderPaidToShippingEmail
+                {
+                    ToEmail = shippingEmail,
+
+                    CustomerFullName = $"{header.FirstName} {header.LastName}".Trim(),
+                    CustomerEmail = header.UserEmail!,
+                    CustomerPhone = header.PhoneNumber,
+
+                    OrderReference = header.Reference,
+                    RequestId = header.RequestId,
+                    OrderStatus = header.OrderStatus,
+                    OrderCreatedAt = EnsureUtc(header.OrderCreatedAt),
+
+                    TotalAmount = header.TotalAmount,
+                    Currency = header.Currency,
+
+                    AddressLine = header.AddressLine,
+                    City = header.City,
+                    Province = header.Province,
+                    Country = header.Country,
+                    PostalCode = header.PostalCode,
+
+                    DocumentType = header.DocumentType,
+                    DocumentNumber = header.DocumentNumber,
+                    DoctorName = header.DoctorName,
+
+                    PaymentStatus = header.TxStatus,
+                    PaymentMethod = header.PaymentMethod,
+                    PaymentMethodName = header.PaymentMethodName,
+                    IssuerName = header.IssuerName,
+
+                    Items = items.Select(i => new OrderPaidItemModel
+                    {
+                        ProductName = i.ProductName,
+                        Quantity = i.Quantity,
+                        UnitPrice = i.UnitPrice,
+                        TotalPrice = i.TotalPrice
+                    }).ToList(),
+
+                    AttachmentBytes = attachmentBytes,
+                    AttachmentFileName = attachmentFileName,
+                    AttachmentContentType = attachmentContentType
+                };
+
+                await _emailService.SendOrderPaidToShippingAsync(model);
+
 
                 _logger.LogInformation("OrderNotificationService: correo a envíos enviado correctamente para OrderId={OrderId}", orderId);
             }
@@ -231,6 +248,17 @@ namespace BioFXAPI.Notifications
 
 
         // Clases internas para mapear el SQL
+
+        private static DateTime EnsureUtc(DateTime dt)
+        {
+            return dt.Kind switch
+            {
+                DateTimeKind.Utc => dt,
+                DateTimeKind.Local => dt.ToUniversalTime(),
+                _ => DateTime.SpecifyKind(dt, DateTimeKind.Utc) // si viene Unspecified pero sabes que es UTC desde BD
+            };
+        }
+
         private sealed class OrderEmailHeader
         {
             public int OrderId { get; set; }

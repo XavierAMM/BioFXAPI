@@ -18,13 +18,19 @@ namespace BioFXAPI.Controllers
     {
         private readonly string _connectionString;
         private readonly PasswordService _passwordService;
+        private readonly EmailService _emailService;
+        private readonly ILogger<AuthController> _logger;
         private readonly IConfiguration _configuration;
+        private readonly EmailVerificationService _emailVerification;
 
-        public AuthController(IConfiguration configuration, PasswordService passwordService)
+        public AuthController(IConfiguration configuration, PasswordService passwordService, EmailService emailService, ILogger<AuthController> logger,EmailVerificationService emailVerification)
         {
             _connectionString = configuration.GetConnectionString("DefaultConnection");
             _passwordService = passwordService;
+            _emailService = emailService;
+            _logger = logger;
             _configuration = configuration;
+            _emailVerification = emailVerification;
         }
 
         [EnableRateLimiting("StrictLogin")]
@@ -37,17 +43,19 @@ namespace BioFXAPI.Controllers
             try
             {
                 var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "Unknown";
-                var loginResult = await ValidateLoginAttemptAsync(request.Email, request.Password, ipAddress);
+                var normEmail = request.Email.Trim().ToLowerInvariant();
+                var (result, payload) = await ValidateLoginAttemptAsync(normEmail, request.Password, ipAddress);
 
-                return loginResult switch
+                return result switch
                 {
                     LoginResult.Success => await HandleSuccessfulLoginAsync(request.Email, ipAddress),
                     LoginResult.LockedOut => StatusCode((int)HttpStatusCode.Forbidden,
                         new { message = "La cuenta está temporalmente bloqueada. Intente nuevamente después." }),
-                    LoginResult.EmailNotConfirmed => Unauthorized(new { message = "Por favor, confirme su correo antes de iniciar sesión." }),
+                    LoginResult.EmailNotConfirmed => Unauthorized(payload ?? new { message = "Por favor, confirme su correo antes de iniciar sesión.", action = "EMAIL_NOT_CONFIRMED" }),
                     LoginResult.AccountInactive => Unauthorized(new { message = "Cuenta inactiva. Contacte al administrador." }),
                     _ => Unauthorized(new { message = "Correo o contraseña no válidas." })
                 };
+
             }
             catch (SqlException ex)
             {
@@ -72,35 +80,45 @@ namespace BioFXAPI.Controllers
             return Ok(new { Message = "Logout exitoso." });
         }
 
-        #region Métodos Privados de Helper
-        private async Task<LoginResult> ValidateLoginAttemptAsync(string email, string password, string ipAddress)
+        private async Task<(LoginResult Result, object? Payload)> ValidateLoginAttemptAsync(string email, string password, string ipAddress)
         {
             using var connection = new SqlConnection(_connectionString);
             await connection.OpenAsync();
 
             var userData = await GetUserLoginDataAsync(email, connection);
-            if (!userData.UserFound) return LoginResult.InvalidCredentials;
+            if (!userData.UserFound) return (LoginResult.InvalidCredentials, null);
 
-            // Verificar si la cuenta está inactiva
             if (!userData.Activo)
-                return LoginResult.AccountInactive;
+                return (LoginResult.AccountInactive, null);
 
-            // Verificar si el bloqueo ya expiró
             if (userData.LockoutEnd.HasValue && userData.LockoutEnd.Value <= DateTime.UtcNow)
                 await ResetFailedAttemptsAsync(email, connection);
 
-            // Verificar si la cuenta está bloqueada
             if (_passwordService.IsAccountLocked(userData.LockoutEnd))
-                return LoginResult.LockedOut;
+                return (LoginResult.LockedOut, null);
 
-            // Verificar si el email está confirmado
+            // 1) Password primero (evita enumeración por EmailNotConfirmed)
+            var passwordOk = _passwordService.VerifyPassword(password, userData.StoredHash);
+            if (!passwordOk)
+                return (await HandleFailedLoginAsync(email, userData.FailedAttempts, connection), null);
+
+            // 2) Si password OK y email no confirmado => evaluar resend/cooldown/expiración
             if (!userData.EmailConfirmed)
-                return LoginResult.EmailNotConfirmed;
+            {
+                var outcome = await _emailVerification.EvaluateAndMaybeResendAsync(
+                    userId: userData.UserId,
+                    email: email,
+                    ip: ipAddress,
+                    connection: connection,
+                    autoResendWhenAllowed: true);
 
-            // Verificar contraseña
-            return _passwordService.VerifyPassword(password, userData.StoredHash)
-                ? await HandleSuccessfulLoginAsync(userData.UserId, ipAddress, connection)
-                : await HandleFailedLoginAsync(email, userData.FailedAttempts, connection);
+                return (LoginResult.EmailNotConfirmed, outcome);
+
+            }
+
+            // 3) Login normal
+            var success = await HandleSuccessfulLoginAsync(userData.UserId, ipAddress, connection);
+            return (success, null);
         }
 
         private async Task<(bool UserFound, int UserId, string StoredHash, int FailedAttempts, DateTime? LockoutEnd, bool EmailConfirmed, bool Activo, bool EsAdministrador)>
@@ -217,6 +235,7 @@ namespace BioFXAPI.Controllers
 
             return (DateTime)await command.ExecuteScalarAsync();
         }
+
         private async Task<PersonaInfo> GetPersonaDataAsync(int usuarioId, SqlConnection connection)
         {
             var query = @"SELECT Nombre, Apellido, Telefono 
@@ -286,8 +305,7 @@ namespace BioFXAPI.Controllers
                 command.Parameters.AddWithValue($"@{prop.Name}", prop.GetValue(parameters) ?? DBNull.Value);
 
             await command.ExecuteNonQueryAsync();
-        }
-        #endregion
+        }        
     }
 
     public enum LoginResult { Success, InvalidCredentials, LockedOut, EmailNotConfirmed, AccountInactive }

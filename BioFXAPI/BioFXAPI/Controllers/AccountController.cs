@@ -15,20 +15,18 @@ namespace BioFXAPI.Controllers
         private readonly PasswordService _passwordService;
         private readonly EmailService _emailService;
         private readonly ILogger<AccountController> _logger;
-        private const int VerificationTokenMinutes = 15;
-        private const int ResendCooldownMinutes = 2;
-        private const int ResendDailyLimit = 5;
         private readonly string _frontendBaseUrl;
+        private readonly EmailVerificationService _emailVerification;
 
-        public AccountController(IConfiguration configuration, PasswordService passwordService, EmailService emailService, ILogger<AccountController> logger)
+        public AccountController(IConfiguration configuration, PasswordService passwordService, EmailService emailService, ILogger<AccountController> logger, EmailVerificationService emailVerification)
         {
             _connectionString = configuration.GetConnectionString("DefaultConnection");
             _passwordService = passwordService;
             _emailService = emailService;
             _logger = logger;
+            _emailVerification = emailVerification;
             _frontendBaseUrl = configuration["Frontend:BaseUrl"] ?? "https://biofx.com.ec/";
         }
-
 
         public record TestEmailRequest(string To, string Subject, string Body);
 
@@ -62,7 +60,6 @@ namespace BioFXAPI.Controllers
                 try
                 {
                     var hashedPassword = _passwordService.HashPassword(request.Password);
-                    var emailToken = GenerateSecureToken();
                     var ip = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "Unknown";
 
                     int userId;
@@ -83,12 +80,9 @@ namespace BioFXAPI.Controllers
                         await InsertDatosFacturacionAsync(userId, connection, transaction);
                     }
 
-                    await InvalidateEmailVerificationTokensAsync(userId, connection, transaction);
-                    await InsertEmailVerificationTokenAsync(userId, normEmail, emailToken, ip, connection, transaction);
+                    await _emailVerification.IssueNewVerificationTokenAsync(userId: userId, email: normEmail, ip: ip, connection: connection, tx: transaction);
 
                     transaction.Commit();
-
-                    await _emailService.SendVerificationEmailAsync(normEmail, emailToken);
 
                     return Ok(new
                     {
@@ -319,14 +313,14 @@ namespace BioFXAPI.Controllers
                 using var connection = new SqlConnection(_connectionString);
                 await connection.OpenAsync();
 
-                // 1) Buscar usuario
+                // 1) Buscar usuario (sin enumeración)
                 var userQuery = @"SELECT TOP 1 id, emailConfirmado, Activo FROM dbo.Usuario WHERE email = @Email";
                 using var userCmd = new SqlCommand(userQuery, connection);
                 userCmd.Parameters.AddWithValue("@Email", email);
 
                 int userId;
-                bool emailConfirmado = false;
-                bool activo = false;
+                bool emailConfirmado;
+                bool activo;
 
                 using (var reader = await userCmd.ExecuteReaderAsync())
                 {
@@ -336,7 +330,7 @@ namespace BioFXAPI.Controllers
                     userId = reader.GetInt32(0);
                     emailConfirmado = reader.GetBoolean(1);
                     activo = reader.GetBoolean(2);
-                } // <- aquí se CIERRA el reader
+                }
 
                 if (!activo)
                     return Ok(GenericOk("Si el correo existe y no está verificado, enviamos un enlace.", "GENERIC"));
@@ -344,65 +338,17 @@ namespace BioFXAPI.Controllers
                 if (emailConfirmado)
                     return Ok(new { message = "El correo ya está verificado.", action = "ALREADY_VERIFIED" });
 
+                // 2) Delegar regla + DB + envío al EmailVerificationService (usa appsettings)
+                var outcome = await _emailVerification.EvaluateAndMaybeResendAsync(
+                    userId: userId,
+                    email: email,
+                    ip: ip,
+                    connection: connection,
+                    autoResendWhenAllowed: true);
 
-                // 2) Límite diario
-                var dailyCountQuery = @"
-                    SELECT COUNT(1)
-                    FROM dbo.EmailVerificationTokens
-                    WHERE UsuarioId = @UserId
-                      AND CreadoEl > DATEADD(hour, -24, GETUTCDATE());";
-                using var dailyCmd = new SqlCommand(dailyCountQuery, connection);
-                dailyCmd.Parameters.AddWithValue("@UserId", userId);
-                var dailyCount = (int)await dailyCmd.ExecuteScalarAsync();
-
-                if (dailyCount >= ResendDailyLimit)
-                    return Ok(new { message = "Has alcanzado el límite de reenvíos por hoy. Intenta más tarde.", action = "DAILY_LIMIT" });
-
-                // 3) Cooldown
-                var lastSentQuery = @"
-                    SELECT TOP 1 CreadoEl
-                    FROM dbo.EmailVerificationTokens
-                    WHERE UsuarioId = @UserId
-                    ORDER BY CreadoEl DESC;";
-                using var lastCmd = new SqlCommand(lastSentQuery, connection);
-                lastCmd.Parameters.AddWithValue("@UserId", userId);
-                var lastSentObj = await lastCmd.ExecuteScalarAsync();
-
-                if (lastSentObj is DateTime lastSentUtc)
-                {
-                    var cooldownUntil = lastSentUtc.AddMinutes(ResendCooldownMinutes);
-                    if (cooldownUntil > DateTime.UtcNow)
-                        return Ok(new { message = "Revisa tu correo. Ya se envió un enlace recientemente.", action = "COOLDOWN" });
-                }
-
-                // 4) Generar token + invalidar previos + insertar nuevo
-                var newToken = GenerateSecureToken();
-
-                using var tx = connection.BeginTransaction();
-                try
-                {
-                    await InvalidateEmailVerificationTokensAsync(userId, connection, tx);
-                    await InsertEmailVerificationTokenAsync(userId, email, newToken, ip, connection, tx);
-                    tx.Commit();
-                }
-                catch
-                {
-                    tx.Rollback();
-                    throw;
-                }
-
-                // 5) Enviar correo
-                try
-                {
-                    await _emailService.SendVerificationEmailAsync(email, newToken);
-                    return Ok(new { message = "Se ha reenviado el correo de confirmación.", action = "RESENT" });
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogError(ex, "Error reenviando email de verificación a {Email}", email);
-                    // No falles duro: el token ya existe, el usuario puede reintentar luego
-                    return Ok(new { message = "No se pudo enviar el correo en este momento. Intenta nuevamente.", action = "SEND_FAILED" });
-                }
+                // 3) Respuesta consistente para UI
+                // outcome.action será "EMAIL_NOT_CONFIRMED" y outcome.resendAction indica el detalle
+                return Ok(outcome);
             }
             catch (SqlException ex)
             {
@@ -431,48 +377,6 @@ namespace BioFXAPI.Controllers
             command.Parameters.AddWithValue("@PasswordHash", hashedPassword);
 
             return (int)await command.ExecuteScalarAsync();
-        }
-
-        private static byte[] HashTokenSha256(string token)
-        {
-            using var sha = System.Security.Cryptography.SHA256.Create();
-            return sha.ComputeHash(System.Text.Encoding.UTF8.GetBytes(token));
-        }
-
-        private async Task InvalidateEmailVerificationTokensAsync(int userId, SqlConnection connection, SqlTransaction? tx = null)
-        {
-            var query = @"
-                UPDATE dbo.EmailVerificationTokens
-                SET Activo = 0,
-                    RevocadoEl = COALESCE(RevocadoEl, GETUTCDATE()),
-                    ActualizadoEl = GETUTCDATE()
-                WHERE UsuarioId = @UserId
-                  AND Activo = 1
-                  AND UsadoEl IS NULL;";
-
-            using var cmd = tx is null ? new SqlCommand(query, connection) : new SqlCommand(query, connection, tx);
-            cmd.Parameters.AddWithValue("@UserId", userId);
-            await cmd.ExecuteNonQueryAsync();
-        }
-
-        private async Task InsertEmailVerificationTokenAsync(int userId, string email, string rawToken, string ip,SqlConnection connection, SqlTransaction? tx = null)
-        {
-            var tokenHash = HashTokenSha256(rawToken);
-
-            var query = @"
-                INSERT INTO dbo.EmailVerificationTokens
-                    (UsuarioId, TokenHash, ExpiraEl, UsadoEl, RevocadoEl, EmailEnviadoA, IpCreacion, Activo)
-                VALUES
-                    (@UserId, @TokenHash, DATEADD(minute, @Minutes, GETUTCDATE()), NULL, NULL, @Email, @Ip, 1);";
-
-            using var cmd = tx is null ? new SqlCommand(query, connection) : new SqlCommand(query, connection, tx);
-            cmd.Parameters.AddWithValue("@UserId", userId);
-            cmd.Parameters.Add("@TokenHash", System.Data.SqlDbType.VarBinary, 32).Value = tokenHash;
-            cmd.Parameters.AddWithValue("@Minutes", VerificationTokenMinutes);
-            cmd.Parameters.AddWithValue("@Email", email);
-            cmd.Parameters.AddWithValue("@Ip", ip);
-
-            await cmd.ExecuteNonQueryAsync();
         }
 
         private async Task InsertPersonaAsync(int usuarioId, string nombre, string apellido, string telefono, SqlConnection connection, SqlTransaction transaction)
@@ -536,7 +440,7 @@ namespace BioFXAPI.Controllers
         private async Task<(bool IsValid, int UserId, int TokenId)> TryGetValidEmailTokenAsync(string email,string rawToken,SqlConnection connection)
         {
             var normEmail = email.Trim().ToLowerInvariant();
-            var tokenHash = HashTokenSha256(rawToken);
+            var tokenHash = _emailVerification.ComputeTokenHash(rawToken);
 
             var query = @"
                 SELECT TOP 1 t.Id AS TokenId, u.id AS UserId
@@ -598,15 +502,8 @@ namespace BioFXAPI.Controllers
             }
 
             // 3) Invalidar cualquier otro token pendiente del usuario
-            await InvalidateEmailVerificationTokensAsync(userId, connection, tx);
-        }
+            await _emailVerification.InvalidatePendingTokensAsync(userId, connection, tx);
 
-        private string GenerateSecureToken()
-        {
-            var tokenData = new byte[32];
-            using var rng = System.Security.Cryptography.RandomNumberGenerator.Create();
-            rng.GetBytes(tokenData);
-            return Convert.ToBase64String(tokenData).Replace("+", "-").Replace("/", "_").Replace("=", "");
         }
 
         private string GenerateSixDigitCode()
@@ -615,15 +512,7 @@ namespace BioFXAPI.Controllers
             var random = new Random();
             return new string(Enumerable.Repeat(chars, 6)
                 .Select(s => s[random.Next(s.Length)]).ToArray());
-        }
-
-        private void ExecuteNonQuery(string query, object parameters, SqlConnection connection)
-        {
-            using var command = new SqlCommand(query, connection);
-            foreach (var prop in parameters.GetType().GetProperties())
-                command.Parameters.AddWithValue($"@{prop.Name}", prop.GetValue(parameters) ?? DBNull.Value);
-            command.ExecuteNonQuery();
-        }
+        }        
 
         public record ResendVerificationRequest(string Email);
 

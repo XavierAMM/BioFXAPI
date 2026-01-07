@@ -848,8 +848,7 @@ namespace BioFXAPI.Controllers
             var (ok, userId, err) = await TryResolveUserIdAsync(con, null);
             if (!ok) return err!;
 
-            // 2) Traer órdenes PAID del usuario (compactas)
-            //    Solo órdenes activas y pagadas
+            // 2) Traer órdenes del usuario (compactas) excepto Activo = 0 (Transaction.Status = 'CANCELLED') o EXPIRED
             var orders = (await con.QueryAsync<OrderHistoryRow>(@"
         SELECT 
             o.Id             AS OrderId,

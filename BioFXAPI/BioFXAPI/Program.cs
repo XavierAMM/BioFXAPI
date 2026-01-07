@@ -12,8 +12,6 @@ using Microsoft.OpenApi.Models;
 using Serilog;
 using System.Text;
 
-
-
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
@@ -107,6 +105,8 @@ if (string.IsNullOrEmpty(emailSettings["SmtpServer"]))
 }
 
 
+builder.Services.AddHostedService<AccountMaintenanceHostedService>();
+builder.Services.AddScoped<EmailVerificationService>();
 builder.Services.AddHttpClient();
 builder.Services.AddHostedService<PlacetoPayAutoRefreshHostedService>();
 builder.Services.AddScoped<PasswordService>();

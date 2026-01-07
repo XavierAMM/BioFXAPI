@@ -15,6 +15,9 @@
         public string IssuerName { get; set; }
         public bool Refunded { get; set; }
         public decimal? RefundedAmount { get; set; }
+        public bool Activo { get; set; } = true;
+        public string Authorization { get; set; }
+
         public DateTime CreadoEl { get; set; } = DateTime.UtcNow;
         public DateTime ActualizadoEl { get; set; } = DateTime.UtcNow;
     }
