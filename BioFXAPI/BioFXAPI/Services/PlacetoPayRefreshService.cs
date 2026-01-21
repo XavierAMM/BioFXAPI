@@ -54,15 +54,35 @@ namespace BioFXAPI.Services
             await con.OpenAsync(ct);
 
             // ===== 1) Load latest tx for requestId (needed for ProcessUrl + OrderId + current Status) =====
-            var txRow = await con.QueryFirstOrDefaultAsync<(int Id, int OrderId, string Status, string ProcessUrl)>(
-                @"SELECT TOP 1 Id, OrderId, Status, ProcessUrl
-          FROM [Transaction]
-          WHERE RequestId=@Rid
-          ORDER BY Id DESC",
+            var txRow = await con.QueryFirstOrDefaultAsync<(int Id, int OrderId, string Status, string ProcessUrl, int TxActivo, int OrderActivo, string OrderStatus
+                    )>(@"
+                        SELECT TOP 1
+                            t.Id,
+                            t.OrderId,
+                            t.Status,
+                            t.ProcessUrl,
+                            t.Activo      AS TxActivo,
+                            o.Activo      AS OrderActivo,
+                            o.Status      AS OrderStatus
+                        FROM [Transaction] t
+                        INNER JOIN [Order] o ON o.Id = t.OrderId
+                        WHERE t.RequestId = @Rid
+                        ORDER BY t.Id DESC;",
                 new { Rid = requestId });
 
             if (txRow == default)
                 return (new NotFoundObjectResult(new { message = "No existe transacción." }), null);
+
+            // === Guard: no refrescar si está inactiva o cancelada localmente ===
+            var txStatus = (txRow.Status ?? "").Trim().ToUpperInvariant();
+            var orderStatus = (txRow.OrderStatus ?? "").Trim().ToUpperInvariant();
+
+            if (txRow.TxActivo == 0 || txRow.OrderActivo == 0 || txStatus == "CANCELLED" || orderStatus == "CANCELLED")
+            {
+                // NO-OP: evita que el hosted service o un refresh por requestId “reviva” cancelaciones locales
+                return (null, new RefreshResult(txRow.OrderId, requestId, txRow.Status, false));
+            }
+
 
             // ===== 2) Owner-check (usuario) =====
             if (validateOwner)
@@ -310,7 +330,7 @@ namespace BioFXAPI.Services
               RefundedAmount    = CASE WHEN @RefundedAmount IS NULL THEN RefundedAmount ELSE @RefundedAmount END,
               [Authorization]   = COALESCE(@Authorization, [Authorization]),
               ActualizadoEl     = GETUTCDATE()
-          WHERE Id=@TxId;",
+          WHERE Id=@TxId and Activo = 1;",
                 new
                 {
                     Id = txRow.OrderId,
@@ -445,71 +465,70 @@ namespace BioFXAPI.Services
 
         private static JsonElement SelectBestPayment(JsonElement payArr, out string? status, out DateTime? date)
         {
-            // Preferencia: APPROVED más reciente; luego REJECTED/FAILED más reciente; si no, más reciente por fecha; si no, primero.
+            // 1) Si existe APPROVED => devolver el APPROVED más reciente
+            // 2) Si no existe APPROVED => devolver el payment más reciente por fecha (cualquiera)
+            // 3) Fallbacks: si no hay fechas, devolver el primero disponible
+
             JsonElement? bestApproved = null;
             DateTime? bestApprovedDate = null;
 
-            JsonElement? bestRejected = null;
-            DateTime? bestRejectedDate = null;
+            JsonElement? bestRecent = null;
+            DateTime? bestRecentDate = null;
 
-            JsonElement? bestAny = null;
-            DateTime? bestAnyDate = null;
+            JsonElement? firstNoDate = null;
 
             foreach (var p in payArr.EnumerateArray())
             {
                 var (ps, pd) = ReadPaymentStatusAndDate(p);
 
-                if (pd.HasValue)
+                // Guarda un fallback si no hay fecha
+                if (!pd.HasValue && firstNoDate == null)
+                    firstNoDate = p;
+
+                // Track del más reciente (cualquier status) por fecha
+                if (pd.HasValue && (bestRecentDate == null || pd > bestRecentDate))
                 {
-                    if (bestAnyDate == null || pd > bestAnyDate)
-                    {
-                        bestAnyDate = pd;
-                        bestAny = p;
-                    }
-                }
-                else if (bestAny == null)
-                {
-                    bestAny = p;
+                    bestRecentDate = pd;
+                    bestRecent = p;
                 }
 
+                // Track del APPROVED más reciente por fecha
                 if (string.Equals(ps, "APPROVED", StringComparison.OrdinalIgnoreCase))
                 {
-                    if (bestApprovedDate == null || (pd.HasValue && pd > bestApprovedDate))
+                    if (pd.HasValue)
                     {
-                        bestApprovedDate = pd;
-                        bestApproved = p;
+                        if (bestApprovedDate == null || pd > bestApprovedDate)
+                        {
+                            bestApprovedDate = pd;
+                            bestApproved = p;
+                        }
                     }
-                }
-
-                if (string.Equals(ps, "REJECTED", StringComparison.OrdinalIgnoreCase) ||
-                    string.Equals(ps, "FAILED", StringComparison.OrdinalIgnoreCase))
-                {
-                    if (bestRejectedDate == null || (pd.HasValue && pd > bestRejectedDate))
+                    else if (bestApproved == null)
                     {
-                        bestRejectedDate = pd;
-                        bestRejected = p;
+                        // Si no trae fecha, al menos guarda un approved como fallback
+                        bestApproved = p;
                     }
                 }
             }
 
             JsonElement selected;
+
             if (bestApproved.HasValue)
             {
                 selected = bestApproved.Value;
-                status = "APPROVED";
-                date = bestApprovedDate;
+                (status, date) = ReadPaymentStatusAndDate(selected);
+                // status debería ser APPROVED, pero lo leemos para consistencia
                 return selected;
             }
 
-            if (bestRejected.HasValue)
+            if (bestRecent.HasValue)
             {
-                selected = bestRejected.Value;
-                status = ReadPaymentStatusAndDate(selected).status;
-                date = bestRejectedDate;
+                selected = bestRecent.Value;
+                (status, date) = ReadPaymentStatusAndDate(selected);
                 return selected;
             }
 
-            selected = bestAny ?? payArr[0];
+            selected = firstNoDate ?? payArr[0];
             (status, date) = ReadPaymentStatusAndDate(selected);
             return selected;
         }

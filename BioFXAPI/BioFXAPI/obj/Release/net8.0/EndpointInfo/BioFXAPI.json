@@ -1289,7 +1289,7 @@
         }
       }
     },
-    "/api/Transactions/cancel-by-request": {
+    "/api/Transactions/internal/cancel-by-request": {
       "post": {
         "tags": [
           "Transactions"

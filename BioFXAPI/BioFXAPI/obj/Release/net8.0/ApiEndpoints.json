@@ -738,8 +738,8 @@
   },
   {
     "ContainingType": "BioFXAPI.Controllers.TransactionsController",
-    "Method": "CancelByRequest",
-    "RelativePath": "api/Transactions/cancel-by-request",
+    "Method": "CancelByRequestInternal",
+    "RelativePath": "api/Transactions/internal/cancel-by-request",
     "HttpMethod": "POST",
     "IsController": true,
     "Order": 0,

@@ -27,9 +27,9 @@ namespace BioFXAPI.Controllers
         private readonly IFileStorageService _fileStorage;
         private readonly OrderNotificationService _orderNotificationService;
         private readonly PlacetoPayRefreshService _refresh;
+        private readonly OrderCancellationService _cancelSvc;
 
-
-        public OrdersController(IConfiguration cfg, ILogger<OrdersController> logger, IFileStorageService fileStorage, OrderNotificationService orderNotificationService, PlacetoPayRefreshService refresh)
+        public OrdersController(IConfiguration cfg, ILogger<OrdersController> logger, IFileStorageService fileStorage, OrderNotificationService orderNotificationService, PlacetoPayRefreshService refresh, OrderCancellationService cancelSvc)
         {
             _cfg = cfg;
             _cs = cfg.GetConnectionString("DefaultConnection");
@@ -39,6 +39,7 @@ namespace BioFXAPI.Controllers
             _fileStorage = fileStorage;
             _orderNotificationService = orderNotificationService;
             _refresh = refresh;
+            _cancelSvc = cancelSvc;
         }
 
         [HttpPost("create")]
@@ -663,12 +664,11 @@ namespace BioFXAPI.Controllers
 
         [Authorize]
         [HttpPost("{orderId:int}/cancel")]
-        public async Task<IActionResult> CancelPendingSession(int orderId)
+        public async Task<IActionResult> CancelPendingSession(int orderId, CancellationToken ct)
         {
             using var con = new SqlConnection(_cs);
-            await con.OpenAsync();
+            await con.OpenAsync(ct);
 
-            // 1) Dueño
             var (ok, userId, err) = await TryResolveUserIdAsync(con, null);
             if (!ok) return err!;
 
@@ -677,135 +677,10 @@ namespace BioFXAPI.Controllers
                 new { Id = orderId, Uid = userId });
             if (isMine == 0) return Forbid();
 
-            // 2) Última transacción
-            var last = await con.QueryFirstOrDefaultAsync<(int TxId, int? RequestId, string Status)>(
-                @"SELECT TOP 1 Id, RequestId, Status
-          FROM [Transaction] WHERE OrderId=@Id AND Activo=1 ORDER BY Id DESC",
-                new { Id = orderId });
-            if (last == default) return BadRequest(new { message = "Orden sin transacción." });
+            var (error, status) = await _cancelSvc.CancelOrderAsync(orderId, tryCancelGateway: true, ct);
+            if (error != null) return error;
 
-            if (string.Equals(last.Status, "PAID", StringComparison.OrdinalIgnoreCase))
-                return BadRequest(new { message = "La orden ya está pagada." });
-
-            // ✅ NUEVO: no permitir cancelar si está en validación/processing
-            if (string.Equals(last.Status, "PENDING_VALIDATION", StringComparison.OrdinalIgnoreCase))
-                return StatusCode(409, new
-                {
-                    message = "Existe un pago en validación. No se puede cancelar en este momento. Refresca el estado.",
-                    status = last.Status
-                });
-
-            // 3) Reconsulta rápida a P2P si hay requestId
-            if (last.RequestId is int rid && rid > 0)
-            {
-                // auth
-                var seed = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:sszzz", System.Globalization.CultureInfo.InvariantCulture);
-                var nonceBytes = RandomNumberGenerator.GetBytes(16);
-                var nonce = Convert.ToBase64String(nonceBytes);
-                var secret = _cfg["PlacetoPay:SecretKey"]!.Trim();
-                var input = new byte[nonceBytes.Length + Encoding.UTF8.GetByteCount(seed + secret)];
-                Buffer.BlockCopy(nonceBytes, 0, input, 0, nonceBytes.Length);
-                Encoding.UTF8.GetBytes(seed + secret, 0, seed.Length + secret.Length, input, nonceBytes.Length);
-                var tranKey = Convert.ToBase64String(SHA256.HashData(input));
-                var authJson = JsonSerializer.Serialize(new { auth = new { login = _cfg["PlacetoPay:Login"], tranKey, nonce, seed } });
-
-                // baseUri según ProcessUrl
-                var pUrl = await con.ExecuteScalarAsync<string>(
-                    "SELECT TOP 1 ProcessUrl FROM [Transaction] WHERE Id=@TxId",
-                    new { TxId = last.TxId });
-
-                var baseUri = _http.BaseAddress!;
-                if (!string.IsNullOrWhiteSpace(pUrl))
-                {
-                    var u = new Uri(pUrl);
-                    baseUri = new Uri($"{u.Scheme}://{u.Host}/");
-                }
-
-                using var http = new HttpClient { BaseAddress = baseUri };
-                http.DefaultRequestHeaders.Accept.ParseAdd("application/json");
-
-                var resp = await http.PostAsync(
-                    $"api/session/{rid}",
-                    new StringContent(authJson, Encoding.UTF8, "application/json"));
-
-                if (resp.IsSuccessStatusCode)
-                {
-                    var payload = await resp.Content.ReadAsStringAsync();
-                    using var doc = JsonDocument.Parse(payload);
-                    var gw = doc.RootElement.GetProperty("status").GetProperty("status").GetString();
-                    if (gw is "APPROVED" or "OK")
-                        return StatusCode(409, new { message = "La sesión fue aprobada por la pasarela." });
-                }
-            }
-
-            // 4) Cancelación local y liberar reserva
-            using var tx = con.BeginTransaction();
-
-            // 1) Lock del estado actual de la orden (idempotencia)
-            var currentOrderStatus = await con.ExecuteScalarAsync<string>(@"
-                SELECT Status
-                FROM [Order] WITH (UPDLOCK, ROWLOCK)
-                WHERE Id=@Id AND Activo=1;",
-                new { Id = orderId }, tx);
-
-            currentOrderStatus ??= "PENDING";
-
-            // Si ya es final, no tocar stockreservado (idempotente)
-            bool isFinal =
-                currentOrderStatus.Equals("PAID", StringComparison.OrdinalIgnoreCase) ||
-                currentOrderStatus.Equals("REJECTED", StringComparison.OrdinalIgnoreCase) ||
-                currentOrderStatus.Equals("EXPIRED", StringComparison.OrdinalIgnoreCase) ||
-                currentOrderStatus.Equals("CANCELLED", StringComparison.OrdinalIgnoreCase);
-
-            if (isFinal)
-            {
-                if (currentOrderStatus.Equals("CANCELLED", StringComparison.OrdinalIgnoreCase))
-                {
-                    await con.ExecuteAsync(@"
-                        UPDATE [Transaction]
-                        SET Activo = 0,
-                            ActualizadoEl = GETUTCDATE()
-                        WHERE OrderId = @Id
-                          AND Status = 'CANCELLED'
-                          AND Activo = 1;",
-                    new { Id = orderId }, tx);
-                }
-
-                tx.Commit();
-                return Ok(new { orderId, status = currentOrderStatus, idempotent = true });
-            }
-
-
-            // 2) Side-effect único: liberar reservado + recalcular disponible
-            await con.ExecuteAsync(@"
-                UPDATE p
-                SET p.StockReservado = CASE WHEN p.StockReservado >= oi.Quantity THEN p.StockReservado - oi.Quantity ELSE 0 END,
-                    p.Disponible = CASE 
-                        WHEN (COALESCE(p.Stock,0) - 
-                                (CASE WHEN p.StockReservado >= oi.Quantity THEN p.StockReservado - oi.Quantity ELSE 0 END)
-                             ) > 0 THEN 1 ELSE 0 END,
-                    p.ActualizadoEl = GETUTCDATE()
-                FROM Producto p 
-                INNER JOIN OrderItem oi ON oi.ProductId = p.Id
-                WHERE oi.OrderId = @OrderId;",
-                new { OrderId = orderId }, tx);
-
-            // 3) Marcar CANCELLED (solo una vez)
-            await con.ExecuteAsync(@"
-                UPDATE [Order] 
-                SET Status='CANCELLED', ActualizadoEl=GETUTCDATE()
-                WHERE Id=@Id AND Activo=1;
-
-                UPDATE [Transaction] 
-                SET Status='CANCELLED',
-                    Activo=0,
-                    ActualizadoEl=GETUTCDATE()
-                WHERE OrderId=@Id AND Activo=1;",
-                new { Id = orderId }, tx);
-
-            tx.Commit();
-            return Ok(new { orderId, status = "CANCELLED" });
-
+            return Ok(new { orderId, status });
         }
 
         [Authorize]
@@ -823,19 +698,113 @@ namespace BioFXAPI.Controllers
                 new { Id = orderId, Uid = userId });
             if (mine == 0) return Forbid();
 
-            var txRow = await con.QueryFirstOrDefaultAsync<(string Status, DateTime CreadoEl)>(
-                "SELECT TOP 1 Status, CreadoEl FROM [Transaction] WHERE OrderId=@Id AND Activo=1 ORDER BY Id DESC",
-                new { Id = orderId });
+            // Última transacción activa
+            var tx = await con.QueryFirstOrDefaultAsync<(int TxId, int RequestId, string ProcessUrl)>(@"
+        SELECT TOP 1 Id AS TxId, RequestId, ProcessUrl
+        FROM [Transaction]
+        WHERE OrderId=@Id AND Activo=1
+        ORDER BY Id DESC", new { Id = orderId });
 
-            if (txRow.Status.Equals("PAID", StringComparison.OrdinalIgnoreCase))
+            if (tx.Equals(default) || tx.RequestId <= 0 || string.IsNullOrWhiteSpace(tx.ProcessUrl))
+                return BadRequest(new { message = "No existe una sesión previa válida para esta orden." });
+
+            // Si tu verdad de pagado es Order.Status, valida primero (rápido)
+            var orderStatus = await con.ExecuteScalarAsync<string>(
+                "SELECT Status FROM [Order] WHERE Id=@Id AND Activo=1", new { Id = orderId });
+
+            if (string.Equals(orderStatus, "PAID", StringComparison.OrdinalIgnoreCase))
                 return BadRequest(new { message = "La orden ya está pagada." });
 
-            var tooOld = (DateTime.UtcNow - txRow.CreadoEl).TotalMinutes > 15;
-            if (!(tooOld || txRow.Status.Equals("EXPIRED", StringComparison.OrdinalIgnoreCase)))
-                return BadRequest(new { message = "La sesión actual aún es válida." });
+            // 1) Consultar estado real en PlacetoPay (GetRequestInformation)
+            var info = await GetRequestInformationAsync(tx.RequestId);
+            if (!info.ok)
+                return StatusCode(info.statusCode, new { message = "No se pudo consultar la sesión en PlacetoPay.", raw = info.raw });
 
-            // Reutiliza tu POST api/session (CreatePlacetoPaySession) y devuelve { processUrl, requestId }
-            return await CreatePlacetoPaySession(orderId, req);
+            using var doc = info.doc!;
+            var root = doc.RootElement;
+
+            // 2) Leer status remoto
+            var statusEl = root.GetProperty("status");
+            TryReadString(statusEl, "status", out var remoteStatus);
+            TryReadString(statusEl, "reason", out var remoteReason);
+            TryReadString(statusEl, "message", out var remoteMessage);
+
+            // 3) Leer expiration remoto (si viene)
+            DateTimeOffset? remoteExpiration = null;
+            if (root.TryGetProperty("request", out var requestEl) &&
+                requestEl.TryGetProperty("expiration", out var expEl) &&
+                expEl.ValueKind == JsonValueKind.String &&
+                DateTimeOffset.TryParse(expEl.GetString(), out var expDto))
+            {
+                remoteExpiration = expDto;
+            }
+
+            var now = DateTimeOffset.UtcNow;
+
+            var isExpired =
+                string.Equals(remoteStatus, "EXPIRED", StringComparison.OrdinalIgnoreCase) ||
+                string.Equals(remoteReason, "EX", StringComparison.OrdinalIgnoreCase) ||
+                (remoteExpiration.HasValue && now >= remoteExpiration.Value.ToUniversalTime());
+
+            // 4) Persistir status remoto en tu Transaction (recomendado)
+            await con.ExecuteAsync(@"
+        UPDATE [Transaction]
+        SET Status=@Status,
+            Reason=@Reason,
+            Message=@Message,
+            ActualizadoEl=GETUTCDATE()
+        WHERE Id=@TxId", new
+            {
+                Status = remoteStatus,
+                Reason = remoteReason,
+                Message = remoteMessage,
+                TxId = tx.TxId
+            });
+
+            if (isExpired)
+            {
+                return StatusCode(StatusCodes.Status410Gone, new
+                {
+                    message = "La sesión de pago ya expiró. Crea una nueva sesión para continuar.",
+                    requestId = tx.RequestId,
+                    expired = true,
+                    status = remoteStatus,
+                    reason = remoteReason
+                });
+            }
+
+            // Opcional: si ya finalizó, no “reanudes”
+            if (string.Equals(remoteStatus, "APPROVED", StringComparison.OrdinalIgnoreCase))
+            {
+                // aquí podrías llamar tu RefreshStatus/RefreshService si quieres sincronizar y marcar PAID
+                return Conflict(new
+                {
+                    message = "La sesión ya finalizó como APROBADA. Refresca el estado de la orden.",
+                    requestId = tx.RequestId,
+                    status = remoteStatus
+                });
+            }
+
+            if (string.Equals(remoteStatus, "REJECTED", StringComparison.OrdinalIgnoreCase))
+            {
+                return Conflict(new
+                {
+                    message = "La sesión ya finalizó como RECHAZADA. Crea una nueva sesión si deseas reintentar.",
+                    requestId = tx.RequestId,
+                    status = remoteStatus,
+                    reason = remoteReason
+                });
+            }
+
+            // 5) Sigue abierta: reanudar en la misma sesión
+            return Ok(new
+            {
+                requestId = tx.RequestId,
+                processUrl = tx.ProcessUrl,
+                reused = true,
+                expired = false,
+                status = remoteStatus
+            });
         }
 
         [HttpGet("mine/history")]
@@ -996,6 +965,58 @@ namespace BioFXAPI.Controllers
             return isPdf || isImage;
         }
 
+        private object BuildPlacetoPayAuth()
+        {
+            var seed = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:sszzz", System.Globalization.CultureInfo.InvariantCulture);
+
+            var nonceBytes = RandomNumberGenerator.GetBytes(16);
+            var nonce = Convert.ToBase64String(nonceBytes);
+
+            var secret = _cfg["PlacetoPay:SecretKey"]!.Trim();
+
+            // tranKey = base64( SHA256( nonce + seed + secretKey ) )
+            var seedPlusSecret = seed + secret;
+            var seedSecretBytes = Encoding.UTF8.GetBytes(seedPlusSecret);
+
+            var input = new byte[nonceBytes.Length + seedSecretBytes.Length];
+            Buffer.BlockCopy(nonceBytes, 0, input, 0, nonceBytes.Length);
+            Buffer.BlockCopy(seedSecretBytes, 0, input, nonceBytes.Length, seedSecretBytes.Length);
+
+            var tranKey = Convert.ToBase64String(SHA256.HashData(input));
+
+            return new
+            {
+                login = _cfg["PlacetoPay:Login"],
+                tranKey,
+                nonce,
+                seed
+            };
+        }
+
+        private async Task<(bool ok, JsonDocument? doc, int statusCode, string? raw)> GetRequestInformationAsync(int requestId)
+        {
+            var body = new
+            {
+                auth = BuildPlacetoPayAuth()
+            };
+
+            var json = JsonSerializer.Serialize(body);
+            var resp = await _http.PostAsync($"api/session/{requestId}", new StringContent(json, Encoding.UTF8, "application/json"));
+            var payload = await resp.Content.ReadAsStringAsync();
+
+            if (!resp.IsSuccessStatusCode)
+                return (false, null, (int)resp.StatusCode, payload);
+
+            return (true, JsonDocument.Parse(payload), 200, null);
+        }
+
+        private static bool TryReadString(JsonElement el, string prop, out string? value)
+        {
+            value = null;
+            if (!el.TryGetProperty(prop, out var p)) return false;
+            value = p.ValueKind == JsonValueKind.String ? p.GetString() : p.ToString();
+            return true;
+        }
 
         public record OrderHistoryDto(
             int OrderId,

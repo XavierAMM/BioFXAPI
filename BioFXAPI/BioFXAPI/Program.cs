@@ -105,6 +105,7 @@ if (string.IsNullOrEmpty(emailSettings["SmtpServer"]))
 }
 
 
+builder.Services.AddScoped<OrderCancellationService>();
 builder.Services.AddHostedService<AccountMaintenanceHostedService>();
 builder.Services.AddScoped<EmailVerificationService>();
 builder.Services.AddHttpClient();
