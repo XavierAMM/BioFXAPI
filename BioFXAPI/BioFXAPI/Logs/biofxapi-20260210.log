@@ -1,0 +1,477 @@
+2026-02-10 20:26:29.623 -05:00 [DBG] Registered model binder providers, in the following order: ["Microsoft.AspNetCore.Mvc.ModelBinding.Binders.BinderTypeModelBinderProvider","Microsoft.AspNetCore.Mvc.ModelBinding.Binders.ServicesModelBinderProvider","Microsoft.AspNetCore.Mvc.ModelBinding.Binders.BodyModelBinderProvider","Microsoft.AspNetCore.Mvc.ModelBinding.Binders.HeaderModelBinderProvider","Microsoft.AspNetCore.Mvc.ModelBinding.Binders.FloatingPointTypeModelBinderProvider","Microsoft.AspNetCore.Mvc.ModelBinding.Binders.EnumTypeModelBinderProvider","Microsoft.AspNetCore.Mvc.ModelBinding.Binders.DateTimeModelBinderProvider","Microsoft.AspNetCore.Mvc.ModelBinding.Binders.SimpleTypeModelBinderProvider","Microsoft.AspNetCore.Mvc.ModelBinding.Binders.TryParseModelBinderProvider","Microsoft.AspNetCore.Mvc.ModelBinding.Binders.CancellationTokenModelBinderProvider","Microsoft.AspNetCore.Mvc.ModelBinding.Binders.ByteArrayModelBinderProvider","Microsoft.AspNetCore.Mvc.ModelBinding.Binders.FormFileModelBinderProvider","Microsoft.AspNetCore.Mvc.ModelBinding.Binders.FormCollectionModelBinderProvider","Microsoft.AspNetCore.Mvc.ModelBinding.Binders.KeyValuePairModelBinderProvider","Microsoft.AspNetCore.Mvc.ModelBinding.Binders.DictionaryModelBinderProvider","Microsoft.AspNetCore.Mvc.ModelBinding.Binders.ArrayModelBinderProvider","Microsoft.AspNetCore.Mvc.ModelBinding.Binders.CollectionModelBinderProvider","Microsoft.AspNetCore.Mvc.ModelBinding.Binders.ComplexObjectModelBinderProvider"]
+2026-02-10 20:26:30.073 -05:00 [DBG] Hosting starting
+2026-02-10 20:26:30.148 -05:00 [INF] User profile is available. Using 'C:\Users\xmanc\AppData\Local\ASP.NET\DataProtection-Keys' as key repository and Windows DPAPI to encrypt keys at rest.
+2026-02-10 20:26:30.162 -05:00 [DBG] Reading data from file 'C:\Users\xmanc\AppData\Local\ASP.NET\DataProtection-Keys\key-3390bb48-7b52-40b9-a5cd-8587ed8f0a32.xml'.
+2026-02-10 20:26:30.224 -05:00 [DBG] Reading data from file 'C:\Users\xmanc\AppData\Local\ASP.NET\DataProtection-Keys\key-a53364e5-c8f1-4abd-b63f-f57292da94bd.xml'.
+2026-02-10 20:26:30.268 -05:00 [DBG] Found key {3390bb48-7b52-40b9-a5cd-8587ed8f0a32}.
+2026-02-10 20:26:30.279 -05:00 [DBG] Found key {a53364e5-c8f1-4abd-b63f-f57292da94bd}.
+2026-02-10 20:26:30.287 -05:00 [DBG] Considering key {a53364e5-c8f1-4abd-b63f-f57292da94bd} with expiration date 2026-03-30 22:04:56Z as default key.
+2026-02-10 20:26:30.292 -05:00 [DBG] Forwarded activator type request from Microsoft.AspNetCore.DataProtection.XmlEncryption.DpapiXmlDecryptor, Microsoft.AspNetCore.DataProtection, Version=8.0.0.0, Culture=neutral, PublicKeyToken=adb9793829ddae60 to Microsoft.AspNetCore.DataProtection.XmlEncryption.DpapiXmlDecryptor, Microsoft.AspNetCore.DataProtection, Culture=neutral, PublicKeyToken=adb9793829ddae60
+2026-02-10 20:26:30.297 -05:00 [DBG] Decrypting secret element using Windows DPAPI.
+2026-02-10 20:26:30.303 -05:00 [DBG] Forwarded activator type request from Microsoft.AspNetCore.DataProtection.AuthenticatedEncryption.ConfigurationModel.AuthenticatedEncryptorDescriptorDeserializer, Microsoft.AspNetCore.DataProtection, Version=8.0.0.0, Culture=neutral, PublicKeyToken=adb9793829ddae60 to Microsoft.AspNetCore.DataProtection.AuthenticatedEncryption.ConfigurationModel.AuthenticatedEncryptorDescriptorDeserializer, Microsoft.AspNetCore.DataProtection, Culture=neutral, PublicKeyToken=adb9793829ddae60
+2026-02-10 20:26:30.312 -05:00 [DBG] Opening CNG algorithm 'AES' from provider 'null' with chaining mode CBC.
+2026-02-10 20:26:30.333 -05:00 [DBG] Opening CNG algorithm 'SHA256' from provider 'null' with HMAC.
+2026-02-10 20:26:30.344 -05:00 [DBG] Using key {a53364e5-c8f1-4abd-b63f-f57292da94bd} as the default key.
+2026-02-10 20:26:30.348 -05:00 [DBG] Key ring with default key {a53364e5-c8f1-4abd-b63f-f57292da94bd} was loaded during application startup.
+2026-02-10 20:26:30.400 -05:00 [DBG] Middleware loaded
+2026-02-10 20:26:30.413 -05:00 [DBG] Middleware loaded. Script /_framework/aspnetcore-browser-refresh.js (16501 B).
+2026-02-10 20:26:30.428 -05:00 [DBG] Middleware loaded. Script /_framework/blazor-hotreload.js (799 B).
+2026-02-10 20:26:30.540 -05:00 [DBG] Middleware loaded: DOTNET_MODIFIABLE_ASSEMBLIES=null, __ASPNETCORE_BROWSER_TOOLS=true
+2026-02-10 20:26:30.660 -05:00 [INF] Now listening on: https://localhost:7177
+2026-02-10 20:26:30.663 -05:00 [INF] Now listening on: http://localhost:5160
+2026-02-10 20:26:30.664 -05:00 [DBG] Loaded hosting startup assembly BioFXAPI
+2026-02-10 20:26:30.665 -05:00 [DBG] Loaded hosting startup assembly Microsoft.WebTools.ApiEndpointDiscovery
+2026-02-10 20:26:30.667 -05:00 [DBG] Loaded hosting startup assembly Microsoft.AspNetCore.Watch.BrowserRefresh
+2026-02-10 20:26:30.678 -05:00 [DBG] Loaded hosting startup assembly Microsoft.WebTools.BrowserLink.Net
+2026-02-10 20:26:30.778 -05:00 [INF] Application started. Press Ctrl+C to shut down.
+2026-02-10 20:26:30.781 -05:00 [INF] Hosting environment: Development
+2026-02-10 20:26:30.787 -05:00 [INF] Content root path: C:\Users\xmanc\OneDrive\Desktop\BioFXAPI-Github\BioFXAPI\BioFXAPI
+2026-02-10 20:26:30.791 -05:00 [DBG] Hosting started
+2026-02-10 20:26:31.007 -05:00 [DBG] Connection id "0HNJ91IAVOTNE" accepted.
+2026-02-10 20:26:31.009 -05:00 [DBG] Connection id "0HNJ91IAVOTNF" accepted.
+2026-02-10 20:26:31.010 -05:00 [DBG] Connection id "0HNJ91IAVOTNE" started.
+2026-02-10 20:26:31.011 -05:00 [DBG] Connection id "0HNJ91IAVOTNF" started.
+2026-02-10 20:26:31.042 -05:00 [DBG] Connection id "0HNJ91IAVOTNE" received FIN.
+2026-02-10 20:26:31.042 -05:00 [DBG] Connection id "0HNJ91IAVOTNF" received FIN.
+2026-02-10 20:26:31.057 -05:00 [DBG] Failed to authenticate HTTPS connection.
+System.IO.IOException: Received an unexpected EOF or 0 bytes from the transport stream.
+   at System.Net.Security.SslStream.ReceiveHandshakeFrameAsync[TIOAdapter](CancellationToken cancellationToken)
+   at System.Net.Security.SslStream.ForceAuthenticationAsync[TIOAdapter](Boolean receiveFirst, Byte[] reAuthenticationData, CancellationToken cancellationToken)
+   at System.Net.Security.SslStream.ProcessAuthenticationWithTelemetryAsync(Boolean isAsync, CancellationToken cancellationToken)
+   at Microsoft.AspNetCore.Server.Kestrel.Https.Internal.HttpsConnectionMiddleware.OnConnectionAsync(ConnectionContext context)
+2026-02-10 20:26:31.057 -05:00 [DBG] Failed to authenticate HTTPS connection.
+System.IO.IOException: Received an unexpected EOF or 0 bytes from the transport stream.
+   at System.Net.Security.SslStream.ReceiveHandshakeFrameAsync[TIOAdapter](CancellationToken cancellationToken)
+   at System.Net.Security.SslStream.ForceAuthenticationAsync[TIOAdapter](Boolean receiveFirst, Byte[] reAuthenticationData, CancellationToken cancellationToken)
+   at System.Net.Security.SslStream.ProcessAuthenticationWithTelemetryAsync(Boolean isAsync, CancellationToken cancellationToken)
+   at Microsoft.AspNetCore.Server.Kestrel.Https.Internal.HttpsConnectionMiddleware.OnConnectionAsync(ConnectionContext context)
+2026-02-10 20:26:31.122 -05:00 [DBG] Connection id "0HNJ91IAVOTNF" stopped.
+2026-02-10 20:26:31.122 -05:00 [DBG] Connection id "0HNJ91IAVOTNE" stopped.
+2026-02-10 20:26:31.126 -05:00 [DBG] Connection id "0HNJ91IAVOTNE" sending FIN because: "The Socket transport's send loop completed gracefully."
+2026-02-10 20:26:31.126 -05:00 [DBG] Connection id "0HNJ91IAVOTNF" sending FIN because: "The Socket transport's send loop completed gracefully."
+2026-02-10 20:26:31.846 -05:00 [DBG] Connection id "0HNJ91IAVOTNG" accepted.
+2026-02-10 20:26:31.866 -05:00 [DBG] Connection id "0HNJ91IAVOTNG" started.
+2026-02-10 20:26:31.929 -05:00 [DBG] Connection 0HNJ91IAVOTNG established using the following protocol: "Tls13"
+2026-02-10 20:26:32.016 -05:00 [INF] Request starting HTTP/2 GET https://localhost:7177/swagger/index.html - null null
+2026-02-10 20:26:32.268 -05:00 [DBG] Wildcard detected, all requests with hosts will be allowed.
+2026-02-10 20:26:32.305 -05:00 [DBG] No candidates found for the request path '/swagger/index.html'
+2026-02-10 20:26:32.336 -05:00 [DBG] Request did not match any endpoints
+2026-02-10 20:26:32.447 -05:00 [DBG] Response markup is scheduled to include Browser Link script injection.
+2026-02-10 20:26:32.514 -05:00 [DBG] Response markup is scheduled to include browser refresh script injection.
+2026-02-10 20:26:32.540 -05:00 [DBG] Response markup was updated to include Browser Link script injection.
+2026-02-10 20:26:32.542 -05:00 [DBG] Response markup was updated to include browser refresh script injection.
+2026-02-10 20:26:32.546 -05:00 [INF] Request finished HTTP/2 GET https://localhost:7177/swagger/index.html - 200 null text/html;charset=utf-8 537.5467ms
+2026-02-10 20:26:33.092 -05:00 [INF] Request starting HTTP/2 GET https://localhost:7177/_framework/aspnetcore-browser-refresh.js - null null
+2026-02-10 20:26:33.096 -05:00 [INF] Request starting HTTP/2 GET https://localhost:7177/_vs/browserLink - null null
+2026-02-10 20:26:33.112 -05:00 [DBG] Script injected: /_framework/aspnetcore-browser-refresh.js
+2026-02-10 20:26:33.114 -05:00 [INF] Request finished HTTP/2 GET https://localhost:7177/_framework/aspnetcore-browser-refresh.js - 200 16501 application/javascript; charset=utf-8 21.6574ms
+2026-02-10 20:26:33.171 -05:00 [INF] Request finished HTTP/2 GET https://localhost:7177/_vs/browserLink - 200 null text/javascript; charset=UTF-8 75.6625ms
+2026-02-10 20:26:33.234 -05:00 [INF] Request starting HTTP/2 GET https://localhost:7177/swagger/v1/swagger.json - null null
+2026-02-10 20:26:33.248 -05:00 [INF] Request starting HTTP/2 GET https://localhost:7177/swagger/favicon-32x32.png - null null
+2026-02-10 20:26:33.250 -05:00 [DBG] No candidates found for the request path '/swagger/v1/swagger.json'
+2026-02-10 20:26:33.263 -05:00 [DBG] No candidates found for the request path '/swagger/favicon-32x32.png'
+2026-02-10 20:26:33.265 -05:00 [DBG] Request did not match any endpoints
+2026-02-10 20:26:33.268 -05:00 [DBG] Request did not match any endpoints
+2026-02-10 20:26:33.283 -05:00 [INF] Sending file. Request path: '/favicon-32x32.png'. Physical path: 'N/A'
+2026-02-10 20:26:33.286 -05:00 [INF] Request finished HTTP/2 GET https://localhost:7177/swagger/favicon-32x32.png - 200 628 image/png 38.9362ms
+2026-02-10 20:26:33.291 -05:00 [INF] Request finished HTTP/2 GET https://localhost:7177/swagger/v1/swagger.json - 200 null application/json;charset=utf-8 57.2289ms
+2026-02-10 20:27:57.255 -05:00 [INF] Request starting HTTP/2 POST https://localhost:7177/api/Auth/login - application/json 69
+2026-02-10 20:27:57.285 -05:00 [DBG] 1 candidate(s) found for the request path '/api/Auth/login'
+2026-02-10 20:27:57.291 -05:00 [DBG] Endpoint 'BioFXAPI.Controllers.AuthController.Login (BioFXAPI)' with route pattern 'api/Auth/login' is valid for the request path '/api/Auth/login'
+2026-02-10 20:27:57.294 -05:00 [DBG] Request matched endpoint 'BioFXAPI.Controllers.AuthController.Login (BioFXAPI)'
+2026-02-10 20:27:57.297 -05:00 [DBG] Static files was skipped as the request already matched an endpoint.
+2026-02-10 20:27:57.300 -05:00 [DBG] The request has an origin header: 'https://localhost:7177'.
+2026-02-10 20:27:57.301 -05:00 [INF] CORS policy execution failed.
+2026-02-10 20:27:57.303 -05:00 [INF] Request origin https://localhost:7177 does not have permission to access the resource.
+2026-02-10 20:27:57.393 -05:00 [DBG] AuthenticationScheme: Bearer was not authenticated.
+2026-02-10 20:27:57.398 -05:00 [INF] Executing endpoint 'BioFXAPI.Controllers.AuthController.Login (BioFXAPI)'
+2026-02-10 20:27:57.432 -05:00 [INF] Route matched with {action = "Login", controller = "Auth"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] Login(BioFXAPI.Models.LoginRequest) on controller BioFXAPI.Controllers.AuthController (BioFXAPI).
+2026-02-10 20:27:57.436 -05:00 [DBG] Execution plan of authorization filters (in the following order): ["None"]
+2026-02-10 20:27:57.439 -05:00 [DBG] Execution plan of resource filters (in the following order): ["None"]
+2026-02-10 20:27:57.441 -05:00 [DBG] Execution plan of action filters (in the following order): ["Microsoft.AspNetCore.Mvc.ModelBinding.UnsupportedContentTypeFilter (Order: -3000)","Microsoft.AspNetCore.Mvc.Infrastructure.ModelStateInvalidFilter (Order: -2000)"]
+2026-02-10 20:27:57.444 -05:00 [DBG] Execution plan of exception filters (in the following order): ["None"]
+2026-02-10 20:27:57.446 -05:00 [DBG] Execution plan of result filters (in the following order): ["Microsoft.AspNetCore.Mvc.Infrastructure.ClientErrorResultFilter (Order: -2000)"]
+2026-02-10 20:27:57.450 -05:00 [DBG] Executing controller factory for controller BioFXAPI.Controllers.AuthController (BioFXAPI)
+2026-02-10 20:27:57.452 -05:00 [INF] EmailSettings cargados: SmtpServer=mail.biofx.com.ec, SmtpPort=465, SenderEmail=info@biofx.com.ec, EnableSsl=true
+2026-02-10 20:27:57.456 -05:00 [DBG] Executed controller factory for controller BioFXAPI.Controllers.AuthController (BioFXAPI)
+2026-02-10 20:27:57.471 -05:00 [DBG] Attempting to bind parameter 'request' of type 'BioFXAPI.Models.LoginRequest' ...
+2026-02-10 20:27:57.475 -05:00 [DBG] Attempting to bind parameter 'request' of type 'BioFXAPI.Models.LoginRequest' using the name '' in request data ...
+2026-02-10 20:27:57.479 -05:00 [DBG] Selected input formatter 'Microsoft.AspNetCore.Mvc.Formatters.SystemTextJsonInputFormatter' for content type 'application/json'.
+2026-02-10 20:27:57.487 -05:00 [DBG] Connection id "0HNJ91IAVOTNG", Request id "0HNJ91IAVOTNG:0000000B": started reading request body.
+2026-02-10 20:27:57.490 -05:00 [DBG] Connection id "0HNJ91IAVOTNG", Request id "0HNJ91IAVOTNG:0000000B": done reading request body.
+2026-02-10 20:27:57.503 -05:00 [DBG] JSON input formatter succeeded, deserializing to type 'BioFXAPI.Models.LoginRequest'
+2026-02-10 20:27:57.506 -05:00 [DBG] Done attempting to bind parameter 'request' of type 'BioFXAPI.Models.LoginRequest'.
+2026-02-10 20:27:57.509 -05:00 [DBG] Done attempting to bind parameter 'request' of type 'BioFXAPI.Models.LoginRequest'.
+2026-02-10 20:27:57.511 -05:00 [DBG] Attempting to validate the bound parameter 'request' of type 'BioFXAPI.Models.LoginRequest' ...
+2026-02-10 20:27:57.523 -05:00 [DBG] Done attempting to validate the bound parameter 'request' of type 'BioFXAPI.Models.LoginRequest'.
+2026-02-10 20:27:59.207 -05:00 [DBG] List of registered output formatters, in the following order: ["Microsoft.AspNetCore.Mvc.Formatters.HttpNoContentOutputFormatter","Microsoft.AspNetCore.Mvc.Formatters.StringOutputFormatter","Microsoft.AspNetCore.Mvc.Formatters.StreamOutputFormatter","Microsoft.AspNetCore.Mvc.Formatters.SystemTextJsonOutputFormatter"]
+2026-02-10 20:27:59.215 -05:00 [DBG] No information found on request to perform content negotiation.
+2026-02-10 20:27:59.217 -05:00 [DBG] Attempting to select an output formatter without using a content type as no explicit content types were specified for the response.
+2026-02-10 20:27:59.222 -05:00 [DBG] Attempting to select the first formatter in the output formatters list which can write the result.
+2026-02-10 20:27:59.224 -05:00 [DBG] Selected output formatter 'Microsoft.AspNetCore.Mvc.Formatters.SystemTextJsonOutputFormatter' and content type 'application/json' to write the response.
+2026-02-10 20:27:59.232 -05:00 [INF] Executing OkObjectResult, writing value of type 'BioFXAPI.Models.LoginResponse'.
+2026-02-10 20:27:59.247 -05:00 [INF] Executed action BioFXAPI.Controllers.AuthController.Login (BioFXAPI) in 1798.0198ms
+2026-02-10 20:27:59.251 -05:00 [INF] Executed endpoint 'BioFXAPI.Controllers.AuthController.Login (BioFXAPI)'
+2026-02-10 20:27:59.254 -05:00 [INF] Request finished HTTP/2 POST https://localhost:7177/api/Auth/login - 200 null application/json; charset=utf-8 1999.63ms
+2026-02-10 20:28:08.099 -05:00 [INF] Request starting HTTP/2 GET https://localhost:7177/api/Orders/175/status - null null
+2026-02-10 20:28:08.107 -05:00 [DBG] 1 candidate(s) found for the request path '/api/Orders/175/status'
+2026-02-10 20:28:08.109 -05:00 [DBG] Endpoint 'BioFXAPI.Controllers.OrdersController.RefreshStatus (BioFXAPI)' with route pattern 'api/Orders/{orderId:int}/status' is valid for the request path '/api/Orders/175/status'
+2026-02-10 20:28:08.111 -05:00 [DBG] Request matched endpoint 'BioFXAPI.Controllers.OrdersController.RefreshStatus (BioFXAPI)'
+2026-02-10 20:28:08.113 -05:00 [DBG] Static files was skipped as the request already matched an endpoint.
+2026-02-10 20:28:08.152 -05:00 [DBG] Successfully validated the token.
+2026-02-10 20:28:08.154 -05:00 [DBG] AuthenticationScheme: Bearer was successfully authenticated.
+2026-02-10 20:28:08.159 -05:00 [DBG] Authorization was successful.
+2026-02-10 20:28:08.161 -05:00 [INF] Executing endpoint 'BioFXAPI.Controllers.OrdersController.RefreshStatus (BioFXAPI)'
+2026-02-10 20:28:08.169 -05:00 [INF] Route matched with {action = "RefreshStatus", controller = "Orders"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] RefreshStatus(Int32, System.Threading.CancellationToken) on controller BioFXAPI.Controllers.OrdersController (BioFXAPI).
+2026-02-10 20:28:08.172 -05:00 [DBG] Execution plan of authorization filters (in the following order): ["None"]
+2026-02-10 20:28:08.174 -05:00 [DBG] Execution plan of resource filters (in the following order): ["None"]
+2026-02-10 20:28:08.175 -05:00 [DBG] Execution plan of action filters (in the following order): ["Microsoft.AspNetCore.Mvc.ModelBinding.UnsupportedContentTypeFilter (Order: -3000)","Microsoft.AspNetCore.Mvc.Infrastructure.ModelStateInvalidFilter (Order: -2000)"]
+2026-02-10 20:28:08.177 -05:00 [DBG] Execution plan of exception filters (in the following order): ["None"]
+2026-02-10 20:28:08.179 -05:00 [DBG] Execution plan of result filters (in the following order): ["Microsoft.AspNetCore.Mvc.Infrastructure.ClientErrorResultFilter (Order: -2000)"]
+2026-02-10 20:28:08.181 -05:00 [DBG] Executing controller factory for controller BioFXAPI.Controllers.OrdersController (BioFXAPI)
+2026-02-10 20:28:08.273 -05:00 [INF] EmailSettings cargados: SmtpServer=mail.biofx.com.ec, SmtpPort=465, SenderEmail=info@biofx.com.ec, EnableSsl=true
+2026-02-10 20:28:08.279 -05:00 [DBG] Executed controller factory for controller BioFXAPI.Controllers.OrdersController (BioFXAPI)
+2026-02-10 20:28:08.282 -05:00 [DBG] Attempting to bind parameter 'orderId' of type 'System.Int32' ...
+2026-02-10 20:28:08.286 -05:00 [DBG] Attempting to bind parameter 'orderId' of type 'System.Int32' using the name 'orderId' in request data ...
+2026-02-10 20:28:08.289 -05:00 [DBG] Done attempting to bind parameter 'orderId' of type 'System.Int32'.
+2026-02-10 20:28:08.291 -05:00 [DBG] Done attempting to bind parameter 'orderId' of type 'System.Int32'.
+2026-02-10 20:28:08.293 -05:00 [DBG] Attempting to validate the bound parameter 'orderId' of type 'System.Int32' ...
+2026-02-10 20:28:08.296 -05:00 [DBG] Done attempting to validate the bound parameter 'orderId' of type 'System.Int32'.
+2026-02-10 20:28:08.298 -05:00 [DBG] Attempting to bind parameter 'ct' of type 'System.Threading.CancellationToken' ...
+2026-02-10 20:28:08.301 -05:00 [DBG] Done attempting to bind parameter 'ct' of type 'System.Threading.CancellationToken'.
+2026-02-10 20:28:08.304 -05:00 [DBG] Attempting to validate the bound parameter 'ct' of type 'System.Threading.CancellationToken' ...
+2026-02-10 20:28:08.306 -05:00 [DBG] Done attempting to validate the bound parameter 'ct' of type 'System.Threading.CancellationToken'.
+2026-02-10 20:28:08.579 -05:00 [DBG] List of registered output formatters, in the following order: ["Microsoft.AspNetCore.Mvc.Formatters.HttpNoContentOutputFormatter","Microsoft.AspNetCore.Mvc.Formatters.StringOutputFormatter","Microsoft.AspNetCore.Mvc.Formatters.StreamOutputFormatter","Microsoft.AspNetCore.Mvc.Formatters.SystemTextJsonOutputFormatter"]
+2026-02-10 20:28:08.585 -05:00 [DBG] No information found on request to perform content negotiation.
+2026-02-10 20:28:08.586 -05:00 [DBG] Attempting to select an output formatter without using a content type as no explicit content types were specified for the response.
+2026-02-10 20:28:08.587 -05:00 [DBG] Attempting to select the first formatter in the output formatters list which can write the result.
+2026-02-10 20:28:08.590 -05:00 [DBG] Selected output formatter 'Microsoft.AspNetCore.Mvc.Formatters.SystemTextJsonOutputFormatter' and content type 'application/json' to write the response.
+2026-02-10 20:28:08.592 -05:00 [INF] Executing BadRequestObjectResult, writing value of type '<>f__AnonymousType0`1[[System.String, System.Private.CoreLib, Version=8.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]'.
+2026-02-10 20:28:08.596 -05:00 [INF] Executed action BioFXAPI.Controllers.OrdersController.RefreshStatus (BioFXAPI) in 415.312ms
+2026-02-10 20:28:08.598 -05:00 [INF] Executed endpoint 'BioFXAPI.Controllers.OrdersController.RefreshStatus (BioFXAPI)'
+2026-02-10 20:28:08.599 -05:00 [INF] Request finished HTTP/2 GET https://localhost:7177/api/Orders/175/status - 400 null application/json; charset=utf-8 499.8194ms
+2026-02-10 20:28:30.399 -05:00 [INF] EmailSettings cargados: SmtpServer=mail.biofx.com.ec, SmtpPort=465, SenderEmail=info@biofx.com.ec, EnableSsl=true
+2026-02-10 20:28:30.696 -05:00 [INF] AccountMaintenance: disabledUsers=0 deletedExpiredTokens=0 (disableAfterDays=7, deleteTokensAfterDays=30)
+2026-02-10 20:28:31.065 -05:00 [INF] PlacetoPay AutoRefresh: candidates=0 ok=0 paid=0 errors=0
+2026-02-10 20:29:30.705 -05:00 [INF] AccountMaintenance: disabledUsers=0 deletedExpiredTokens=0 (disableAfterDays=7, deleteTokensAfterDays=30)
+2026-02-10 20:30:31.013 -05:00 [INF] AccountMaintenance: disabledUsers=0 deletedExpiredTokens=0 (disableAfterDays=7, deleteTokensAfterDays=30)
+2026-02-10 20:31:30.497 -05:00 [INF] AccountMaintenance: lock no adquirido (code=-1). Se omite el tick.
+2026-02-10 20:32:30.493 -05:00 [INF] AccountMaintenance: lock no adquirido (code=-1). Se omite el tick.
+2026-02-10 20:33:30.501 -05:00 [INF] AccountMaintenance: lock no adquirido (code=-1). Se omite el tick.
+2026-02-10 20:34:30.714 -05:00 [INF] AccountMaintenance: disabledUsers=0 deletedExpiredTokens=0 (disableAfterDays=7, deleteTokensAfterDays=30)
+2026-02-10 20:35:30.696 -05:00 [INF] AccountMaintenance: disabledUsers=0 deletedExpiredTokens=0 (disableAfterDays=7, deleteTokensAfterDays=30)
+2026-02-10 20:36:30.707 -05:00 [INF] AccountMaintenance: disabledUsers=0 deletedExpiredTokens=0 (disableAfterDays=7, deleteTokensAfterDays=30)
+2026-02-10 20:37:30.710 -05:00 [INF] AccountMaintenance: disabledUsers=0 deletedExpiredTokens=0 (disableAfterDays=7, deleteTokensAfterDays=30)
+2026-02-10 20:38:30.710 -05:00 [INF] AccountMaintenance: disabledUsers=0 deletedExpiredTokens=0 (disableAfterDays=7, deleteTokensAfterDays=30)
+2026-02-10 20:39:30.701 -05:00 [INF] AccountMaintenance: disabledUsers=0 deletedExpiredTokens=0 (disableAfterDays=7, deleteTokensAfterDays=30)
+2026-02-10 20:39:30.716 -05:00 [INF] Request starting HTTP/2 GET https://localhost:7177/api/Orders/173/status - null null
+2026-02-10 20:39:30.731 -05:00 [DBG] 1 candidate(s) found for the request path '/api/Orders/173/status'
+2026-02-10 20:39:30.733 -05:00 [DBG] Endpoint 'BioFXAPI.Controllers.OrdersController.RefreshStatus (BioFXAPI)' with route pattern 'api/Orders/{orderId:int}/status' is valid for the request path '/api/Orders/173/status'
+2026-02-10 20:39:30.734 -05:00 [DBG] Request matched endpoint 'BioFXAPI.Controllers.OrdersController.RefreshStatus (BioFXAPI)'
+2026-02-10 20:39:30.736 -05:00 [DBG] Static files was skipped as the request already matched an endpoint.
+2026-02-10 20:39:30.738 -05:00 [DBG] Successfully validated the token.
+2026-02-10 20:39:30.739 -05:00 [DBG] AuthenticationScheme: Bearer was successfully authenticated.
+2026-02-10 20:39:30.741 -05:00 [DBG] Authorization was successful.
+2026-02-10 20:39:30.743 -05:00 [INF] Executing endpoint 'BioFXAPI.Controllers.OrdersController.RefreshStatus (BioFXAPI)'
+2026-02-10 20:39:30.744 -05:00 [INF] Route matched with {action = "RefreshStatus", controller = "Orders"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] RefreshStatus(Int32, System.Threading.CancellationToken) on controller BioFXAPI.Controllers.OrdersController (BioFXAPI).
+2026-02-10 20:39:30.746 -05:00 [DBG] Execution plan of authorization filters (in the following order): ["None"]
+2026-02-10 20:39:30.751 -05:00 [DBG] Execution plan of resource filters (in the following order): ["None"]
+2026-02-10 20:39:30.756 -05:00 [DBG] Execution plan of action filters (in the following order): ["Microsoft.AspNetCore.Mvc.ModelBinding.UnsupportedContentTypeFilter (Order: -3000)","Microsoft.AspNetCore.Mvc.Infrastructure.ModelStateInvalidFilter (Order: -2000)"]
+2026-02-10 20:39:30.760 -05:00 [DBG] Execution plan of exception filters (in the following order): ["None"]
+2026-02-10 20:39:30.762 -05:00 [DBG] Execution plan of result filters (in the following order): ["Microsoft.AspNetCore.Mvc.Infrastructure.ClientErrorResultFilter (Order: -2000)"]
+2026-02-10 20:39:30.765 -05:00 [DBG] Executing controller factory for controller BioFXAPI.Controllers.OrdersController (BioFXAPI)
+2026-02-10 20:39:30.768 -05:00 [INF] EmailSettings cargados: SmtpServer=mail.biofx.com.ec, SmtpPort=465, SenderEmail=info@biofx.com.ec, EnableSsl=true
+2026-02-10 20:39:30.771 -05:00 [DBG] Executed controller factory for controller BioFXAPI.Controllers.OrdersController (BioFXAPI)
+2026-02-10 20:39:30.773 -05:00 [DBG] Attempting to bind parameter 'orderId' of type 'System.Int32' ...
+2026-02-10 20:39:30.776 -05:00 [DBG] Attempting to bind parameter 'orderId' of type 'System.Int32' using the name 'orderId' in request data ...
+2026-02-10 20:39:30.778 -05:00 [DBG] Done attempting to bind parameter 'orderId' of type 'System.Int32'.
+2026-02-10 20:39:30.779 -05:00 [DBG] Done attempting to bind parameter 'orderId' of type 'System.Int32'.
+2026-02-10 20:39:30.780 -05:00 [DBG] Attempting to validate the bound parameter 'orderId' of type 'System.Int32' ...
+2026-02-10 20:39:30.782 -05:00 [DBG] Done attempting to validate the bound parameter 'orderId' of type 'System.Int32'.
+2026-02-10 20:39:30.783 -05:00 [DBG] Attempting to bind parameter 'ct' of type 'System.Threading.CancellationToken' ...
+2026-02-10 20:39:30.785 -05:00 [DBG] Done attempting to bind parameter 'ct' of type 'System.Threading.CancellationToken'.
+2026-02-10 20:39:30.786 -05:00 [DBG] Attempting to validate the bound parameter 'ct' of type 'System.Threading.CancellationToken' ...
+2026-02-10 20:39:30.788 -05:00 [DBG] Done attempting to validate the bound parameter 'ct' of type 'System.Threading.CancellationToken'.
+2026-02-10 20:39:30.994 -05:00 [DBG] List of registered output formatters, in the following order: ["Microsoft.AspNetCore.Mvc.Formatters.HttpNoContentOutputFormatter","Microsoft.AspNetCore.Mvc.Formatters.StringOutputFormatter","Microsoft.AspNetCore.Mvc.Formatters.StreamOutputFormatter","Microsoft.AspNetCore.Mvc.Formatters.SystemTextJsonOutputFormatter"]
+2026-02-10 20:39:30.997 -05:00 [DBG] No information found on request to perform content negotiation.
+2026-02-10 20:39:30.998 -05:00 [DBG] Attempting to select an output formatter without using a content type as no explicit content types were specified for the response.
+2026-02-10 20:39:31.000 -05:00 [DBG] Attempting to select the first formatter in the output formatters list which can write the result.
+2026-02-10 20:39:31.001 -05:00 [DBG] Selected output formatter 'Microsoft.AspNetCore.Mvc.Formatters.SystemTextJsonOutputFormatter' and content type 'application/json' to write the response.
+2026-02-10 20:39:31.002 -05:00 [INF] Executing BadRequestObjectResult, writing value of type '<>f__AnonymousType0`1[[System.String, System.Private.CoreLib, Version=8.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]'.
+2026-02-10 20:39:31.004 -05:00 [INF] Executed action BioFXAPI.Controllers.OrdersController.RefreshStatus (BioFXAPI) in 238.4766ms
+2026-02-10 20:39:31.006 -05:00 [INF] Executed endpoint 'BioFXAPI.Controllers.OrdersController.RefreshStatus (BioFXAPI)'
+2026-02-10 20:39:31.007 -05:00 [INF] Request finished HTTP/2 GET https://localhost:7177/api/Orders/173/status - 400 null application/json; charset=utf-8 291.6338ms
+2026-02-10 20:39:35.964 -05:00 [INF] Request starting HTTP/2 GET https://localhost:7177/api/Orders/172/status - null null
+2026-02-10 20:39:35.967 -05:00 [DBG] 1 candidate(s) found for the request path '/api/Orders/172/status'
+2026-02-10 20:39:35.969 -05:00 [DBG] Endpoint 'BioFXAPI.Controllers.OrdersController.RefreshStatus (BioFXAPI)' with route pattern 'api/Orders/{orderId:int}/status' is valid for the request path '/api/Orders/172/status'
+2026-02-10 20:39:35.974 -05:00 [DBG] Request matched endpoint 'BioFXAPI.Controllers.OrdersController.RefreshStatus (BioFXAPI)'
+2026-02-10 20:39:35.976 -05:00 [DBG] Static files was skipped as the request already matched an endpoint.
+2026-02-10 20:39:35.977 -05:00 [DBG] Successfully validated the token.
+2026-02-10 20:39:35.978 -05:00 [DBG] AuthenticationScheme: Bearer was successfully authenticated.
+2026-02-10 20:39:35.982 -05:00 [DBG] Authorization was successful.
+2026-02-10 20:39:35.983 -05:00 [INF] Executing endpoint 'BioFXAPI.Controllers.OrdersController.RefreshStatus (BioFXAPI)'
+2026-02-10 20:39:35.985 -05:00 [INF] Route matched with {action = "RefreshStatus", controller = "Orders"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] RefreshStatus(Int32, System.Threading.CancellationToken) on controller BioFXAPI.Controllers.OrdersController (BioFXAPI).
+2026-02-10 20:39:35.989 -05:00 [DBG] Execution plan of authorization filters (in the following order): ["None"]
+2026-02-10 20:39:35.991 -05:00 [DBG] Execution plan of resource filters (in the following order): ["None"]
+2026-02-10 20:39:35.993 -05:00 [DBG] Execution plan of action filters (in the following order): ["Microsoft.AspNetCore.Mvc.ModelBinding.UnsupportedContentTypeFilter (Order: -3000)","Microsoft.AspNetCore.Mvc.Infrastructure.ModelStateInvalidFilter (Order: -2000)"]
+2026-02-10 20:39:35.995 -05:00 [DBG] Execution plan of exception filters (in the following order): ["None"]
+2026-02-10 20:39:35.997 -05:00 [DBG] Execution plan of result filters (in the following order): ["Microsoft.AspNetCore.Mvc.Infrastructure.ClientErrorResultFilter (Order: -2000)"]
+2026-02-10 20:39:35.999 -05:00 [DBG] Executing controller factory for controller BioFXAPI.Controllers.OrdersController (BioFXAPI)
+2026-02-10 20:39:36.002 -05:00 [INF] EmailSettings cargados: SmtpServer=mail.biofx.com.ec, SmtpPort=465, SenderEmail=info@biofx.com.ec, EnableSsl=true
+2026-02-10 20:39:36.005 -05:00 [DBG] Executed controller factory for controller BioFXAPI.Controllers.OrdersController (BioFXAPI)
+2026-02-10 20:39:36.006 -05:00 [DBG] Attempting to bind parameter 'orderId' of type 'System.Int32' ...
+2026-02-10 20:39:36.008 -05:00 [DBG] Attempting to bind parameter 'orderId' of type 'System.Int32' using the name 'orderId' in request data ...
+2026-02-10 20:39:36.010 -05:00 [DBG] Done attempting to bind parameter 'orderId' of type 'System.Int32'.
+2026-02-10 20:39:36.011 -05:00 [DBG] Done attempting to bind parameter 'orderId' of type 'System.Int32'.
+2026-02-10 20:39:36.013 -05:00 [DBG] Attempting to validate the bound parameter 'orderId' of type 'System.Int32' ...
+2026-02-10 20:39:36.015 -05:00 [DBG] Done attempting to validate the bound parameter 'orderId' of type 'System.Int32'.
+2026-02-10 20:39:36.016 -05:00 [DBG] Attempting to bind parameter 'ct' of type 'System.Threading.CancellationToken' ...
+2026-02-10 20:39:36.018 -05:00 [DBG] Done attempting to bind parameter 'ct' of type 'System.Threading.CancellationToken'.
+2026-02-10 20:39:36.019 -05:00 [DBG] Attempting to validate the bound parameter 'ct' of type 'System.Threading.CancellationToken' ...
+2026-02-10 20:39:36.021 -05:00 [DBG] Done attempting to validate the bound parameter 'ct' of type 'System.Threading.CancellationToken'.
+2026-02-10 20:39:36.230 -05:00 [DBG] List of registered output formatters, in the following order: ["Microsoft.AspNetCore.Mvc.Formatters.HttpNoContentOutputFormatter","Microsoft.AspNetCore.Mvc.Formatters.StringOutputFormatter","Microsoft.AspNetCore.Mvc.Formatters.StreamOutputFormatter","Microsoft.AspNetCore.Mvc.Formatters.SystemTextJsonOutputFormatter"]
+2026-02-10 20:39:36.237 -05:00 [DBG] No information found on request to perform content negotiation.
+2026-02-10 20:39:36.242 -05:00 [DBG] Attempting to select an output formatter without using a content type as no explicit content types were specified for the response.
+2026-02-10 20:39:36.246 -05:00 [DBG] Attempting to select the first formatter in the output formatters list which can write the result.
+2026-02-10 20:39:36.247 -05:00 [DBG] Selected output formatter 'Microsoft.AspNetCore.Mvc.Formatters.SystemTextJsonOutputFormatter' and content type 'application/json' to write the response.
+2026-02-10 20:39:36.251 -05:00 [INF] Executing BadRequestObjectResult, writing value of type '<>f__AnonymousType0`1[[System.String, System.Private.CoreLib, Version=8.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]'.
+2026-02-10 20:39:36.253 -05:00 [INF] Executed action BioFXAPI.Controllers.OrdersController.RefreshStatus (BioFXAPI) in 254.2873ms
+2026-02-10 20:39:36.256 -05:00 [INF] Executed endpoint 'BioFXAPI.Controllers.OrdersController.RefreshStatus (BioFXAPI)'
+2026-02-10 20:39:36.258 -05:00 [INF] Request finished HTTP/2 GET https://localhost:7177/api/Orders/172/status - 400 null application/json; charset=utf-8 293.7118ms
+2026-02-10 20:39:43.883 -05:00 [INF] Request starting HTTP/2 GET https://localhost:7177/api/Orders/170/status - null null
+2026-02-10 20:39:43.886 -05:00 [DBG] 1 candidate(s) found for the request path '/api/Orders/170/status'
+2026-02-10 20:39:43.887 -05:00 [DBG] Endpoint 'BioFXAPI.Controllers.OrdersController.RefreshStatus (BioFXAPI)' with route pattern 'api/Orders/{orderId:int}/status' is valid for the request path '/api/Orders/170/status'
+2026-02-10 20:39:43.890 -05:00 [DBG] Request matched endpoint 'BioFXAPI.Controllers.OrdersController.RefreshStatus (BioFXAPI)'
+2026-02-10 20:39:43.893 -05:00 [DBG] Static files was skipped as the request already matched an endpoint.
+2026-02-10 20:39:43.895 -05:00 [DBG] Successfully validated the token.
+2026-02-10 20:39:43.896 -05:00 [DBG] AuthenticationScheme: Bearer was successfully authenticated.
+2026-02-10 20:39:43.898 -05:00 [DBG] Authorization was successful.
+2026-02-10 20:39:43.900 -05:00 [INF] Executing endpoint 'BioFXAPI.Controllers.OrdersController.RefreshStatus (BioFXAPI)'
+2026-02-10 20:39:43.901 -05:00 [INF] Route matched with {action = "RefreshStatus", controller = "Orders"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] RefreshStatus(Int32, System.Threading.CancellationToken) on controller BioFXAPI.Controllers.OrdersController (BioFXAPI).
+2026-02-10 20:39:43.904 -05:00 [DBG] Execution plan of authorization filters (in the following order): ["None"]
+2026-02-10 20:39:43.905 -05:00 [DBG] Execution plan of resource filters (in the following order): ["None"]
+2026-02-10 20:39:43.907 -05:00 [DBG] Execution plan of action filters (in the following order): ["Microsoft.AspNetCore.Mvc.ModelBinding.UnsupportedContentTypeFilter (Order: -3000)","Microsoft.AspNetCore.Mvc.Infrastructure.ModelStateInvalidFilter (Order: -2000)"]
+2026-02-10 20:39:43.908 -05:00 [DBG] Execution plan of exception filters (in the following order): ["None"]
+2026-02-10 20:39:43.910 -05:00 [DBG] Execution plan of result filters (in the following order): ["Microsoft.AspNetCore.Mvc.Infrastructure.ClientErrorResultFilter (Order: -2000)"]
+2026-02-10 20:39:43.912 -05:00 [DBG] Executing controller factory for controller BioFXAPI.Controllers.OrdersController (BioFXAPI)
+2026-02-10 20:39:43.914 -05:00 [INF] EmailSettings cargados: SmtpServer=mail.biofx.com.ec, SmtpPort=465, SenderEmail=info@biofx.com.ec, EnableSsl=true
+2026-02-10 20:39:43.916 -05:00 [DBG] Executed controller factory for controller BioFXAPI.Controllers.OrdersController (BioFXAPI)
+2026-02-10 20:39:43.918 -05:00 [DBG] Attempting to bind parameter 'orderId' of type 'System.Int32' ...
+2026-02-10 20:39:43.920 -05:00 [DBG] Attempting to bind parameter 'orderId' of type 'System.Int32' using the name 'orderId' in request data ...
+2026-02-10 20:39:43.921 -05:00 [DBG] Done attempting to bind parameter 'orderId' of type 'System.Int32'.
+2026-02-10 20:39:43.923 -05:00 [DBG] Done attempting to bind parameter 'orderId' of type 'System.Int32'.
+2026-02-10 20:39:43.924 -05:00 [DBG] Attempting to validate the bound parameter 'orderId' of type 'System.Int32' ...
+2026-02-10 20:39:43.926 -05:00 [DBG] Done attempting to validate the bound parameter 'orderId' of type 'System.Int32'.
+2026-02-10 20:39:43.928 -05:00 [DBG] Attempting to bind parameter 'ct' of type 'System.Threading.CancellationToken' ...
+2026-02-10 20:39:43.930 -05:00 [DBG] Done attempting to bind parameter 'ct' of type 'System.Threading.CancellationToken'.
+2026-02-10 20:39:43.932 -05:00 [DBG] Attempting to validate the bound parameter 'ct' of type 'System.Threading.CancellationToken' ...
+2026-02-10 20:39:43.933 -05:00 [DBG] Done attempting to validate the bound parameter 'ct' of type 'System.Threading.CancellationToken'.
+2026-02-10 20:39:44.138 -05:00 [DBG] List of registered output formatters, in the following order: ["Microsoft.AspNetCore.Mvc.Formatters.HttpNoContentOutputFormatter","Microsoft.AspNetCore.Mvc.Formatters.StringOutputFormatter","Microsoft.AspNetCore.Mvc.Formatters.StreamOutputFormatter","Microsoft.AspNetCore.Mvc.Formatters.SystemTextJsonOutputFormatter"]
+2026-02-10 20:39:44.142 -05:00 [DBG] No information found on request to perform content negotiation.
+2026-02-10 20:39:44.142 -05:00 [DBG] Attempting to select an output formatter without using a content type as no explicit content types were specified for the response.
+2026-02-10 20:39:44.144 -05:00 [DBG] Attempting to select the first formatter in the output formatters list which can write the result.
+2026-02-10 20:39:44.145 -05:00 [DBG] Selected output formatter 'Microsoft.AspNetCore.Mvc.Formatters.SystemTextJsonOutputFormatter' and content type 'application/json' to write the response.
+2026-02-10 20:39:44.146 -05:00 [INF] Executing BadRequestObjectResult, writing value of type '<>f__AnonymousType0`1[[System.String, System.Private.CoreLib, Version=8.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]'.
+2026-02-10 20:39:44.148 -05:00 [INF] Executed action BioFXAPI.Controllers.OrdersController.RefreshStatus (BioFXAPI) in 235.84ms
+2026-02-10 20:39:44.150 -05:00 [INF] Executed endpoint 'BioFXAPI.Controllers.OrdersController.RefreshStatus (BioFXAPI)'
+2026-02-10 20:39:44.151 -05:00 [INF] Request finished HTTP/2 GET https://localhost:7177/api/Orders/170/status - 400 null application/json; charset=utf-8 268.2219ms
+2026-02-10 20:40:30.696 -05:00 [INF] AccountMaintenance: disabledUsers=0 deletedExpiredTokens=0 (disableAfterDays=7, deleteTokensAfterDays=30)
+2026-02-10 20:41:12.285 -05:00 [INF] Request starting HTTP/2 GET https://localhost:7177/api/Orders/180/status - null null
+2026-02-10 20:41:12.288 -05:00 [DBG] 1 candidate(s) found for the request path '/api/Orders/180/status'
+2026-02-10 20:41:12.290 -05:00 [DBG] Endpoint 'BioFXAPI.Controllers.OrdersController.RefreshStatus (BioFXAPI)' with route pattern 'api/Orders/{orderId:int}/status' is valid for the request path '/api/Orders/180/status'
+2026-02-10 20:41:12.292 -05:00 [DBG] Request matched endpoint 'BioFXAPI.Controllers.OrdersController.RefreshStatus (BioFXAPI)'
+2026-02-10 20:41:12.293 -05:00 [DBG] Static files was skipped as the request already matched an endpoint.
+2026-02-10 20:41:12.295 -05:00 [DBG] Successfully validated the token.
+2026-02-10 20:41:12.295 -05:00 [DBG] AuthenticationScheme: Bearer was successfully authenticated.
+2026-02-10 20:41:12.297 -05:00 [DBG] Authorization was successful.
+2026-02-10 20:41:12.298 -05:00 [INF] Executing endpoint 'BioFXAPI.Controllers.OrdersController.RefreshStatus (BioFXAPI)'
+2026-02-10 20:41:12.299 -05:00 [INF] Route matched with {action = "RefreshStatus", controller = "Orders"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] RefreshStatus(Int32, System.Threading.CancellationToken) on controller BioFXAPI.Controllers.OrdersController (BioFXAPI).
+2026-02-10 20:41:12.301 -05:00 [DBG] Execution plan of authorization filters (in the following order): ["None"]
+2026-02-10 20:41:12.303 -05:00 [DBG] Execution plan of resource filters (in the following order): ["None"]
+2026-02-10 20:41:12.305 -05:00 [DBG] Execution plan of action filters (in the following order): ["Microsoft.AspNetCore.Mvc.ModelBinding.UnsupportedContentTypeFilter (Order: -3000)","Microsoft.AspNetCore.Mvc.Infrastructure.ModelStateInvalidFilter (Order: -2000)"]
+2026-02-10 20:41:12.308 -05:00 [DBG] Execution plan of exception filters (in the following order): ["None"]
+2026-02-10 20:41:12.311 -05:00 [DBG] Execution plan of result filters (in the following order): ["Microsoft.AspNetCore.Mvc.Infrastructure.ClientErrorResultFilter (Order: -2000)"]
+2026-02-10 20:41:12.313 -05:00 [DBG] Executing controller factory for controller BioFXAPI.Controllers.OrdersController (BioFXAPI)
+2026-02-10 20:41:12.314 -05:00 [INF] EmailSettings cargados: SmtpServer=mail.biofx.com.ec, SmtpPort=465, SenderEmail=info@biofx.com.ec, EnableSsl=true
+2026-02-10 20:41:12.316 -05:00 [DBG] Executed controller factory for controller BioFXAPI.Controllers.OrdersController (BioFXAPI)
+2026-02-10 20:41:12.318 -05:00 [DBG] Attempting to bind parameter 'orderId' of type 'System.Int32' ...
+2026-02-10 20:41:12.320 -05:00 [DBG] Attempting to bind parameter 'orderId' of type 'System.Int32' using the name 'orderId' in request data ...
+2026-02-10 20:41:12.322 -05:00 [DBG] Done attempting to bind parameter 'orderId' of type 'System.Int32'.
+2026-02-10 20:41:12.324 -05:00 [DBG] Done attempting to bind parameter 'orderId' of type 'System.Int32'.
+2026-02-10 20:41:12.326 -05:00 [DBG] Attempting to validate the bound parameter 'orderId' of type 'System.Int32' ...
+2026-02-10 20:41:12.330 -05:00 [DBG] Done attempting to validate the bound parameter 'orderId' of type 'System.Int32'.
+2026-02-10 20:41:12.332 -05:00 [DBG] Attempting to bind parameter 'ct' of type 'System.Threading.CancellationToken' ...
+2026-02-10 20:41:12.335 -05:00 [DBG] Done attempting to bind parameter 'ct' of type 'System.Threading.CancellationToken'.
+2026-02-10 20:41:12.337 -05:00 [DBG] Attempting to validate the bound parameter 'ct' of type 'System.Threading.CancellationToken' ...
+2026-02-10 20:41:12.339 -05:00 [DBG] Done attempting to validate the bound parameter 'ct' of type 'System.Threading.CancellationToken'.
+2026-02-10 20:41:13.102 -05:00 [INF] Start processing HTTP request POST https://checkout-test.placetopay.ec/api/session/997452
+2026-02-10 20:41:13.110 -05:00 [INF] Sending HTTP request POST https://checkout-test.placetopay.ec/api/session/997452
+2026-02-10 20:41:14.012 -05:00 [INF] Received HTTP response headers after 896.7826ms - 200
+2026-02-10 20:41:14.016 -05:00 [INF] End processing HTTP request after 914.9537ms - 200
+2026-02-10 20:41:14.567 -05:00 [DBG] List of registered output formatters, in the following order: ["Microsoft.AspNetCore.Mvc.Formatters.HttpNoContentOutputFormatter","Microsoft.AspNetCore.Mvc.Formatters.StringOutputFormatter","Microsoft.AspNetCore.Mvc.Formatters.StreamOutputFormatter","Microsoft.AspNetCore.Mvc.Formatters.SystemTextJsonOutputFormatter"]
+2026-02-10 20:41:14.575 -05:00 [DBG] No information found on request to perform content negotiation.
+2026-02-10 20:41:14.576 -05:00 [DBG] Attempting to select an output formatter without using a content type as no explicit content types were specified for the response.
+2026-02-10 20:41:14.579 -05:00 [DBG] Attempting to select the first formatter in the output formatters list which can write the result.
+2026-02-10 20:41:14.583 -05:00 [DBG] Selected output formatter 'Microsoft.AspNetCore.Mvc.Formatters.SystemTextJsonOutputFormatter' and content type 'application/json' to write the response.
+2026-02-10 20:41:14.585 -05:00 [INF] Executing OkObjectResult, writing value of type '<>f__AnonymousType38`5[[System.Int32, System.Private.CoreLib, Version=8.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e],[System.String, System.Private.CoreLib, Version=8.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e],[System.String, System.Private.CoreLib, Version=8.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e],[System.Decimal, System.Private.CoreLib, Version=8.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e],[System.String, System.Private.CoreLib, Version=8.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]'.
+2026-02-10 20:41:14.594 -05:00 [INF] Executed action BioFXAPI.Controllers.OrdersController.RefreshStatus (BioFXAPI) in 2281.2727ms
+2026-02-10 20:41:14.596 -05:00 [INF] Executed endpoint 'BioFXAPI.Controllers.OrdersController.RefreshStatus (BioFXAPI)'
+2026-02-10 20:41:14.597 -05:00 [INF] Request finished HTTP/2 GET https://localhost:7177/api/Orders/180/status - 200 null application/json; charset=utf-8 2311.888ms
+2026-02-10 20:41:18.973 -05:00 [INF] Request starting HTTP/2 GET https://localhost:7177/api/Orders/179/status - null null
+2026-02-10 20:41:18.978 -05:00 [DBG] 1 candidate(s) found for the request path '/api/Orders/179/status'
+2026-02-10 20:41:18.982 -05:00 [DBG] Endpoint 'BioFXAPI.Controllers.OrdersController.RefreshStatus (BioFXAPI)' with route pattern 'api/Orders/{orderId:int}/status' is valid for the request path '/api/Orders/179/status'
+2026-02-10 20:41:18.984 -05:00 [DBG] Request matched endpoint 'BioFXAPI.Controllers.OrdersController.RefreshStatus (BioFXAPI)'
+2026-02-10 20:41:18.985 -05:00 [DBG] Static files was skipped as the request already matched an endpoint.
+2026-02-10 20:41:18.986 -05:00 [DBG] Successfully validated the token.
+2026-02-10 20:41:18.988 -05:00 [DBG] AuthenticationScheme: Bearer was successfully authenticated.
+2026-02-10 20:41:18.989 -05:00 [DBG] Authorization was successful.
+2026-02-10 20:41:18.991 -05:00 [INF] Executing endpoint 'BioFXAPI.Controllers.OrdersController.RefreshStatus (BioFXAPI)'
+2026-02-10 20:41:18.993 -05:00 [INF] Route matched with {action = "RefreshStatus", controller = "Orders"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] RefreshStatus(Int32, System.Threading.CancellationToken) on controller BioFXAPI.Controllers.OrdersController (BioFXAPI).
+2026-02-10 20:41:18.997 -05:00 [DBG] Execution plan of authorization filters (in the following order): ["None"]
+2026-02-10 20:41:19.002 -05:00 [DBG] Execution plan of resource filters (in the following order): ["None"]
+2026-02-10 20:41:19.005 -05:00 [DBG] Execution plan of action filters (in the following order): ["Microsoft.AspNetCore.Mvc.ModelBinding.UnsupportedContentTypeFilter (Order: -3000)","Microsoft.AspNetCore.Mvc.Infrastructure.ModelStateInvalidFilter (Order: -2000)"]
+2026-02-10 20:41:19.008 -05:00 [DBG] Execution plan of exception filters (in the following order): ["None"]
+2026-02-10 20:41:19.010 -05:00 [DBG] Execution plan of result filters (in the following order): ["Microsoft.AspNetCore.Mvc.Infrastructure.ClientErrorResultFilter (Order: -2000)"]
+2026-02-10 20:41:19.013 -05:00 [DBG] Executing controller factory for controller BioFXAPI.Controllers.OrdersController (BioFXAPI)
+2026-02-10 20:41:19.015 -05:00 [INF] EmailSettings cargados: SmtpServer=mail.biofx.com.ec, SmtpPort=465, SenderEmail=info@biofx.com.ec, EnableSsl=true
+2026-02-10 20:41:19.019 -05:00 [DBG] Executed controller factory for controller BioFXAPI.Controllers.OrdersController (BioFXAPI)
+2026-02-10 20:41:19.023 -05:00 [DBG] Attempting to bind parameter 'orderId' of type 'System.Int32' ...
+2026-02-10 20:41:19.028 -05:00 [DBG] Attempting to bind parameter 'orderId' of type 'System.Int32' using the name 'orderId' in request data ...
+2026-02-10 20:41:19.031 -05:00 [DBG] Done attempting to bind parameter 'orderId' of type 'System.Int32'.
+2026-02-10 20:41:19.035 -05:00 [DBG] Done attempting to bind parameter 'orderId' of type 'System.Int32'.
+2026-02-10 20:41:19.043 -05:00 [DBG] Attempting to validate the bound parameter 'orderId' of type 'System.Int32' ...
+2026-02-10 20:41:19.059 -05:00 [DBG] Done attempting to validate the bound parameter 'orderId' of type 'System.Int32'.
+2026-02-10 20:41:19.083 -05:00 [DBG] Attempting to bind parameter 'ct' of type 'System.Threading.CancellationToken' ...
+2026-02-10 20:41:19.099 -05:00 [DBG] Done attempting to bind parameter 'ct' of type 'System.Threading.CancellationToken'.
+2026-02-10 20:41:19.113 -05:00 [DBG] Attempting to validate the bound parameter 'ct' of type 'System.Threading.CancellationToken' ...
+2026-02-10 20:41:19.121 -05:00 [DBG] Done attempting to validate the bound parameter 'ct' of type 'System.Threading.CancellationToken'.
+2026-02-10 20:41:19.329 -05:00 [DBG] List of registered output formatters, in the following order: ["Microsoft.AspNetCore.Mvc.Formatters.HttpNoContentOutputFormatter","Microsoft.AspNetCore.Mvc.Formatters.StringOutputFormatter","Microsoft.AspNetCore.Mvc.Formatters.StreamOutputFormatter","Microsoft.AspNetCore.Mvc.Formatters.SystemTextJsonOutputFormatter"]
+2026-02-10 20:41:19.333 -05:00 [DBG] No information found on request to perform content negotiation.
+2026-02-10 20:41:19.334 -05:00 [DBG] Attempting to select an output formatter without using a content type as no explicit content types were specified for the response.
+2026-02-10 20:41:19.335 -05:00 [DBG] Attempting to select the first formatter in the output formatters list which can write the result.
+2026-02-10 20:41:19.336 -05:00 [DBG] Selected output formatter 'Microsoft.AspNetCore.Mvc.Formatters.SystemTextJsonOutputFormatter' and content type 'application/json' to write the response.
+2026-02-10 20:41:19.338 -05:00 [INF] Executing BadRequestObjectResult, writing value of type '<>f__AnonymousType0`1[[System.String, System.Private.CoreLib, Version=8.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]'.
+2026-02-10 20:41:19.339 -05:00 [INF] Executed action BioFXAPI.Controllers.OrdersController.RefreshStatus (BioFXAPI) in 326.0537ms
+2026-02-10 20:41:19.341 -05:00 [INF] Executed endpoint 'BioFXAPI.Controllers.OrdersController.RefreshStatus (BioFXAPI)'
+2026-02-10 20:41:19.342 -05:00 [INF] Request finished HTTP/2 GET https://localhost:7177/api/Orders/179/status - 400 null application/json; charset=utf-8 369.4437ms
+2026-02-10 20:41:23.024 -05:00 [INF] Request starting HTTP/2 GET https://localhost:7177/api/Orders/180/status - null null
+2026-02-10 20:41:23.039 -05:00 [DBG] 1 candidate(s) found for the request path '/api/Orders/180/status'
+2026-02-10 20:41:23.048 -05:00 [DBG] Endpoint 'BioFXAPI.Controllers.OrdersController.RefreshStatus (BioFXAPI)' with route pattern 'api/Orders/{orderId:int}/status' is valid for the request path '/api/Orders/180/status'
+2026-02-10 20:41:23.059 -05:00 [DBG] Request matched endpoint 'BioFXAPI.Controllers.OrdersController.RefreshStatus (BioFXAPI)'
+2026-02-10 20:41:23.060 -05:00 [DBG] Static files was skipped as the request already matched an endpoint.
+2026-02-10 20:41:23.061 -05:00 [DBG] Successfully validated the token.
+2026-02-10 20:41:23.063 -05:00 [DBG] AuthenticationScheme: Bearer was successfully authenticated.
+2026-02-10 20:41:23.065 -05:00 [DBG] Authorization was successful.
+2026-02-10 20:41:23.067 -05:00 [INF] Executing endpoint 'BioFXAPI.Controllers.OrdersController.RefreshStatus (BioFXAPI)'
+2026-02-10 20:41:23.069 -05:00 [INF] Route matched with {action = "RefreshStatus", controller = "Orders"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] RefreshStatus(Int32, System.Threading.CancellationToken) on controller BioFXAPI.Controllers.OrdersController (BioFXAPI).
+2026-02-10 20:41:23.072 -05:00 [DBG] Execution plan of authorization filters (in the following order): ["None"]
+2026-02-10 20:41:23.074 -05:00 [DBG] Execution plan of resource filters (in the following order): ["None"]
+2026-02-10 20:41:23.076 -05:00 [DBG] Execution plan of action filters (in the following order): ["Microsoft.AspNetCore.Mvc.ModelBinding.UnsupportedContentTypeFilter (Order: -3000)","Microsoft.AspNetCore.Mvc.Infrastructure.ModelStateInvalidFilter (Order: -2000)"]
+2026-02-10 20:41:23.079 -05:00 [DBG] Execution plan of exception filters (in the following order): ["None"]
+2026-02-10 20:41:23.081 -05:00 [DBG] Execution plan of result filters (in the following order): ["Microsoft.AspNetCore.Mvc.Infrastructure.ClientErrorResultFilter (Order: -2000)"]
+2026-02-10 20:41:23.083 -05:00 [DBG] Executing controller factory for controller BioFXAPI.Controllers.OrdersController (BioFXAPI)
+2026-02-10 20:41:23.086 -05:00 [INF] EmailSettings cargados: SmtpServer=mail.biofx.com.ec, SmtpPort=465, SenderEmail=info@biofx.com.ec, EnableSsl=true
+2026-02-10 20:41:23.089 -05:00 [DBG] Executed controller factory for controller BioFXAPI.Controllers.OrdersController (BioFXAPI)
+2026-02-10 20:41:23.091 -05:00 [DBG] Attempting to bind parameter 'orderId' of type 'System.Int32' ...
+2026-02-10 20:41:23.092 -05:00 [DBG] Attempting to bind parameter 'orderId' of type 'System.Int32' using the name 'orderId' in request data ...
+2026-02-10 20:41:23.094 -05:00 [DBG] Done attempting to bind parameter 'orderId' of type 'System.Int32'.
+2026-02-10 20:41:23.096 -05:00 [DBG] Done attempting to bind parameter 'orderId' of type 'System.Int32'.
+2026-02-10 20:41:23.098 -05:00 [DBG] Attempting to validate the bound parameter 'orderId' of type 'System.Int32' ...
+2026-02-10 20:41:23.099 -05:00 [DBG] Done attempting to validate the bound parameter 'orderId' of type 'System.Int32'.
+2026-02-10 20:41:23.101 -05:00 [DBG] Attempting to bind parameter 'ct' of type 'System.Threading.CancellationToken' ...
+2026-02-10 20:41:23.102 -05:00 [DBG] Done attempting to bind parameter 'ct' of type 'System.Threading.CancellationToken'.
+2026-02-10 20:41:23.104 -05:00 [DBG] Attempting to validate the bound parameter 'ct' of type 'System.Threading.CancellationToken' ...
+2026-02-10 20:41:23.106 -05:00 [DBG] Done attempting to validate the bound parameter 'ct' of type 'System.Threading.CancellationToken'.
+2026-02-10 20:41:23.414 -05:00 [INF] Start processing HTTP request POST https://checkout-test.placetopay.ec/api/session/997452
+2026-02-10 20:41:23.418 -05:00 [INF] Sending HTTP request POST https://checkout-test.placetopay.ec/api/session/997452
+2026-02-10 20:41:23.727 -05:00 [INF] Received HTTP response headers after 306.4462ms - 200
+2026-02-10 20:41:23.732 -05:00 [INF] End processing HTTP request after 317.6224ms - 200
+2026-02-10 20:41:24.260 -05:00 [DBG] List of registered output formatters, in the following order: ["Microsoft.AspNetCore.Mvc.Formatters.HttpNoContentOutputFormatter","Microsoft.AspNetCore.Mvc.Formatters.StringOutputFormatter","Microsoft.AspNetCore.Mvc.Formatters.StreamOutputFormatter","Microsoft.AspNetCore.Mvc.Formatters.SystemTextJsonOutputFormatter"]
+2026-02-10 20:41:24.268 -05:00 [DBG] No information found on request to perform content negotiation.
+2026-02-10 20:41:24.272 -05:00 [DBG] Attempting to select an output formatter without using a content type as no explicit content types were specified for the response.
+2026-02-10 20:41:24.276 -05:00 [DBG] Attempting to select the first formatter in the output formatters list which can write the result.
+2026-02-10 20:41:24.278 -05:00 [DBG] Selected output formatter 'Microsoft.AspNetCore.Mvc.Formatters.SystemTextJsonOutputFormatter' and content type 'application/json' to write the response.
+2026-02-10 20:41:24.285 -05:00 [INF] Executing OkObjectResult, writing value of type '<>f__AnonymousType38`5[[System.Int32, System.Private.CoreLib, Version=8.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e],[System.String, System.Private.CoreLib, Version=8.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e],[System.String, System.Private.CoreLib, Version=8.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e],[System.Decimal, System.Private.CoreLib, Version=8.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e],[System.String, System.Private.CoreLib, Version=8.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]'.
+2026-02-10 20:41:24.290 -05:00 [INF] Executed action BioFXAPI.Controllers.OrdersController.RefreshStatus (BioFXAPI) in 1206.5284ms
+2026-02-10 20:41:24.296 -05:00 [INF] Executed endpoint 'BioFXAPI.Controllers.OrdersController.RefreshStatus (BioFXAPI)'
+2026-02-10 20:41:24.299 -05:00 [INF] Request finished HTTP/2 GET https://localhost:7177/api/Orders/180/status - 200 null application/json; charset=utf-8 1275.0295ms
+2026-02-10 20:41:30.709 -05:00 [INF] AccountMaintenance: disabledUsers=0 deletedExpiredTokens=0 (disableAfterDays=7, deleteTokensAfterDays=30)
+2026-02-10 20:42:10.445 -05:00 [INF] Request starting HTTP/2 GET https://localhost:7177/api/Orders/142/status - null null
+2026-02-10 20:42:10.449 -05:00 [DBG] 1 candidate(s) found for the request path '/api/Orders/142/status'
+2026-02-10 20:42:10.450 -05:00 [DBG] Endpoint 'BioFXAPI.Controllers.OrdersController.RefreshStatus (BioFXAPI)' with route pattern 'api/Orders/{orderId:int}/status' is valid for the request path '/api/Orders/142/status'
+2026-02-10 20:42:10.454 -05:00 [DBG] Request matched endpoint 'BioFXAPI.Controllers.OrdersController.RefreshStatus (BioFXAPI)'
+2026-02-10 20:42:10.456 -05:00 [DBG] Static files was skipped as the request already matched an endpoint.
+2026-02-10 20:42:10.457 -05:00 [DBG] Successfully validated the token.
+2026-02-10 20:42:10.458 -05:00 [DBG] AuthenticationScheme: Bearer was successfully authenticated.
+2026-02-10 20:42:10.459 -05:00 [DBG] Authorization was successful.
+2026-02-10 20:42:10.460 -05:00 [INF] Executing endpoint 'BioFXAPI.Controllers.OrdersController.RefreshStatus (BioFXAPI)'
+2026-02-10 20:42:10.461 -05:00 [INF] Route matched with {action = "RefreshStatus", controller = "Orders"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] RefreshStatus(Int32, System.Threading.CancellationToken) on controller BioFXAPI.Controllers.OrdersController (BioFXAPI).
+2026-02-10 20:42:10.464 -05:00 [DBG] Execution plan of authorization filters (in the following order): ["None"]
+2026-02-10 20:42:10.465 -05:00 [DBG] Execution plan of resource filters (in the following order): ["None"]
+2026-02-10 20:42:10.467 -05:00 [DBG] Execution plan of action filters (in the following order): ["Microsoft.AspNetCore.Mvc.ModelBinding.UnsupportedContentTypeFilter (Order: -3000)","Microsoft.AspNetCore.Mvc.Infrastructure.ModelStateInvalidFilter (Order: -2000)"]
+2026-02-10 20:42:10.469 -05:00 [DBG] Execution plan of exception filters (in the following order): ["None"]
+2026-02-10 20:42:10.471 -05:00 [DBG] Execution plan of result filters (in the following order): ["Microsoft.AspNetCore.Mvc.Infrastructure.ClientErrorResultFilter (Order: -2000)"]
+2026-02-10 20:42:10.473 -05:00 [DBG] Executing controller factory for controller BioFXAPI.Controllers.OrdersController (BioFXAPI)
+2026-02-10 20:42:10.474 -05:00 [INF] EmailSettings cargados: SmtpServer=mail.biofx.com.ec, SmtpPort=465, SenderEmail=info@biofx.com.ec, EnableSsl=true
+2026-02-10 20:42:10.476 -05:00 [DBG] Executed controller factory for controller BioFXAPI.Controllers.OrdersController (BioFXAPI)
+2026-02-10 20:42:10.477 -05:00 [DBG] Attempting to bind parameter 'orderId' of type 'System.Int32' ...
+2026-02-10 20:42:10.479 -05:00 [DBG] Attempting to bind parameter 'orderId' of type 'System.Int32' using the name 'orderId' in request data ...
+2026-02-10 20:42:10.481 -05:00 [DBG] Done attempting to bind parameter 'orderId' of type 'System.Int32'.
+2026-02-10 20:42:10.482 -05:00 [DBG] Done attempting to bind parameter 'orderId' of type 'System.Int32'.
+2026-02-10 20:42:10.483 -05:00 [DBG] Attempting to validate the bound parameter 'orderId' of type 'System.Int32' ...
+2026-02-10 20:42:10.485 -05:00 [DBG] Done attempting to validate the bound parameter 'orderId' of type 'System.Int32'.
+2026-02-10 20:42:10.487 -05:00 [DBG] Attempting to bind parameter 'ct' of type 'System.Threading.CancellationToken' ...
+2026-02-10 20:42:10.488 -05:00 [DBG] Done attempting to bind parameter 'ct' of type 'System.Threading.CancellationToken'.
+2026-02-10 20:42:10.490 -05:00 [DBG] Attempting to validate the bound parameter 'ct' of type 'System.Threading.CancellationToken' ...
+2026-02-10 20:42:10.491 -05:00 [DBG] Done attempting to validate the bound parameter 'ct' of type 'System.Threading.CancellationToken'.
+2026-02-10 20:42:10.804 -05:00 [INF] Start processing HTTP request POST https://checkout-test.placetopay.ec/api/session/991238
+2026-02-10 20:42:10.806 -05:00 [INF] Sending HTTP request POST https://checkout-test.placetopay.ec/api/session/991238
+2026-02-10 20:42:11.178 -05:00 [INF] Received HTTP response headers after 370.7385ms - 200
+2026-02-10 20:42:11.180 -05:00 [INF] End processing HTTP request after 376.3499ms - 200
+2026-02-10 20:42:11.707 -05:00 [DBG] List of registered output formatters, in the following order: ["Microsoft.AspNetCore.Mvc.Formatters.HttpNoContentOutputFormatter","Microsoft.AspNetCore.Mvc.Formatters.StringOutputFormatter","Microsoft.AspNetCore.Mvc.Formatters.StreamOutputFormatter","Microsoft.AspNetCore.Mvc.Formatters.SystemTextJsonOutputFormatter"]
+2026-02-10 20:42:11.712 -05:00 [DBG] No information found on request to perform content negotiation.
+2026-02-10 20:42:11.714 -05:00 [DBG] Attempting to select an output formatter without using a content type as no explicit content types were specified for the response.
+2026-02-10 20:42:11.715 -05:00 [DBG] Attempting to select the first formatter in the output formatters list which can write the result.
+2026-02-10 20:42:11.717 -05:00 [DBG] Selected output formatter 'Microsoft.AspNetCore.Mvc.Formatters.SystemTextJsonOutputFormatter' and content type 'application/json' to write the response.
+2026-02-10 20:42:11.719 -05:00 [INF] Executing OkObjectResult, writing value of type '<>f__AnonymousType38`5[[System.Int32, System.Private.CoreLib, Version=8.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e],[System.String, System.Private.CoreLib, Version=8.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e],[System.String, System.Private.CoreLib, Version=8.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e],[System.Decimal, System.Private.CoreLib, Version=8.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e],[System.String, System.Private.CoreLib, Version=8.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]'.
+2026-02-10 20:42:11.721 -05:00 [INF] Executed action BioFXAPI.Controllers.OrdersController.RefreshStatus (BioFXAPI) in 1248.6616ms
+2026-02-10 20:42:11.724 -05:00 [INF] Executed endpoint 'BioFXAPI.Controllers.OrdersController.RefreshStatus (BioFXAPI)'
+2026-02-10 20:42:11.731 -05:00 [INF] Request finished HTTP/2 GET https://localhost:7177/api/Orders/142/status - 200 null application/json; charset=utf-8 1285.8345ms
+2026-02-10 20:42:14.485 -05:00 [INF] Request starting HTTP/2 GET https://localhost:7177/api/Orders/143/status - null null
+2026-02-10 20:42:14.490 -05:00 [DBG] 1 candidate(s) found for the request path '/api/Orders/143/status'
+2026-02-10 20:42:14.492 -05:00 [DBG] Endpoint 'BioFXAPI.Controllers.OrdersController.RefreshStatus (BioFXAPI)' with route pattern 'api/Orders/{orderId:int}/status' is valid for the request path '/api/Orders/143/status'
+2026-02-10 20:42:14.494 -05:00 [DBG] Request matched endpoint 'BioFXAPI.Controllers.OrdersController.RefreshStatus (BioFXAPI)'
+2026-02-10 20:42:14.497 -05:00 [DBG] Static files was skipped as the request already matched an endpoint.
+2026-02-10 20:42:14.499 -05:00 [DBG] Successfully validated the token.
+2026-02-10 20:42:14.500 -05:00 [DBG] AuthenticationScheme: Bearer was successfully authenticated.
+2026-02-10 20:42:14.502 -05:00 [DBG] Authorization was successful.
+2026-02-10 20:42:14.503 -05:00 [INF] Executing endpoint 'BioFXAPI.Controllers.OrdersController.RefreshStatus (BioFXAPI)'
+2026-02-10 20:42:14.504 -05:00 [INF] Route matched with {action = "RefreshStatus", controller = "Orders"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] RefreshStatus(Int32, System.Threading.CancellationToken) on controller BioFXAPI.Controllers.OrdersController (BioFXAPI).
+2026-02-10 20:42:14.506 -05:00 [DBG] Execution plan of authorization filters (in the following order): ["None"]
+2026-02-10 20:42:14.507 -05:00 [DBG] Execution plan of resource filters (in the following order): ["None"]
+2026-02-10 20:42:14.509 -05:00 [DBG] Execution plan of action filters (in the following order): ["Microsoft.AspNetCore.Mvc.ModelBinding.UnsupportedContentTypeFilter (Order: -3000)","Microsoft.AspNetCore.Mvc.Infrastructure.ModelStateInvalidFilter (Order: -2000)"]
+2026-02-10 20:42:14.511 -05:00 [DBG] Execution plan of exception filters (in the following order): ["None"]
+2026-02-10 20:42:14.513 -05:00 [DBG] Execution plan of result filters (in the following order): ["Microsoft.AspNetCore.Mvc.Infrastructure.ClientErrorResultFilter (Order: -2000)"]
+2026-02-10 20:42:14.514 -05:00 [DBG] Executing controller factory for controller BioFXAPI.Controllers.OrdersController (BioFXAPI)
+2026-02-10 20:42:14.517 -05:00 [INF] EmailSettings cargados: SmtpServer=mail.biofx.com.ec, SmtpPort=465, SenderEmail=info@biofx.com.ec, EnableSsl=true
+2026-02-10 20:42:14.518 -05:00 [DBG] Executed controller factory for controller BioFXAPI.Controllers.OrdersController (BioFXAPI)
+2026-02-10 20:42:14.520 -05:00 [DBG] Attempting to bind parameter 'orderId' of type 'System.Int32' ...
+2026-02-10 20:42:14.521 -05:00 [DBG] Attempting to bind parameter 'orderId' of type 'System.Int32' using the name 'orderId' in request data ...
+2026-02-10 20:42:14.523 -05:00 [DBG] Done attempting to bind parameter 'orderId' of type 'System.Int32'.
+2026-02-10 20:42:14.525 -05:00 [DBG] Done attempting to bind parameter 'orderId' of type 'System.Int32'.
+2026-02-10 20:42:14.526 -05:00 [DBG] Attempting to validate the bound parameter 'orderId' of type 'System.Int32' ...
+2026-02-10 20:42:14.528 -05:00 [DBG] Done attempting to validate the bound parameter 'orderId' of type 'System.Int32'.
+2026-02-10 20:42:14.530 -05:00 [DBG] Attempting to bind parameter 'ct' of type 'System.Threading.CancellationToken' ...
+2026-02-10 20:42:14.537 -05:00 [DBG] Done attempting to bind parameter 'ct' of type 'System.Threading.CancellationToken'.
+2026-02-10 20:42:14.540 -05:00 [DBG] Attempting to validate the bound parameter 'ct' of type 'System.Threading.CancellationToken' ...
+2026-02-10 20:42:14.542 -05:00 [DBG] Done attempting to validate the bound parameter 'ct' of type 'System.Threading.CancellationToken'.
+2026-02-10 20:42:14.752 -05:00 [DBG] List of registered output formatters, in the following order: ["Microsoft.AspNetCore.Mvc.Formatters.HttpNoContentOutputFormatter","Microsoft.AspNetCore.Mvc.Formatters.StringOutputFormatter","Microsoft.AspNetCore.Mvc.Formatters.StreamOutputFormatter","Microsoft.AspNetCore.Mvc.Formatters.SystemTextJsonOutputFormatter"]
+2026-02-10 20:42:14.756 -05:00 [DBG] No information found on request to perform content negotiation.
+2026-02-10 20:42:14.757 -05:00 [DBG] Attempting to select an output formatter without using a content type as no explicit content types were specified for the response.
+2026-02-10 20:42:14.759 -05:00 [DBG] Attempting to select the first formatter in the output formatters list which can write the result.
+2026-02-10 20:42:14.760 -05:00 [DBG] Selected output formatter 'Microsoft.AspNetCore.Mvc.Formatters.SystemTextJsonOutputFormatter' and content type 'application/json' to write the response.
+2026-02-10 20:42:14.762 -05:00 [INF] Executing BadRequestObjectResult, writing value of type '<>f__AnonymousType0`1[[System.String, System.Private.CoreLib, Version=8.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]'.
+2026-02-10 20:42:14.765 -05:00 [INF] Executed action BioFXAPI.Controllers.OrdersController.RefreshStatus (BioFXAPI) in 250.081ms
+2026-02-10 20:42:14.767 -05:00 [INF] Executed endpoint 'BioFXAPI.Controllers.OrdersController.RefreshStatus (BioFXAPI)'
+2026-02-10 20:42:14.768 -05:00 [INF] Request finished HTTP/2 GET https://localhost:7177/api/Orders/143/status - 400 null application/json; charset=utf-8 283.7168ms
+2026-02-10 20:42:30.698 -05:00 [INF] AccountMaintenance: disabledUsers=0 deletedExpiredTokens=0 (disableAfterDays=7, deleteTokensAfterDays=30)

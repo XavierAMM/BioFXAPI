@@ -92,7 +92,7 @@ namespace BioFXAPI.Controllers
                     var subtotalBase = Math.Round(items.Sum(i => i.Quantity * i.UnitPrice),2);
                     var descuentoProductos = Math.Round(items.Sum(i => (i.UnitPrice * (i.DiscountPRC / 100m)) * i.Quantity),2);
                     var subtotalNeto = Math.Round(Math.Max(0m, subtotalBase - descuentoProductos),2);
-                    var costoEnvio = subtotalNeto >= 50 ? 0m : 5.00m;
+                    var costoEnvio = subtotalNeto >= 50 ? 0m : 3.50m; // CAMBIAR COSTO DE ENVÍO AQUÍ
                     costoEnvio = Math.Min(costoEnvio, subtotalNeto);
                     var descuentoRecetaUSD = req.tieneReceta? Math.Round(subtotalNeto * 0.02m, 2): 0m;                                         
                     var descuentoTotalUSD = Math.Round(descuentoProductos + descuentoRecetaUSD,2);
@@ -621,14 +621,14 @@ namespace BioFXAPI.Controllers
             if (!ok) return err!;
 
             var isMine = await con.ExecuteScalarAsync<int>(
-                "SELECT COUNT(1) FROM [Order] WHERE Id=@Id AND UserId=@Uid AND Activo=1",
+                "SELECT COUNT(1) FROM [Order] WHERE Id=@Id AND UserId=@Uid",
                 new { Id = orderId, Uid = userId });
             if (isMine == 0) return Forbid();
 
             var requestId = await con.ExecuteScalarAsync<int?>(
                 @"SELECT TOP 1 RequestId
                   FROM [Transaction]
-                  WHERE OrderId=@Id AND Activo=1
+                  WHERE OrderId=@Id
                   ORDER BY Id DESC", new { Id = orderId });
 
             if (!requestId.HasValue || requestId.Value <= 0)
@@ -823,6 +823,7 @@ namespace BioFXAPI.Controllers
             o.Id             AS OrderId,
             o.OrderNumber    AS OrderNumber,
             o.Reference      AS Reference,
+            tx.InternalReference  AS InternalReference,
             o.TotalAmount    AS TotalAmount,
             o.Currency       AS Currency,
             o.Status         AS Status,
@@ -836,13 +837,14 @@ namespace BioFXAPI.Controllers
             o.Country        AS Country,
             o.DoctorName     AS DoctorName,            
             CASE WHEN o.OrderAttachmentId IS NULL THEN 0 ELSE 1 END AS HasAttachment,
-            tx.PaymentMethod      AS PaymentMethod,
+            tx.PaymentMethod      AS PaymentMethod,            
             tx.PaymentMethodName  AS PaymentMethodName,
             tx.IssuerName         AS IssuerName,
             tx.[Authorization]      AS [Authorization]
         FROM [Order] o
         OUTER APPLY (
             SELECT TOP 1 
+                t.InternalReference,
                 t.PaymentMethod,
                 t.PaymentMethodName,
                 t.IssuerName,
@@ -895,6 +897,7 @@ namespace BioFXAPI.Controllers
                     OrderId: o.OrderId,
                     OrderNumber: o.OrderNumber,
                     Reference: o.Reference,
+                    InternalReference: o.InternalReference,
                     CreatedAt: o.CreatedAt,
                     TotalAmount: o.TotalAmount,
                     Currency: o.Currency,
@@ -1022,6 +1025,7 @@ namespace BioFXAPI.Controllers
             int OrderId,
             string OrderNumber,
             string Reference,
+            int InternalReference,
             DateTime CreatedAt,
             decimal TotalAmount,
             string Currency,
@@ -1053,6 +1057,7 @@ namespace BioFXAPI.Controllers
             int OrderId,
             string OrderNumber,
             string Reference,
+            int InternalReference,
             decimal TotalAmount,
             string Currency,
             string Status,
