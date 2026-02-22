@@ -13,8 +13,11 @@ namespace BioFXAPI.Services
         private readonly string _senderEmail;
         private readonly string _senderPassword;
         private readonly bool _enableSsl;
-
         private readonly ILogger<EmailService> _logger;
+
+        private const int SmtpMaxAttempts = 3;
+        private static readonly TimeSpan[] SmtpRetryDelays = [TimeSpan.FromSeconds(2), TimeSpan.FromSeconds(5)];
+        
 
         public EmailService(IConfiguration configuration, ILogger<EmailService> logger)
         {
@@ -31,27 +34,61 @@ namespace BioFXAPI.Services
                 _smtpServer, _smtpPort, _senderEmail, _enableSsl);
         }
 
-        private async Task SendEmailAsync(MimeMessage message)
+        private async Task SendEmailAsync(MimeMessage message, CancellationToken ct = default)
         {
             if (string.IsNullOrWhiteSpace(_senderPassword))
                 throw new InvalidOperationException("EmailSettings:SenderPassword no está configurado.");
 
-            using var smtp = new SmtpClient();
-            smtp.Timeout = 30_000;
-            await smtp.ConnectAsync(_smtpServer, _smtpPort, GetSecureSocketOption());
-            await smtp.AuthenticateAsync(_senderEmail, _senderPassword);
-            await smtp.SendAsync(message);
-            await smtp.DisconnectAsync(true);
+            Exception? lastEx = null;
+
+            for (int attempt = 1; attempt <= SmtpMaxAttempts; attempt++)
+            {
+                try
+                {
+                    using var smtp = new SmtpClient();
+                    smtp.Timeout = 30_000;
+                    await smtp.ConnectAsync(_smtpServer, _smtpPort, GetSecureSocketOption(), ct);
+                    await smtp.AuthenticateAsync(_senderEmail, _senderPassword, ct);
+                    await smtp.SendAsync(message, ct);
+                    await smtp.DisconnectAsync(true, ct);
+                    return;
+                }
+                catch (OperationCanceledException) { throw; }
+                catch (AuthenticationException ex)
+                {
+                    _logger.LogError(ex, "Error de autenticación SMTP. Verifica las credenciales en EmailSettings.");
+                    throw;
+                }
+                catch (Exception ex)
+                {
+                    lastEx = ex;
+
+                    if (attempt < SmtpMaxAttempts)
+                    {
+                        var delay = SmtpRetryDelays[attempt - 1];
+                        _logger.LogWarning(ex,
+                            "Fallo al enviar correo (intento {Attempt}/{Max}). Reintentando en {Delay}s.",
+                            attempt, SmtpMaxAttempts, delay.TotalSeconds);
+
+                        await Task.Delay(delay, ct);
+                    }
+                    else
+                    {
+                        _logger.LogError(ex,
+                            "Fallo al enviar correo tras {Max} intentos. Se abandona.",
+                            SmtpMaxAttempts);
+                    }
+                }
+            }
+
+            throw new InvalidOperationException(
+                $"No se pudo enviar el correo tras {SmtpMaxAttempts} intentos.", lastEx);
         }
 
         // Overload para correos con adjunto (usado por SendOrderPaidToShippingAsync)
-        private async Task SendEmailAsync(
-            string toEmail,
-            string subject,
-            string htmlContent,
-            byte[]? attachmentBytes,
-            string? attachmentFileName,
-            string? attachmentContentType)
+        private async Task SendEmailAsync(string toEmail, string subject, string htmlContent,
+            byte[]? attachmentBytes, string? attachmentFileName, string? attachmentContentType,
+            CancellationToken ct = default)
         {
             var email = new MimeMessage();
             email.From.Add(new MailboxAddress("BioFX", _senderEmail));
@@ -62,15 +99,15 @@ namespace BioFXAPI.Services
 
             if (attachmentBytes?.Length > 0 && !string.IsNullOrWhiteSpace(attachmentFileName))
             {
-                var ct = string.IsNullOrWhiteSpace(attachmentContentType)
+                var mct = string.IsNullOrWhiteSpace(attachmentContentType)
                     ? "application/octet-stream"
                     : attachmentContentType;
-                builder.Attachments.Add(attachmentFileName, attachmentBytes, ContentType.Parse(ct));
+                builder.Attachments.Add(attachmentFileName, attachmentBytes, ContentType.Parse(mct));
             }
 
             email.Body = builder.ToMessageBody();
 
-            await SendEmailAsync(email);
+            await SendEmailAsync(email, ct);
         }
 
         private SecureSocketOptions GetSecureSocketOption()
@@ -86,7 +123,7 @@ namespace BioFXAPI.Services
         // =========================================================
         // VERIFICACIÓN DE CUENTA
         // =========================================================
-        public async Task SendVerificationEmailAsync(string recipientEmail, string verificationToken)
+        public async Task SendVerificationEmailAsync(string recipientEmail, string verificationToken, CancellationToken ct = default)
         {
             var tokenEnc = Uri.EscapeDataString(verificationToken);
             var emailEnc = Uri.EscapeDataString(recipientEmail);
@@ -167,14 +204,14 @@ namespace BioFXAPI.Services
 
             message.Body = bodyBuilder.ToMessageBody();
 
-            await SendEmailAsync(message);
+            await SendEmailAsync(message, ct);
             _logger.LogInformation("Email de verificación enviado a {Email}", recipientEmail);
         }
 
         // =========================================================
         // RESET DE CONTRASEÑA
         // =========================================================
-        public async Task SendPasswordResetEmailAsync(string recipientEmail, string resetToken)
+        public async Task SendPasswordResetEmailAsync(string recipientEmail, string resetToken, CancellationToken ct = default)
         {
             var encodedToken = System.Web.HttpUtility.UrlEncode(resetToken);
             var encodedEmail = System.Web.HttpUtility.UrlEncode(recipientEmail);
@@ -232,7 +269,7 @@ namespace BioFXAPI.Services
 
             message.Body = bodyBuilder.ToMessageBody();
 
-            await SendEmailAsync(message);
+            await SendEmailAsync(message, ct);
         }
 
         // =========================================================
@@ -333,7 +370,7 @@ namespace BioFXAPI.Services
         // =========================================================
         // CAMBIO DE EMAIL
         // =========================================================
-        public async Task SendEmailChangeConfirmationAsync(string email, string token)
+        public async Task SendEmailChangeConfirmationAsync(string email, string token, CancellationToken ct = default)
         {
             var message = new MimeMessage();
             message.From.Add(new MailboxAddress("BioFX", _senderEmail));
@@ -363,13 +400,13 @@ namespace BioFXAPI.Services
 
             message.Body = bodyBuilder.ToMessageBody();
 
-            await SendEmailAsync(message);
+            await SendEmailAsync(message, ct);
         }
 
         // =========================================================
         // CORREO SIMPLE (pruebas / admin)
         // =========================================================
-        public async Task SendSimpleEmailAsync(string to, string subject, string body)
+        public async Task SendSimpleEmailAsync(string to, string subject, string body, CancellationToken ct = default)
         {
             var message = new MimeMessage();
             message.From.Add(new MailboxAddress("BioFX", _senderEmail));
@@ -383,7 +420,7 @@ namespace BioFXAPI.Services
             };
             message.Body = builder.ToMessageBody();
 
-            await SendEmailAsync(message);
+            await SendEmailAsync(message, ct);
         }
 
         // =========================================================

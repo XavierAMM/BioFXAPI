@@ -147,12 +147,6 @@ namespace BioFXAPI.Notifications
             // 3) Email SOLO a envios@biofx.com.ec
             var shippingEmail = _shippingEmail;
 
-            if (string.IsNullOrWhiteSpace(shippingEmail))
-            {
-                shippingEmail = "envios@biofx.com.ec";
-                _logger.LogWarning("OrderNotifications:ShippingEmail no configurado. Usando valor por defecto: {Email}", shippingEmail);
-            }
-
             try
             {
 

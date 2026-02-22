@@ -22,19 +22,24 @@ namespace BioFXAPI.Controllers
     {
         private readonly string _cs;
         private readonly IConfiguration _cfg;
-        private readonly HttpClient _http;
         private readonly ILogger<OrdersController> _logger;
         private readonly IFileStorageService _fileStorage;
         private readonly OrderNotificationService _orderNotificationService;
         private readonly PlacetoPayRefreshService _refresh;
         private readonly OrderCancellationService _cancelSvc;
+        private readonly IHttpClientFactory _httpClientFactory;
+        private readonly string _placetoPayBaseUrl;
 
-        public OrdersController(IConfiguration cfg, ILogger<OrdersController> logger, IFileStorageService fileStorage, OrderNotificationService orderNotificationService, PlacetoPayRefreshService refresh, OrderCancellationService cancelSvc)
+        public OrdersController(IConfiguration cfg, ILogger<OrdersController> logger,
+            IFileStorageService fileStorage, OrderNotificationService orderNotificationService,
+            PlacetoPayRefreshService refresh, OrderCancellationService cancelSvc,
+            IHttpClientFactory httpClientFactory) 
         {
             _cfg = cfg;
             _cs = cfg.GetConnectionString("DefaultConnection");
-            _http = new HttpClient { BaseAddress = new Uri(_cfg["PlacetoPay:BaseUrl"]) };
-            _http.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+            _placetoPayBaseUrl = cfg["PlacetoPay:BaseUrl"]
+                ?? throw new InvalidOperationException("PlacetoPay:BaseUrl no configurado.");
+            _httpClientFactory = httpClientFactory;
             _logger = logger;
             _fileStorage = fileStorage;
             _orderNotificationService = orderNotificationService;
@@ -281,11 +286,10 @@ namespace BioFXAPI.Controllers
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex, "Error inesperado en CreateFromCart.");
                 return StatusCode(500, new
                 {
-                    message = "Error interno (CreateFromCart outer).",
-                    error = ex.Message,
-                    stack = ex.StackTrace
+                    message = "Error interno al procesar la orden. Por favor intente más tarde."
                 });
             }
         }
@@ -591,7 +595,11 @@ namespace BioFXAPI.Controllers
                 DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull
             });
 
-            var resp = await _http.PostAsync("api/session", new StringContent(json, Encoding.UTF8, "application/json"));
+            var http = _httpClientFactory.CreateClient();
+            http.BaseAddress = new Uri(_placetoPayBaseUrl);
+            http.DefaultRequestHeaders.Accept.ParseAdd("application/json");
+
+            var resp = await http.PostAsync("api/session", new StringContent(json, Encoding.UTF8, "application/json"));
             var payload = await resp.Content.ReadAsStringAsync();
 
             if (!resp.IsSuccessStatusCode) return StatusCode((int)resp.StatusCode, payload);
@@ -1004,7 +1012,13 @@ namespace BioFXAPI.Controllers
             };
 
             var json = JsonSerializer.Serialize(body);
-            var resp = await _http.PostAsync($"api/session/{requestId}", new StringContent(json, Encoding.UTF8, "application/json"));
+            var http = _httpClientFactory.CreateClient();           
+            http.BaseAddress = new Uri(_placetoPayBaseUrl);
+            http.DefaultRequestHeaders.Accept.ParseAdd("application/json");
+
+            var resp = await http.PostAsync(
+                $"api/session/{requestId}",
+                new StringContent(json, Encoding.UTF8, "application/json"));
             var payload = await resp.Content.ReadAsStringAsync();
 
             if (!resp.IsSuccessStatusCode)

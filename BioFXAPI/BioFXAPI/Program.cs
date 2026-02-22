@@ -50,7 +50,6 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     });
 
 builder.Services.AddAuthorization();
-builder.Services.AddScoped<OrderNotificationService>();
 
 
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
@@ -107,11 +106,14 @@ if (string.IsNullOrEmpty(emailSettings["SmtpServer"]))
 
 builder.Services.AddScoped<OrderCancellationService>();
 builder.Services.AddHostedService<AccountMaintenanceHostedService>();
-builder.Services.AddScoped<EmailVerificationService>();
 builder.Services.AddHttpClient();
 builder.Services.AddHostedService<PlacetoPayAutoRefreshHostedService>();
 builder.Services.AddScoped<PasswordService>();
-builder.Services.AddScoped<EmailService>();
+
+builder.Services.AddSingleton<EmailService>();
+builder.Services.AddSingleton<EmailVerificationService>();
+builder.Services.AddSingleton<OrderNotificationService>();
+
 builder.Services.AddSwaggerGen(c =>
 {
     c.SwaggerDoc("v1", new OpenApiInfo { Title = "BioFX API", Version = "v1" });
@@ -165,7 +167,7 @@ builder.Services.AddSingleton<IAmazonS3>(sp =>
     return new AmazonS3Client(config);
 });
 
-builder.Services.AddScoped<IFileStorageService, S3FileStorageService>();
+builder.Services.AddSingleton<IFileStorageService, S3FileStorageService>();
 
 
 Log.Logger = new LoggerConfiguration()
@@ -203,9 +205,7 @@ if (!app.Environment.IsDevelopment())
             {
                 await ctx.Response.WriteAsJsonAsync(new
                 {
-                    message = "Error interno (global)",
-                    error = feature.Error.Message,
-                    stack = feature.Error.StackTrace
+                    message = "Error interno del servidor. Por favor intente más tarde."
                 });
             }
             else
