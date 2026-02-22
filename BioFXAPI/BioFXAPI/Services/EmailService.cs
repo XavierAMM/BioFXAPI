@@ -275,7 +275,7 @@ namespace BioFXAPI.Services
         // =========================================================
         // ORDEN PAGADA — NOTIFICACIÓN A ENVÍOS
         // =========================================================
-        public async Task SendOrderPaidToShippingAsync(OrderPaidToShippingEmail model)
+        public async Task SendOrderPaidToShippingAsync(OrderPaidToShippingEmail model, CancellationToken ct = default)
         {
             var subject = $"Nueva orden pagada – Ref {model.OrderReference} – Req {model.RequestId}";
             var createdLocalStr = FormatUtcInGuayaquil(model.OrderCreatedAt);
@@ -364,7 +364,8 @@ namespace BioFXAPI.Services
                 html,
                 model.AttachmentBytes,
                 model.AttachmentFileName,
-                model.AttachmentContentType);
+                model.AttachmentContentType,
+                ct);
         }
 
         // =========================================================
@@ -420,6 +421,52 @@ namespace BioFXAPI.Services
             };
             message.Body = builder.ToMessageBody();
 
+            await SendEmailAsync(message, ct);
+        }
+
+        // =========================================================
+        // ALERTA DE STOCK BAJO
+        // =========================================================
+        public async Task SendLowStockAlertAsync(
+            string toEmail,
+            string productName,
+            int currentStock,
+            int threshold,
+            CancellationToken ct = default)
+        {
+            var message = new MimeMessage();
+            message.From.Add(new MailboxAddress("BioFX", _senderEmail));
+            message.To.Add(MailboxAddress.Parse(toEmail));
+            message.Subject = $"⚠️ Stock bajo – {productName} ({currentStock} unidades)";
+
+            var bodyBuilder = new BodyBuilder
+            {
+                HtmlBody = $@"
+            <div style='font-family:Arial,Helvetica,sans-serif;max-width:600px;margin:0 auto;'>
+                <h2 style='color:#c0392b;'>⚠️ Alerta de stock bajo</h2>
+                <p>El siguiente producto ha alcanzado el umbral mínimo de stock:</p>
+                <table style='border-collapse:collapse;width:100%;font-size:14px;'>
+                    <tr>
+                        <td style='padding:8px;border:1px solid #ddd;font-weight:bold;background:#f8f8f8;'>Producto</td>
+                        <td style='padding:8px;border:1px solid #ddd;'>{System.Net.WebUtility.HtmlEncode(productName)}</td>
+                    </tr>
+                    <tr>
+                        <td style='padding:8px;border:1px solid #ddd;font-weight:bold;background:#f8f8f8;'>Stock actual</td>
+                        <td style='padding:8px;border:1px solid #ddd;color:#c0392b;font-weight:bold;'>{currentStock} unidades</td>
+                    </tr>
+                    <tr>
+                        <td style='padding:8px;border:1px solid #ddd;font-weight:bold;background:#f8f8f8;'>Umbral configurado</td>
+                        <td style='padding:8px;border:1px solid #ddd;'>{threshold} unidades</td>
+                    </tr>
+                </table>
+                <p style='margin-top:20px;color:#555;font-size:13px;'>
+                    Por favor gestione el reabastecimiento a la brevedad posible.
+                </p>
+            </div>",
+                TextBody = $"ALERTA DE STOCK BAJO\nProducto: {productName}\nStock actual: {currentStock} unidades\nUmbral: {threshold} unidades"
+            };
+
+            message.Body = bodyBuilder.ToMessageBody();
             await SendEmailAsync(message, ct);
         }
 

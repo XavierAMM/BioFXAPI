@@ -12,12 +12,17 @@ namespace BioFXAPI.Notifications
     public class OrderNotificationService
     {
         private readonly string _connectionString;
-        private readonly string _shippingEmail;
         private readonly EmailService _emailService;
         private readonly IFileStorageService _fileStorage;
         private readonly ILogger<OrderNotificationService> _logger;
+        private readonly IReadOnlyList<string> _shippingEmails;
+        private readonly IReadOnlyList<string> _stockAlertEmails;
+        private readonly int _lowStockThreshold;
 
-        public OrderNotificationService(IConfiguration configuration, EmailService emailService, IFileStorageService fileStorage, ILogger<OrderNotificationService> logger)
+        public int LowStockThreshold => _lowStockThreshold;
+
+        public OrderNotificationService(IConfiguration configuration, EmailService emailService,
+            IFileStorageService fileStorage, ILogger<OrderNotificationService> logger)
         {
             _emailService = emailService;
             _fileStorage = fileStorage;
@@ -26,13 +31,29 @@ namespace BioFXAPI.Notifications
             _connectionString = configuration.GetConnectionString("DefaultConnection")
                 ?? throw new InvalidOperationException("ConnectionStrings:DefaultConnection no está configurado.");
 
-            _shippingEmail = configuration["OrderNotifications:ShippingEmail"]
-                ?? "envios@biofx.com.ec";                // ✅ fallback en constructor, no en el método
+            _shippingEmails = configuration
+                .GetSection("OrderNotifications:ShippingEmails")
+                .Get<string[]>()
+                ?.Where(e => !string.IsNullOrWhiteSpace(e))
+                .ToArray()
+                ?? ["envios@biofx.com.ec"];
 
-            if (configuration["OrderNotifications:ShippingEmail"] is null)
-                _logger.LogWarning(
-                    "OrderNotifications:ShippingEmail no configurado. Usando valor por defecto: {Email}",
-                    _shippingEmail);
+            _stockAlertEmails = configuration
+                .GetSection("OrderNotifications:StockAlertEmails")
+                .Get<string[]>()
+                ?.Where(e => !string.IsNullOrWhiteSpace(e))
+                .ToArray()
+                ?? ["envios@biofx.com.ec"];
+
+            _lowStockThreshold = configuration.GetValue<int?>("OrderNotifications:LowStockThreshold") ?? 5;
+
+            if (!configuration.GetSection("OrderNotifications:ShippingEmails").Exists())
+                _logger.LogWarning("OrderNotifications:ShippingEmails no configurado. Usando fallback: {Emails}",
+                    string.Join(", ", _shippingEmails));
+
+            if (!configuration.GetSection("OrderNotifications:StockAlertEmails").Exists())
+                _logger.LogWarning("OrderNotifications:StockAlertEmails no configurado. Usando fallback: {Emails}",
+                    string.Join(", ", _stockAlertEmails));
         }
 
         public async Task SendOrderPaidNotificationsAsync(int orderId, int requestId, CancellationToken ct = default)
@@ -144,46 +165,41 @@ namespace BioFXAPI.Notifications
                 }
             }
 
-            // 3) Email SOLO a envios@biofx.com.ec
-            var shippingEmail = _shippingEmail;
-
-            try
+            // 3) Email a todos los destinatarios de ShippingEmails
+            foreach (var email in _shippingEmails)
             {
-
-                _logger.LogInformation("OrderNotificationService: enviando correo de orden pagada a {Email} para OrderId={OrderId}, RequestId={RequestId}",
-                    shippingEmail, orderId, requestId);
-
                 var model = new OrderPaidToShippingEmail
                 {
-                    ToEmail = shippingEmail,
-
+                    ToEmail = email,
+                    
                     CustomerFullName = $"{header.FirstName} {header.LastName}".Trim(),
                     CustomerEmail = header.UserEmail!,
                     CustomerPhone = header.PhoneNumber,
-
-                    OrderReference = header.Reference,
+                    
+                    OrderReference = header.Reference,                    
                     RequestId = header.RequestId,
                     OrderStatus = header.OrderStatus,
                     OrderCreatedAt = EnsureUtc(header.OrderCreatedAt),
-
+                    
                     TotalAmount = header.TotalAmount,
                     Currency = header.Currency,
-
-                    AddressLine = header.AddressLine,
+                    
+                    AddressLine = header.AddressLine,                    
                     City = header.City,
                     Province = header.Province,
                     Country = header.Country,
                     PostalCode = header.PostalCode,
-
+                    
                     DocumentType = header.DocumentType,
                     DocumentNumber = header.DocumentNumber,
+                    
                     DoctorName = header.DoctorName,
-
+                    
                     PaymentStatus = header.TxStatus,
                     PaymentMethod = header.PaymentMethod,
                     PaymentMethodName = header.PaymentMethodName,
+                    
                     IssuerName = header.IssuerName,
-
                     Items = items.Select(i => new OrderPaidItemModel
                     {
                         ProductName = i.ProductName,
@@ -191,24 +207,32 @@ namespace BioFXAPI.Notifications
                         UnitPrice = i.UnitPrice,
                         TotalPrice = i.TotalPrice
                     }).ToList(),
-
                     AttachmentBytes = attachmentBytes,
                     AttachmentFileName = attachmentFileName,
                     AttachmentContentType = attachmentContentType
                 };
 
-                await _emailService.SendOrderPaidToShippingAsync(model);
+                try
+                {
+                    _logger.LogInformation(
+                        "OrderNotificationService: enviando correo de orden pagada a {Email} para OrderId={OrderId}",
+                        email, orderId);
 
+                    await _emailService.SendOrderPaidToShippingAsync(model, ct);
 
-                _logger.LogInformation("OrderNotificationService: correo a envíos enviado correctamente para OrderId={OrderId}", orderId);
+                    _logger.LogInformation(
+                        "OrderNotificationService: correo enviado correctamente a {Email} para OrderId={OrderId}",
+                        email, orderId);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex,
+                        "OrderNotificationService: error enviando correo a {Email} para OrderId={OrderId}. Continuando con los demás.",
+                        email, orderId);
+                    // No retornamos — un fallo en un destinatario no bloquea los demás ni el borrado del adjunto
+                }
             }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex,
-                    "OrderNotificationService: error enviando correo a envíos para OrderId={OrderId}",
-                    orderId);
-                return; // No borrar adjunto si falló el correo
-            }
+
 
             // 4) Si se envió el correo, borrar adjunto en S3 y limpiar BD
             if (header.OrderAttachmentId.HasValue &&
@@ -245,6 +269,35 @@ namespace BioFXAPI.Notifications
             }
         }
 
+        public async Task SendLowStockAlertsAsync(
+            IEnumerable<(int ProductId, string ProductName, int Stock)> lowStockProducts,
+            CancellationToken ct = default)
+        {
+            var products = lowStockProducts.ToList();
+            if (products.Count == 0) return;
+
+            foreach (var toEmail in _stockAlertEmails)
+            {
+                foreach (var (productId, productName, stock) in products)
+                {
+                    try
+                    {
+                        await _emailService.SendLowStockAlertAsync(
+                            toEmail, productName, stock, _lowStockThreshold, ct);
+
+                        _logger.LogInformation(
+                            "Alerta de stock bajo enviada a {Email} para ProductId={ProductId} ({Name}), Stock={Stock}",
+                            toEmail, productId, productName, stock);
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex,
+                            "Error enviando alerta de stock bajo a {Email} para ProductId={ProductId}",
+                            toEmail, productId);
+                    }
+                }
+            }
+        }
 
 
         // Clases internas para mapear el SQL

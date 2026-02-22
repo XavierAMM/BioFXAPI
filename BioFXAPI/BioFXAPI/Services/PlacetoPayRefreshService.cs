@@ -355,6 +355,7 @@ namespace BioFXAPI.Services
             // ===== 12) Email side-effect (idempotent) =====
             if (justPaid)
             {
+                // 12a) Notificación de orden pagada
                 try
                 {
                     await _orderNotificationService.SendOrderPaidNotificationsAsync(
@@ -366,6 +367,27 @@ namespace BioFXAPI.Services
                         "Error al enviar notificación de orden pagada. OrderId={OrderId}, RequestId={RequestId}. " +
                         "El pago fue procesado correctamente pero el correo a envíos puede no haberse enviado.",
                         txRow.OrderId, requestId);
+                }
+
+                // 12b) Alertas de stock bajo — consultar productos de esta orden que quedaron bajos
+                try
+                {
+                    var lowStock = await con.QueryAsync<(int ProductId, string ProductName, int Stock)>(@"
+            SELECT p.Id AS ProductId, p.Nombre AS ProductName, p.Stock
+            FROM Producto p
+            INNER JOIN OrderItem oi ON oi.ProductId = p.Id
+            WHERE oi.OrderId = @OrderId
+              AND p.Stock <= @Threshold
+              AND p.Activo = 1;",
+                        new { OrderId = txRow.OrderId, Threshold = _orderNotificationService.LowStockThreshold });
+
+                    await _orderNotificationService.SendLowStockAlertsAsync(lowStock, ct);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex,
+                        "Error al verificar/enviar alertas de stock bajo para OrderId={OrderId}. El pago fue procesado correctamente.",
+                        txRow.OrderId);
                 }
             }
 
