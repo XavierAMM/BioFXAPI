@@ -1,11 +1,8 @@
-﻿using MailKit;
-using MailKit.Net.Smtp;
+﻿using MailKit.Net.Smtp;
 using MailKit.Security;
 using MimeKit;
-using System.Diagnostics;
 using BioFXAPI.Models;
 using BioFXAPI.Notifications;
-
 
 namespace BioFXAPI.Services
 {
@@ -34,6 +31,20 @@ namespace BioFXAPI.Services
                 _smtpServer, _smtpPort, _senderEmail, _enableSsl);
         }
 
+        private async Task SendEmailAsync(MimeMessage message)
+        {
+            if (string.IsNullOrWhiteSpace(_senderPassword))
+                throw new InvalidOperationException("EmailSettings:SenderPassword no está configurado.");
+
+            using var smtp = new SmtpClient();
+            smtp.Timeout = 30_000;
+            await smtp.ConnectAsync(_smtpServer, _smtpPort, GetSecureSocketOption());
+            await smtp.AuthenticateAsync(_senderEmail, _senderPassword);
+            await smtp.SendAsync(message);
+            await smtp.DisconnectAsync(true);
+        }
+
+        // Overload para correos con adjunto (usado por SendOrderPaidToShippingAsync)
         private async Task SendEmailAsync(
             string toEmail,
             string subject,
@@ -47,62 +58,48 @@ namespace BioFXAPI.Services
             email.To.Add(MailboxAddress.Parse(toEmail));
             email.Subject = subject;
 
-            var builder = new BodyBuilder
-            {
-                HtmlBody = htmlContent
-            };
+            var builder = new BodyBuilder { HtmlBody = htmlContent };
 
-            if (attachmentBytes != null &&
-                attachmentBytes.Length > 0 &&
-                !string.IsNullOrWhiteSpace(attachmentFileName))
+            if (attachmentBytes?.Length > 0 && !string.IsNullOrWhiteSpace(attachmentFileName))
             {
                 var ct = string.IsNullOrWhiteSpace(attachmentContentType)
                     ? "application/octet-stream"
                     : attachmentContentType;
-
                 builder.Attachments.Add(attachmentFileName, attachmentBytes, ContentType.Parse(ct));
             }
 
             email.Body = builder.ToMessageBody();
 
-            using var smtp = new SmtpClient();
-            await smtp.ConnectAsync(_smtpServer, _smtpPort, GetSecureSocketOption());
-            if (string.IsNullOrWhiteSpace(_senderPassword))
-                throw new InvalidOperationException("EmailSettings:SenderPassword no está configurado.");
-
-            await smtp.AuthenticateAsync(_senderEmail, _senderPassword);
-            await smtp.SendAsync(email);
-            await smtp.DisconnectAsync(true);
+            await SendEmailAsync(email);
         }
-
 
         private SecureSocketOptions GetSecureSocketOption()
         {
             if (!_enableSsl)
                 return SecureSocketOptions.None;
 
-
-            return _smtpPort == 465 ?
-                SecureSocketOptions.SslOnConnect :
-                SecureSocketOptions.StartTls;
+            return _smtpPort == 465
+                ? SecureSocketOptions.SslOnConnect
+                : SecureSocketOptions.StartTls;
         }
 
+        // =========================================================
+        // VERIFICACIÓN DE CUENTA
+        // =========================================================
         public async Task SendVerificationEmailAsync(string recipientEmail, string verificationToken)
         {
-            try
+            var tokenEnc = Uri.EscapeDataString(verificationToken);
+            var emailEnc = Uri.EscapeDataString(recipientEmail);
+            var verifyUrl = $"https://api.biofx.com.ec/api/account/verify-email?token={tokenEnc}&email={emailEnc}";
+
+            var message = new MimeMessage();
+            message.From.Add(new MailboxAddress("BioFX", _senderEmail));
+            message.To.Add(new MailboxAddress("", recipientEmail));
+            message.Subject = "Activa tu cuenta – BioFX";
+
+            var bodyBuilder = new BodyBuilder
             {
-                var message = new MimeMessage();
-                message.From.Add(new MailboxAddress("BioFX", _senderEmail));
-                message.To.Add(new MailboxAddress("", recipientEmail));
-                message.Subject = "Activa tu cuenta – BioFX";
-
-                var tokenEnc = Uri.EscapeDataString(verificationToken);
-                var emailEnc = Uri.EscapeDataString(recipientEmail);
-                var verifyUrl = $"https://api.biofx.com.ec/api/account/verify-email?token={tokenEnc}&email={emailEnc}";
-
-                var bodyBuilder = new BodyBuilder();
-
-                bodyBuilder.HtmlBody = $@"
+                HtmlBody = $@"
                   <div style='display:none;max-height:0;overflow:hidden;color:transparent;opacity:0;'>
                     Verifica tu correo para activar tu cuenta en BioFX.
                   </div>
@@ -153,11 +150,9 @@ namespace BioFXAPI.Services
                         </p>
                       </div>
                     </div>
-                  </div>
-                ";
+                  </div>",
 
-                // Texto plano
-                bodyBuilder.TextBody = $@"
+                TextBody = $@"
                 Bienvenido a BioFX
 
                 Solo falta un paso para activar tu cuenta. Abre este enlace:
@@ -167,44 +162,31 @@ namespace BioFXAPI.Services
 
                 Si no creaste esta cuenta, ignora este mensaje.
                 © {DateTime.UtcNow.Year} BioFX Medical
-                ";
+                "
+            };
 
-                message.Body = bodyBuilder.ToMessageBody();
+            message.Body = bodyBuilder.ToMessageBody();
 
-                using (var client = new SmtpClient())
-                {
-                    client.Timeout = 30000;
-                    await client.ConnectAsync(_smtpServer, _smtpPort, GetSecureSocketOption());
-                    if (string.IsNullOrWhiteSpace(_senderPassword))
-                        throw new InvalidOperationException("EmailSettings:SenderPassword no está configurado.");
-
-                    await client.AuthenticateAsync(_senderEmail, _senderPassword);
-                    await client.SendAsync(message);
-                    await client.DisconnectAsync(true);
-                }
-
-                _logger.LogInformation("✅ Email de verificación enviado exitosamente");
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError($"❌ Error en SendVerificationEmailAsync2: {ex.Message}");
-                throw;
-            }
+            await SendEmailAsync(message);
+            _logger.LogInformation("Email de verificación enviado a {Email}", recipientEmail);
         }
 
+        // =========================================================
+        // RESET DE CONTRASEÑA
+        // =========================================================
         public async Task SendPasswordResetEmailAsync(string recipientEmail, string resetToken)
         {
+            var encodedToken = System.Web.HttpUtility.UrlEncode(resetToken);
+            var encodedEmail = System.Web.HttpUtility.UrlEncode(recipientEmail);
+
             var message = new MimeMessage();
             message.From.Add(new MailboxAddress("BioFX", _senderEmail));
             message.To.Add(new MailboxAddress("", recipientEmail));
             message.Subject = "Restablecimiento de Contraseña - BioFX";
 
-            // Codificar parámetros para URL
-            var encodedToken = System.Web.HttpUtility.UrlEncode(resetToken);
-            var encodedEmail = System.Web.HttpUtility.UrlEncode(recipientEmail);
-
-            var bodyBuilder = new BodyBuilder();
-            bodyBuilder.HtmlBody = $@"
+            var bodyBuilder = new BodyBuilder
+            {
+                HtmlBody = $@"
                 <div style='font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;'>
                     <h2 style='color: #2c9c8a;'>Restablecimiento de Contraseña</h2>
                     <p>Hemos recibido una solicitud para restablecer su contraseña de BioFX.</p>
@@ -229,11 +211,9 @@ namespace BioFXAPI.Services
             
                     <hr style='border: none; border-top: 1px solid #e4efe9; margin: 20px 0;'>
                     <p style='color: #666; font-size: 14px;'>Atentamente,<br>Equipo de BioFX Medical</p>
-                </div>
-            ";
+                </div>",
 
-            // Versión texto plano
-            bodyBuilder.TextBody = $@"
+                TextBody = $@"
                 Restablecimiento de Contraseña - BioFX
 
                 Hemos recibido una solicitud para restablecer su contraseña.
@@ -247,24 +227,17 @@ namespace BioFXAPI.Services
 
                 Atentamente,
                 Equipo de BioFX Medical
-            ";
+                "
+            };
 
             message.Body = bodyBuilder.ToMessageBody();
 
-            using (var client = new SmtpClient())
-            {
-                client.Timeout = 30000;
-                await client.ConnectAsync(_smtpServer, _smtpPort, GetSecureSocketOption()); // 465=SslOnConnect, 587=StartTls
-                if (string.IsNullOrWhiteSpace(_senderPassword))
-                    throw new InvalidOperationException("EmailSettings:SenderPassword no está configurado.");
-
-                await client.AuthenticateAsync(_senderEmail, _senderPassword);
-
-                await client.SendAsync(message);
-                await client.DisconnectAsync(true);
-            }
+            await SendEmailAsync(message);
         }
 
+        // =========================================================
+        // ORDEN PAGADA — NOTIFICACIÓN A ENVÍOS
+        // =========================================================
         public async Task SendOrderPaidToShippingAsync(OrderPaidToShippingEmail model)
         {
             var subject = $"Nueva orden pagada – Ref {model.OrderReference} – Req {model.RequestId}";
@@ -357,46 +330,9 @@ namespace BioFXAPI.Services
                 model.AttachmentContentType);
         }
 
-        private static string FormatUtcInGuayaquil(DateTime utc)
-        {
-            // Asegurar UTC
-            if (utc.Kind == DateTimeKind.Local) utc = utc.ToUniversalTime();
-            if (utc.Kind == DateTimeKind.Unspecified) utc = DateTime.SpecifyKind(utc, DateTimeKind.Utc);
-
-            var tz = GetGuayaquilTimeZoneSafe();
-            var local = TimeZoneInfo.ConvertTimeFromUtc(utc, tz);
-
-            return local.ToString("dd/MM/yyyy HH:mm");
-        }
-
-        private static TimeZoneInfo GetGuayaquilTimeZoneSafe()
-        {
-            // 1) IANA (Linux)
-            // 2) Windows (Windows Server / IIS)
-            // 3) Fallback UTC
-            try
-            {
-                return TimeZoneInfo.FindSystemTimeZoneById("America/Guayaquil");
-            }
-            catch (TimeZoneNotFoundException)
-            {
-                // Windows ID (UTC-5, sin DST) común en Windows
-                try
-                {
-                    return TimeZoneInfo.FindSystemTimeZoneById("SA Pacific Standard Time");
-                }
-                catch
-                {
-                    return TimeZoneInfo.Utc;
-                }
-            }
-            catch (InvalidTimeZoneException)
-            {
-                // Si la zona está corrupta en el sistema
-                return TimeZoneInfo.Utc;
-            }
-        }
-
+        // =========================================================
+        // CAMBIO DE EMAIL
+        // =========================================================
         public async Task SendEmailChangeConfirmationAsync(string email, string token)
         {
             var message = new MimeMessage();
@@ -427,13 +363,12 @@ namespace BioFXAPI.Services
 
             message.Body = bodyBuilder.ToMessageBody();
 
-            using var client = new SmtpClient();
-            await client.ConnectAsync(_smtpServer, _smtpPort, GetSecureSocketOption());
-            await client.AuthenticateAsync(_senderEmail, _senderPassword);
-            await client.SendAsync(message);
-            await client.DisconnectAsync(true);
+            await SendEmailAsync(message);
         }
 
+        // =========================================================
+        // CORREO SIMPLE (pruebas / admin)
+        // =========================================================
         public async Task SendSimpleEmailAsync(string to, string subject, string body)
         {
             var message = new MimeMessage();
@@ -441,20 +376,51 @@ namespace BioFXAPI.Services
             message.To.Add(new MailboxAddress("", to));
             message.Subject = subject;
 
-            var builder = new BodyBuilder { TextBody = body, HtmlBody = $"<pre>{System.Net.WebUtility.HtmlEncode(body)}</pre>" };
+            var builder = new BodyBuilder
+            {
+                TextBody = body,
+                HtmlBody = $"<pre>{System.Net.WebUtility.HtmlEncode(body)}</pre>"
+            };
             message.Body = builder.ToMessageBody();
 
-            using var client = new SmtpClient(new ProtocolLogger(Console.OpenStandardError()));
-            client.Timeout = 30000;
-            await client.ConnectAsync(_smtpServer, _smtpPort, GetSecureSocketOption());
-            if (string.IsNullOrWhiteSpace(_senderPassword))
-                throw new InvalidOperationException("EmailSettings:SenderPassword no está configurado.");
-            await client.AuthenticateAsync(_senderEmail, _senderPassword);
-            await client.SendAsync(message);
-            await client.DisconnectAsync(true);
+            await SendEmailAsync(message);
         }
 
+        // =========================================================
+        // UTILIDADES
+        // =========================================================
+        private static string FormatUtcInGuayaquil(DateTime utc)
+        {
+            if (utc.Kind == DateTimeKind.Local) utc = utc.ToUniversalTime();
+            if (utc.Kind == DateTimeKind.Unspecified) utc = DateTime.SpecifyKind(utc, DateTimeKind.Utc);
 
+            var tz = GetGuayaquilTimeZoneSafe();
+            var local = TimeZoneInfo.ConvertTimeFromUtc(utc, tz);
 
+            return local.ToString("dd/MM/yyyy HH:mm");
+        }
+
+        private static TimeZoneInfo GetGuayaquilTimeZoneSafe()
+        {
+            try
+            {
+                return TimeZoneInfo.FindSystemTimeZoneById("America/Guayaquil");
+            }
+            catch (TimeZoneNotFoundException)
+            {
+                try
+                {
+                    return TimeZoneInfo.FindSystemTimeZoneById("SA Pacific Standard Time");
+                }
+                catch
+                {
+                    return TimeZoneInfo.Utc;
+                }
+            }
+            catch (InvalidTimeZoneException)
+            {
+                return TimeZoneInfo.Utc;
+            }
+        }
     }
 }

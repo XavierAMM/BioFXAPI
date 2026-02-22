@@ -15,17 +15,20 @@ namespace BioFXAPI.Services
         private readonly IConfiguration _cfg;
         private readonly OrderNotificationService _orderNotificationService;
         private readonly IHttpClientFactory _httpClientFactory;
+        private readonly ILogger<PlacetoPayRefreshService> _logger;
 
 
         public PlacetoPayRefreshService(
             IConfiguration cfg,
             OrderNotificationService orderNotificationService,
-            IHttpClientFactory httpClientFactory)
+            IHttpClientFactory httpClientFactory,
+            ILogger<PlacetoPayRefreshService> logger)
         {
             _cfg = cfg;
             _cs = cfg.GetConnectionString("DefaultConnection");
             _orderNotificationService = orderNotificationService;
             _httpClientFactory = httpClientFactory;
+            _logger = logger;
         }
 
         public async Task<(IActionResult? error, RefreshResult? result)> RefreshByRequestIdAsync(
@@ -357,9 +360,12 @@ namespace BioFXAPI.Services
                     await _orderNotificationService.SendOrderPaidNotificationsAsync(
                         txRow.OrderId, requestId, ct);
                 }
-                catch
+                catch (Exception ex)
                 {
-                    // no romper
+                    _logger.LogError(ex,
+                        "Error al enviar notificación de orden pagada. OrderId={OrderId}, RequestId={RequestId}. " +
+                        "El pago fue procesado correctamente pero el correo a envíos puede no haberse enviado.",
+                        txRow.OrderId, requestId);
                 }
             }
 

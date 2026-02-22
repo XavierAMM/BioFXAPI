@@ -11,27 +11,33 @@ namespace BioFXAPI.Notifications
 {
     public class OrderNotificationService
     {
-        private readonly IConfiguration _configuration;
+        private readonly string _connectionString;
+        private readonly string _shippingEmail;
         private readonly EmailService _emailService;
         private readonly IFileStorageService _fileStorage;
         private readonly ILogger<OrderNotificationService> _logger;
 
-        public OrderNotificationService(
-            IConfiguration configuration,
-            EmailService emailService,
-            IFileStorageService fileStorage,
-            ILogger<OrderNotificationService> logger)
+        public OrderNotificationService(IConfiguration configuration, EmailService emailService, IFileStorageService fileStorage, ILogger<OrderNotificationService> logger)
         {
-            _configuration = configuration;
             _emailService = emailService;
             _fileStorage = fileStorage;
             _logger = logger;
+
+            _connectionString = configuration.GetConnectionString("DefaultConnection")
+                ?? throw new InvalidOperationException("ConnectionStrings:DefaultConnection no está configurado.");
+
+            _shippingEmail = configuration["OrderNotifications:ShippingEmail"]
+                ?? "envios@biofx.com.ec";                // ✅ fallback en constructor, no en el método
+
+            if (configuration["OrderNotifications:ShippingEmail"] is null)
+                _logger.LogWarning(
+                    "OrderNotifications:ShippingEmail no configurado. Usando valor por defecto: {Email}",
+                    _shippingEmail);
         }
 
         public async Task SendOrderPaidNotificationsAsync(int orderId, int requestId, CancellationToken ct = default)
         {
-            var connectionString = _configuration.GetConnectionString("DefaultConnection");
-            await using var con = new SqlConnection(connectionString);
+            await using var con = new SqlConnection(_connectionString);
             await con.OpenAsync(ct);
 
             _logger.LogInformation("OrderNotificationService: iniciando notificación de orden pagada. OrderId={OrderId}, RequestId={RequestId}", orderId, requestId);
@@ -139,7 +145,7 @@ namespace BioFXAPI.Notifications
             }
 
             // 3) Email SOLO a envios@biofx.com.ec
-            var shippingEmail = _configuration["OrderNotifications:ShippingEmail"];
+            var shippingEmail = _shippingEmail;
 
             if (string.IsNullOrWhiteSpace(shippingEmail))
             {

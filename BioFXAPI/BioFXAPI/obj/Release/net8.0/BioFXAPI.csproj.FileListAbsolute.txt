@@ -283,3 +283,4 @@ C:\Users\xmanc\OneDrive\Desktop\BioFXAPI-Github\BioFXAPI\BioFXAPI\bin\Release\ne
 C:\Users\xmanc\OneDrive\Desktop\BioFXAPI-Github\BioFXAPI\BioFXAPI\bin\Release\net8.0\runtimes\browser\lib\net8.0\System.Text.Encodings.Web.dll
 C:\Users\xmanc\OneDrive\Desktop\BioFXAPI-Github\BioFXAPI\BioFXAPI\bin\Release\net8.0\AWSSDK.Core.dll
 C:\Users\xmanc\OneDrive\Desktop\BioFXAPI-Github\BioFXAPI\BioFXAPI\bin\Release\net8.0\AWSSDK.S3.dll
+C:\Users\xmanc\OneDrive\Desktop\BioFXAPI-Github\BioFXAPI\BioFXAPI\obj\Release\net8.0\swae.build.ex.cache
