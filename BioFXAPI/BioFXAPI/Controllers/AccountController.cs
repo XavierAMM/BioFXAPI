@@ -25,7 +25,8 @@ namespace BioFXAPI.Controllers
             _emailService = emailService;
             _logger = logger;
             _emailVerification = emailVerification;
-            _frontendBaseUrl = configuration["Frontend:BaseUrl"] ?? "https://biofx.com.ec/";
+            _frontendBaseUrl = configuration["Frontend:BaseUrl"]
+                ?? throw new InvalidOperationException("Frontend:BaseUrl no está configurado en appsettings.");
         }
 
         public record TestEmailRequest(string To, string Subject, string Body);

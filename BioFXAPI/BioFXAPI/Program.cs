@@ -18,8 +18,12 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
 
-var jwtSettings = builder.Configuration.GetSection("Jwt");
-builder.Configuration.AddUserSecrets<Program>();
+// WebApplication.CreateBuilder ya carga User Secrets (en Development) y variables
+// de entorno automÃ¡ticamente â€” no se necesita AddUserSecrets() explÃ­cito.
+var jwtSecret = builder.Configuration["Jwt:Secret"];
+if (string.IsNullOrWhiteSpace(jwtSecret))
+    throw new InvalidOperationException("Jwt:Secret no configurado. Definir la variable de entorno Jwt__Secret.");
+
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
@@ -28,7 +32,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         {
             ValidateIssuerSigningKey = true,
             IssuerSigningKey = new SymmetricSecurityKey(
-                Encoding.UTF8.GetBytes(jwtSettings["Secret"])),
+                Encoding.UTF8.GetBytes(jwtSecret)),
             ValidateIssuer = false,
             ValidateAudience = false,
             ValidateLifetime = true,
@@ -118,7 +122,7 @@ builder.Services.AddSwaggerGen(c =>
 {
     c.SwaggerDoc("v1", new OpenApiInfo { Title = "BioFX API", Version = "v1" });
 
-    // Configuración para autenticación JWT en Swagger
+    // Configuraciï¿½n para autenticaciï¿½n JWT en Swagger
     c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
         Description = "JWT Authorization header using the Bearer scheme. Example: \"Authorization: Bearer {token}\"",
@@ -205,7 +209,7 @@ if (!app.Environment.IsDevelopment())
             {
                 await ctx.Response.WriteAsJsonAsync(new
                 {
-                    message = "Error interno del servidor. Por favor intente más tarde."
+                    message = "Error interno del servidor. Por favor intente mï¿½s tarde."
                 });
             }
             else

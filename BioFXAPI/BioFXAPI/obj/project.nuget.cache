@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "/ZpKcvu6xYo=",
+  "dgSpecHash": "Nfeb0yNYRCk=",
   "success": true,
-  "projectFilePath": "C:\\Users\\xmanc\\OneDrive\\Desktop\\BioFXAPI-Github\\BioFXAPI\\BioFXAPI\\BioFXAPI.csproj",
+  "projectFilePath": "C:\\Users\\xmanc\\Desktop\\BioFXAPI-Github\\BioFXAPI\\BioFXAPI\\BioFXAPI.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\xmanc\\.nuget\\packages\\awssdk.core\\4.0.3.1\\awssdk.core.4.0.3.1.nupkg.sha512",
     "C:\\Users\\xmanc\\.nuget\\packages\\awssdk.s3\\4.0.11.3\\awssdk.s3.4.0.11.3.nupkg.sha512",
