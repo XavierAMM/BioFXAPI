@@ -1,7 +1,8 @@
 ﻿using BioFXAPI.Models;
+using Dapper;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Data.SqlClient;
-using Dapper;
 
 namespace BioFXAPI.Controllers
 {
@@ -57,6 +58,7 @@ namespace BioFXAPI.Controllers
             }
         }
 
+        [Authorize]
         [HttpPost]
         public async Task<IActionResult> CrearTestimonio([FromBody] Testimonios testimonio)
         {
@@ -84,6 +86,7 @@ namespace BioFXAPI.Controllers
             }
         }
 
+        [Authorize]
         [HttpPut("{id}")]
         public async Task<IActionResult> ActualizarTestimonio(int id, [FromBody] Testimonios testimonio)
         {
@@ -119,6 +122,7 @@ namespace BioFXAPI.Controllers
             }
         }
 
+        [Authorize]
         [HttpDelete("{id}")]
         public async Task<IActionResult> EliminarTestimonio(int id)
         {

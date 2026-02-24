@@ -2,8 +2,10 @@
 using BioFXAPI.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using System.Data.SqlClient;
 using System.Security.Claims;
+using System.Security.Cryptography;
 
 namespace BioFXAPI.Controllers
 {
@@ -275,7 +277,8 @@ namespace BioFXAPI.Controllers
             }
         }
 
-        [AllowAnonymous]
+        [Authorize]
+        [EnableRateLimiting("StrictPasswordOps")]
         [HttpPost("test-email")]
         public async Task<IActionResult> TestEmail([FromBody] TestEmailRequest req)
         {
@@ -507,12 +510,11 @@ namespace BioFXAPI.Controllers
 
         }
 
-        private string GenerateSixDigitCode()
+        private static string GenerateSixDigitCode()
         {
             const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-            var random = new Random();
-            return new string(Enumerable.Repeat(chars, 6)
-                .Select(s => s[random.Next(s.Length)]).ToArray());
+            return new string(Enumerable.Repeat(0, 6)
+                .Select(_ => chars[RandomNumberGenerator.GetInt32(chars.Length)]).ToArray());
         }        
 
         public record ResendVerificationRequest(string Email);

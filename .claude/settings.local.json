@@ -5,7 +5,9 @@
       "Bash(gh auth:*)",
       "Bash(gh:*)",
       "Bash(dotnet user-secrets:*)",
-      "Bash(tail:*)"
+      "Bash(tail:*)",
+      "Bash(python3 -c \"import sys,json; d=json.load\\(sys.stdin\\); print\\(d.get\\(''ConnectionStrings:DefaultConnection'',''''\\)\\)\")",
+      "Bash(grep:*)"
     ]
   }
 }

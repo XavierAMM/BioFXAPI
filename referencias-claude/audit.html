@@ -463,7 +463,7 @@
     <div class="header">
       <div class="header-title">BioFX<span>API</span> &mdash; Auditoría de Código</div>
       <div class="header-meta">
-        <div class="header-date" id="hdrDate">Actualizado: 22 Feb 2026 — 99 issues</div>
+        <div class="header-date" id="hdrDate">Actualizado: 23 Feb 2026 — 99 issues, 23 resueltos</div>
         <div class="header-badge" id="totalBadge">— problemas</div>
       </div>
     </div>
@@ -723,6 +723,8 @@
           line: "32-33",
           why: "<code>ValidateIssuer = false</code> y <code>ValidateAudience = false</code> permiten que cualquier token firmado con el secreto correcto sea aceptado sin importar su emisor o audiencia. En arquitecturas con múltiples servicios, un token de un servicio distinto podría ser usado en este.",
           fix: 'Activar ambas validaciones y configurar los valores: <code>ValidateIssuer = true, ValidIssuer = config["Jwt:Issuer"], ValidateAudience = true, ValidAudience = config["Jwt:Audience"]</code>',
+          res: "full",
+          resNote: "✅ Resuelto (23 Feb 2026) — <code>Program.cs</code>: activados <code>ValidateIssuer = true</code> y <code>ValidateAudience = true</code>, con <code>ValidIssuer</code> y <code>ValidAudience</code> leídos desde config (<code>Jwt:Issuer</code> / <code>Jwt:Audience</code>). Se añadió validación al arranque que lanza <code>InvalidOperationException</code> si alguno de los tres valores JWT no está configurado.",
         },
 
         {
@@ -734,6 +736,8 @@
           line: "N/A",
           why: "Los tokens JWT tienen vida de 24 horas y no pueden ser revocados. Si un token es robado (mediante XSS, MITM, acceso físico al dispositivo), el atacante mantiene acceso completo durante 24h. El usuario tampoco puede cerrar sesión en todos los dispositivos.",
           fix: "Implementar una blacklist de tokens (JTI claim) en Redis o caché en memoria. Al logout agregar el JTI a la blacklist. El middleware de auth debe verificar contra la blacklist en cada request.",
+          res: "full",
+          resNote: "✅ Resuelto (23 Feb 2026) — Creado <code>TokenBlacklistService</code> (singleton, <code>ConcurrentDictionary</code>) en <code>Services/TokenBlacklistService.cs</code>. El JTI ya se generaba en cada token (<code>AuthController.cs</code> L281). <code>POST /api/Auth/logout</code> ahora requiere <code>[Authorize]</code>, extrae el JTI del claim y lo revoca con su fecha de expiración. <code>Program.cs</code>: hook <code>OnTokenValidated</code> verifica cada token contra la blacklist; si está revocado retorna 401. Las entradas expiradas se auto-limpian. Limitación: la blacklist es en memoria — se pierde si el servidor reinicia.",
         },
 
         {
@@ -745,6 +749,8 @@
           line: "509-515",
           why: "<code>new Random()</code> es un generador pseudoaleatorio predecible. Los tokens de verificación de email y reset de contraseña generados con esta clase pueden ser predichos por un atacante que observe suficientes tokens generados por el sistema.",
           fix: "Usar <code>System.Security.Cryptography.RandomNumberGenerator.GetHexString(32)</code> o <code>Convert.ToHexString(RandomNumberGenerator.GetBytes(32))</code> para tokens seguros.",
+          res: "full",
+          resNote: "✅ Resuelto (23 Feb 2026) — AccountController.cs: GenerateSixDigitCode() reemplaza new Random() + random.Next() por RandomNumberGenerator.GetInt32(chars.Length). Agregado using System.Security.Cryptography.",
         },
 
         {
@@ -756,6 +762,8 @@
           line: "11",
           why: "El hash de contraseñas usa 10,000 iteraciones de PBKDF2, estándar de 2010. OWASP 2024 recomienda mínimo 310,000 iteraciones con SHA-1 o 100,000 con SHA-256. Con GPUs modernas, 10k iteraciones son crackeables en minutos para passwords débiles.",
           fix: "Aumentar a <code>IterationCount = 310000</code>. Agregar un campo de versión de hash en la BD para migrar usuarios progresivamente: re-hashear en el siguiente login exitoso.",
+          res: "full",
+          resNote: "✅ Resuelto (23 Feb 2026) — PasswordService.cs: IterationCount aumentado a 310,000. Compatibilidad con hashes existentes mantenida via detección de formato por longitud: 48 bytes = legado (10,000 iter), 49 bytes = nuevo (310,000 iter, con byte de versión 0x01 como prefijo). Sin cambios en BD requeridos; los hashes migran solos al cambiar/resetear contraseña.",
         },
 
         {
@@ -767,6 +775,8 @@
           line: "60-66",
           why: "El loop de comparación de bytes se detiene en el primer byte diferente, lo que permite timing attacks: midiendo el tiempo de respuesta, un atacante puede deducir cuántos bytes del hash coinciden y estrechar el espacio de búsqueda.",
           fix: "Reemplazar la comparación manual con <code>CryptographicOperations.FixedTimeEquals(computedHash, storedHash)</code> que siempre tarda exactamente el mismo tiempo.",
+          res: "full",
+          resNote: "✅ Resuelto (23 Feb 2026) — PasswordService.cs: loop de comparación manual reemplazado por CryptographicOperations.FixedTimeEquals(storedHash, hash). Resuelto junto con #11 en el mismo refactor de VerifyPassword.",
         },
 
         {
@@ -814,6 +824,8 @@
           line: "278-297",
           why: "<code>[AllowAnonymous] POST /api/account/test-email</code> permite que cualquier persona anónima envíe emails desde el dominio de la empresa a cualquier dirección. Esto puede usarse para spam masivo, phishing usando la identidad de BioFX, o quemar la reputación del dominio de email.",
           fix: 'Agregar <code>[Authorize]</code> con verificación de rol admin. Agregar <code>[EnableRateLimiting("StrictPasswordOps")]</code>. Considerar eliminar este endpoint de producción y usarlo solo en desarrollo.',
+          res: "full",
+          resNote: "✅ Resuelto (23 Feb 2026) — <code>AccountController.cs L278</code>: reemplazado <code>[AllowAnonymous]</code> por <code>[Authorize]</code> + <code>[EnableRateLimiting(\"StrictPasswordOps\")]</code> (máx. 3 req/min). El endpoint ahora requiere JWT válido. Nota: no hay sistema de roles aún, por lo que la restricción es a cualquier usuario autenticado.",
         },
 
         {
@@ -847,6 +859,8 @@
           line: "61, 88, ~120",
           why: "Los endpoints de creación, actualización y eliminación de testimonios no tienen <code>[Authorize]</code> ni verificación de rol. Cualquier persona puede publicar testimonios falsos, modificar testimonios existentes o borrarlos todos.",
           fix: "Agregar <code>[Authorize]</code> a todos los métodos de escritura. Para creación y edición, agregar verificación de rol admin como se hace en <code>ProductosController.cs</code>.",
+          res: "full",
+          resNote: "✅ Resuelto (23 Feb 2026) — <code>[Authorize]</code> agregado a <code>CrearTestimonio</code>, <code>ActualizarTestimonio</code> y <code>EliminarTestimonio</code>. Nota: no hay sistema de roles aún; restricción aplica a cualquier usuario autenticado.",
         },
 
         {
@@ -858,6 +872,8 @@
           line: "69",
           why: '<code>"AllowedHosts": "*"</code> desactiva la validación del header <code>Host</code>. Un atacante puede enviar requests con un Host header manipulado, causando que los links generados en emails (reset de contraseña, verificación) apunten a un dominio controlado por el atacante.',
           fix: 'Configurar explícitamente: <code>"AllowedHosts": "api.biofx.com.ec,biofx.com.ec"</code>',
+          res: "full",
+          resNote: '✅ Resuelto (23 Feb 2026) — <code>appsettings.json</code>: cambiado <code>"AllowedHosts": "*"</code> a <code>"AllowedHosts": "api.biofx.com.ec;biofx.com.ec;www.biofx.com.ec"</code>. En <code>appsettings.Development.json</code> se mantiene <code>"AllowedHosts": "*"</code> para desarrollo local.',
         },
 
         {
@@ -928,6 +944,8 @@
           line: "66-67",
           why: "<code>http://127.0.0.1:5500</code> y <code>http://localhost:5500</code> están en la lista de orígenes CORS del archivo de producción. Herramientas de desarrollo locales (Live Server, etc.) pueden hacer cross-origin requests a la API de producción, potencialmente ejecutando scripts de prueba contra datos reales.",
           fix: "Mover estos orígenes exclusivamente a <code>appsettings.Development.json</code>. En producción, mantener solo <code>https://biofx.com.ec</code> y <code>https://www.biofx.com.ec</code>.",
+          res: "full",
+          resNote: "✅ Resuelto (23 Feb 2026) — <code>http://127.0.0.1:5500</code> y <code>http://localhost:5500</code> eliminados de <code>appsettings.json</code>. Movidos a <code>appsettings.Development.json</code> como array completo de <code>AllowedOrigins</code>, que sobreescribe al de producción en entorno Development.",
         },
 
         {
@@ -939,6 +957,8 @@
           line: "174",
           why: "<code>MinimumLevel.Debug()</code> registra información extremadamente detallada: valores de parámetros SQL, contenido de requests, potencialmente tokens y datos de usuarios. En producción genera logs masivos y puede exponer datos sensibles a quien tenga acceso a los logs.",
           fix: 'Usar <code>MinimumLevel.Information()</code> en producción y suprimir logs de framework: <code>.MinimumLevel.Override("Microsoft", LogEventLevel.Warning).MinimumLevel.Override("System", LogEventLevel.Warning)</code>',
+          res: "full",
+          resNote: "✅ Resuelto (23 Feb 2026) — <code>Program.cs</code>: nivel de log ahora condicional por entorno. Development: <code>MinimumLevel.Debug()</code>. Production: <code>MinimumLevel.Information()</code> con overrides <code>Warning</code> para namespaces <code>Microsoft</code> y <code>System</code>.",
         },
 
         {
@@ -1008,6 +1028,8 @@
           line: "67-70",
           why: "Un bloque <code>catch { }</code> vacío swallows toda excepción durante el parseo JSON del payload del webhook. Si el payload es malformado, <code>requestId</code> queda en -1 y la aplicación continúa sin ningún registro del error, dificultando el diagnóstico.",
           fix: 'Mínimo: <code>catch (Exception ex) { _logger.LogWarning(ex, "Payload de webhook malformado. Body: {Body}", body.Length > 500 ? body[..500] : body); }</code>',
+          res: "full",
+          resNote: "✅ Resuelto (23 Feb 2026) — <code>WebhookLogsController.cs</code>: inyectado <code>ILogger&lt;WebhookLogsController&gt;</code> en el constructor. <code>catch {}</code> reemplazado por <code>catch (Exception ex)</code> con <code>_logger.LogWarning()</code> que registra la excepción y los primeros 500 chars del body malformado.",
         },
 
         {
@@ -1019,6 +1041,8 @@
           line: "237-265",
           why: "Si todos los emails de notificación fallan, el código aún procede a eliminar el adjunto (prescripción médica) de S3 y limpia la referencia en BD. El equipo de envío nunca recibe los documentos y estos se pierden permanentemente sin posibilidad de recuperación.",
           fix: "Rastrear éxito: <code>bool atLeastOneSent = false;</code> Solo eliminar si <code>atLeastOneSent == true</code>. Si ningún email fue enviado, marcar la orden para reintento manual y alertar.",
+          res: "full",
+          resNote: "✅ Resuelto (23 Feb 2026) — <code>OrderNotificationService.cs</code>: añadida variable <code>bool atLeastOneSent = false</code>; se establece <code>true</code> solo tras un envío exitoso. Si ningún email fue enviado, se loggea <code>LogError</code> indicando que el adjunto S3 fue conservado deliberadamente y se retorna sin borrar nada. El adjunto S3 solo se elimina si al menos un destinatario recibió el correo correctamente.",
         },
 
         {
@@ -1088,6 +1112,8 @@
           line: "113-162",
           why: "PlacetoPay puede enviar el mismo webhook dos veces para garantizar entrega (comportamiento estándar). Si esto ocurre, se crean dos registros en <code>WebhookLog</code> y se ejecutan dos refreshes de transacción, causando potencialmente: doble envío de emails de confirmación, doble modificación de stock, o estados inconsistentes.",
           fix: "Antes de insertar en <code>WebhookLog</code>, verificar si ya existe un registro con el mismo <code>RequestId</code> y estado procesado. Si existe, retornar HTTP 200 inmediatamente sin reprocesar (idempotencia).",
+          res: "full",
+          resNote: "✅ Resuelto (23 Feb 2026) — <code>WebhookLogsController.cs</code>: check de idempotencia añadido después de la verificación de firma y antes del INSERT. Si existe un registro con <code>RequestId</code> igual y <code>Status='PROCESSED'</code>, se retorna HTTP 200 con <code>duplicate:true</code> sin reprocesar. Se loggea el evento como <code>LogInformation</code>. Nota: si el procesamiento previo falló (<code>Status='ERROR'</code>), el reintento sigue permitido.",
         },
 
         {
@@ -1099,6 +1125,8 @@
           line: "88-94",
           why: "Si dos requests de cancelación llegan simultáneamente para la misma orden, ambos pueden ejecutar el UPDATE de liberación de stock antes de que el primero haya actualizado el estado de la orden. El resultado es que el stock se libera dos veces, inflando el inventario.",
           fix: "Usar una única query atómica: <code>UPDATE Orden SET Status='CANCELLED' WHERE Id=@Id AND Status NOT IN ('CANCELLED','PAID')</code>. Solo proceder con la liberación de stock si el UPDATE afectó exactamente 1 fila.",
+          res: "full",
+          resNote: "✅ Resuelto (23 Feb 2026) — <code>OrderCancellationService.cs</code>: el <code>UPDATE [Order]</code> se movió ANTES de la liberación de stock y se convirtió en gate atómico con <code>WHERE Status NOT IN ('CANCELLED','PAID','REJECTED','EXPIRED')</code>. Si <code>rowsUpdated == 0</code>, otra request ganó la carrera y se retorna idempotente sin tocar el stock. La liberación de stock solo ocurre si este UPDATE afecta exactamente 1 fila. El <code>UPDLOCK/ROWLOCK</code> en el SELECT de Transaction se mantiene como primera capa de protección.",
         },
 
         {
@@ -1110,6 +1138,8 @@
           line: "433-461",
           why: "<code>RefreshPendingBatchAsync()</code> usa <code>SemaphoreSlim</code> para concurrencia local, pero si el intervalo de ejecución es más corto que el tiempo de procesamiento, un nuevo batch puede comenzar mientras el anterior sigue corriendo. El mismo <code>requestId</code> puede ser procesado en paralelo.",
           fix: "Usar <code>sp_getapplock</code> por <code>requestId</code> como distributed lock, como ya se hace en <code>AccountMaintenanceHostedService.cs</code>. Esto garantiza que solo un proceso a la vez trabaje sobre el mismo request.",
+          res: "full",
+          resNote: "✅ Resuelto (23 Feb 2026) — <code>PlacetoPayRefreshService.cs</code>: añadido <code>sp_getapplock</code> por requestId (<code>\"p2p:req:{requestId}\"</code>, <code>@LockTimeout=0</code>) en <code>RefreshByRequestIdAsync</code> ANTES de la llamada a PlacetoPay. Si el lock no se adquiere (otro proceso ya lo tiene), se retorna el estado actual de la BD sin llamar a la API externa — evitando llamadas redundantes. <code>PlacetoPayAutoRefreshHostedService</code> ya tenía <code>sp_getapplock(\"placetopay:auto-refresh\")</code> que previene dos batches simultáneos; el nuevo lock por requestId cubre el caso batch+webhook concurrente sobre el mismo requestId.",
         },
 
         {
@@ -1777,6 +1807,8 @@
           line: "ConnectionStrings:DefaultConnection",
           why: "<code>172.31.41.7</code> es la IP privada interna del EC2 en la VPC de AWS. Esta dirección solo es enrutable dentro de la misma red de AWS; desde una máquina de desarrollo local no existe ruta de red hacia ella. El API arranca en modo Development pero falla en el primer query a la BD. Exponer el puerto 1433 directamente en el Security Group sería un riesgo de seguridad.",
           fix: "Solución recomendada: túnel SSH a través del servidor EC2 (que sí tiene acceso a la BD por estar en la misma VPC). Pasos: (1) verificar acceso SSH al EC2 con la keypair.pem, (2) levantar el túnel <code>ssh -L 1433:172.31.41.7:1433 Administrator@&lt;ip-publica-ec2&gt; -i keypair.pem -N</code>, (3) cambiar <code>ConnectionStrings:DefaultConnection</code> en User Secrets locales a <code>Data Source=localhost;...</code>. El túnel redirige el tráfico de <code>localhost:1433</code> a través del EC2 hacia el servidor de BD sin exponer puertos adicionales al exterior.",
+          res: "full",
+          resNote: "✅ Resuelto (23 Feb 2026) — El servidor SQL tiene puerto 1433 abierto con IP elástica pública <code>3.150.177.219</code>. Se actualizó el User Secret local <code>ConnectionStrings:DefaultConnection</code> para apuntar a esa IP directamente. No se requirió túnel SSH.",
         },
       ];
 

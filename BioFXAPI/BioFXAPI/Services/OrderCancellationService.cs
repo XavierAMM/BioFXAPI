@@ -84,7 +84,23 @@ namespace BioFXAPI.Services
                 }
             }
 
-            // Liberar reserva SOLO una vez (porque venimos de no-final a CANCELLED)
+            // Transición atómica de estado: solo procede si la orden sigue en estado cancelable.
+            // Esto actúa como gate contra cancelaciones concurrentes — solo una request puede
+            // ganar este UPDATE; las demás obtendrán 0 filas afectadas.
+            var rowsUpdated = await con.ExecuteAsync(@"
+                UPDATE [Order]
+                SET Status='CANCELLED', ActualizadoEl=GETUTCDATE()
+                WHERE Id=@Id
+                  AND Status NOT IN ('CANCELLED','PAID','REJECTED','EXPIRED')",
+                new { Id = orderId }, tx);
+
+            if (rowsUpdated == 0)
+            {
+                await tx.RollbackAsync(ct);
+                return (null, "CANCELLED"); // otra request ganó la carrera — idempotente
+            }
+
+            // Liberar reserva SOLO si ganamos el UPDATE de estado (garantía de una sola vez)
             await con.ExecuteAsync(@"
                 UPDATE p
                 SET p.StockReservado = CASE WHEN p.StockReservado >= oi.Quantity THEN p.StockReservado - oi.Quantity ELSE 0 END,
@@ -93,12 +109,8 @@ namespace BioFXAPI.Services
                 INNER JOIN OrderItem oi ON oi.ProductId = p.Id
                 WHERE oi.OrderId = @OrderId;", new { OrderId = orderId }, tx);
 
-            // Marcar orden y transacciones activas como CANCELLED
+            // Marcar transacciones activas como CANCELLED
             await con.ExecuteAsync(@"
-                UPDATE [Order]
-                SET Status='CANCELLED', ActualizadoEl=GETUTCDATE()
-                WHERE Id=@Id;
-
                 UPDATE [Transaction]
                 SET Status='CANCELLED', ActualizadoEl=GETUTCDATE()
                 WHERE OrderId=@Id AND Activo=1;", new { Id = orderId }, tx);

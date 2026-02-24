@@ -13,7 +13,13 @@ namespace BioFXAPI.Controllers
     public class WebhookLogsController : ControllerBase
     {
         private readonly string _cs;
-        public WebhookLogsController(IConfiguration cfg) => _cs = cfg.GetConnectionString("DefaultConnection");
+        private readonly ILogger<WebhookLogsController> _logger;
+
+        public WebhookLogsController(IConfiguration cfg, ILogger<WebhookLogsController> logger)
+        {
+            _cs = cfg.GetConnectionString("DefaultConnection");
+            _logger = logger;
+        }
 
         [HttpPost("placetopay")]
         [AllowAnonymous]
@@ -64,9 +70,10 @@ namespace BioFXAPI.Controllers
                 if (root.TryGetProperty("signature", out var sigEl) && sigEl.ValueKind == JsonValueKind.String)
                     bodySignature = sigEl.GetString();
             }
-            catch
+            catch (Exception ex)
             {
-                // Si body no es JSON válido, requestId = -1 y sin firma
+                _logger.LogWarning(ex, "Payload de webhook malformado o no parseable. Body (primeros 500 chars): {Body}",
+                    body.Length > 500 ? body[..500] : body);
             }
 
             // Firma esperada según Checkout: SHA-256(requestId + status.status + status.date + secretKey)
@@ -110,10 +117,26 @@ namespace BioFXAPI.Controllers
             }
 
 
-            // Registrar log 'RECEIVED'
+            // Idempotencia: si ya existe un webhook PROCESSED para este requestId, no reprocesar
             using var con = new SqlConnection(_cs);
             await con.OpenAsync();
 
+            if (requestId > 0)
+            {
+                var alreadyProcessed = await con.ExecuteScalarAsync<int>(
+                    "SELECT COUNT(*) FROM WebhookLog WHERE RequestId = @RequestId AND Status = 'PROCESSED'",
+                    new { RequestId = requestId });
+
+                if (alreadyProcessed > 0)
+                {
+                    _logger.LogInformation(
+                        "Webhook duplicado ignorado para RequestId={RequestId} — ya existe registro PROCESSED",
+                        requestId);
+                    return Ok(new { received = true, requestId, duplicate = true });
+                }
+            }
+
+            // Registrar log 'RECEIVED'
             var logId = await con.ExecuteScalarAsync<int>(
                      @"INSERT INTO WebhookLog(RequestId, Payload, Signature, Status, Processed, CreadoEl, ActualizadoEl, Activo)
                OUTPUT INSERTED.Id
