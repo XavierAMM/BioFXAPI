@@ -118,7 +118,7 @@ builder.Services.AddSwaggerGen(c =>
 {
     c.SwaggerDoc("v1", new OpenApiInfo { Title = "BioFX API", Version = "v1" });
 
-    // Configuración para autenticación JWT en Swagger
+    // Configuraciï¿½n para autenticaciï¿½n JWT en Swagger
     c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
         Description = "JWT Authorization header using the Bearer scheme. Example: \"Authorization: Bearer {token}\"",
@@ -188,6 +188,8 @@ if (!app.Environment.IsDevelopment())
 
 if (app.Environment.IsDevelopment()) { app.UseSwagger(); app.UseSwaggerUI(); }
 
+app.UseCors("Frontend");
+
 app.UseHttpsRedirection();
 
 if (!app.Environment.IsDevelopment())
@@ -205,7 +207,7 @@ if (!app.Environment.IsDevelopment())
             {
                 await ctx.Response.WriteAsJsonAsync(new
                 {
-                    message = "Error interno del servidor. Por favor intente más tarde."
+                    message = "Error interno del servidor. Por favor intente mï¿½s tarde."
                 });
             }
             else
@@ -216,8 +218,6 @@ if (!app.Environment.IsDevelopment())
     });
 }
 
-
-app.UseCors("Frontend");
 
 app.UseWhen(ctx => !HttpMethods.IsOptions(ctx.Request.Method), branch =>
 {
