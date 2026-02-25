@@ -1,0 +1,37 @@
+name: Deploy to IIS (EC2)
+
+on:
+  workflow_dispatch:
+    inputs:
+      branch:
+        description: 'Branch a desplegar'
+        required: true
+        default: 'main'
+        type: string
+
+jobs:
+  deploy:
+    name: Build & Deploy → EC2 / IIS
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.branch }}
+
+      - name: Setup .NET 8
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Restore dependencies
+        run: dotnet restore BioFXAPI/BioFXAPI/BioFXAPI.csproj
+
+      - name: Publish & Deploy a IIS via MSDeploy
+        run: >
+          dotnet publish BioFXAPI/BioFXAPI/BioFXAPI.csproj
+          /p:PublishProfile=IISProfile
+          /p:Password="${{ secrets.DEPLOY_PASSWORD }}"
+          /p:AllowUntrustedCertificate=true
+          -c Release
