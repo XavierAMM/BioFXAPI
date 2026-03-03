@@ -100,7 +100,33 @@ namespace BioFXAPI.Services
                 if (isMine == 0) return (new ForbidResult(), null);
             }
 
-            // ===== 3) Determine baseUri from ProcessUrl =====
+            // ===== 3) Lock distribuido por requestId — evita llamadas concurrentes a PlacetoPay =====
+            // Si otro proceso (batch o webhook) ya está procesando este requestId, retornar el estado
+            // actual sin llamar a la API externa. El UPDLOCK de paso 9 ya garantiza correctitud,
+            // pero este lock evita llamadas redundantes a PlacetoPay.
+            await using var lockCon = new SqlConnection(_cs);
+            await lockCon.OpenAsync(ct);
+
+            await using var lockCmd = lockCon.CreateCommand();
+            lockCmd.CommandType = System.Data.CommandType.StoredProcedure;
+            lockCmd.CommandText = "sp_getapplock";
+            lockCmd.Parameters.Add(new SqlParameter("@Resource", System.Data.SqlDbType.NVarChar, 255) { Value = $"p2p:req:{requestId}" });
+            lockCmd.Parameters.Add(new SqlParameter("@LockMode", System.Data.SqlDbType.NVarChar, 32) { Value = "Exclusive" });
+            lockCmd.Parameters.Add(new SqlParameter("@LockOwner", System.Data.SqlDbType.NVarChar, 32) { Value = "Session" });
+            lockCmd.Parameters.Add(new SqlParameter("@LockTimeout", System.Data.SqlDbType.Int) { Value = 0 });
+            var lockRet = new SqlParameter("@RETURN_VALUE", System.Data.SqlDbType.Int) { Direction = System.Data.ParameterDirection.ReturnValue };
+            lockCmd.Parameters.Add(lockRet);
+            await lockCmd.ExecuteNonQueryAsync(ct);
+
+            if ((int)lockRet.Value < 0)
+            {
+                _logger.LogInformation(
+                    "RefreshByRequestId: lock no adquirido para RequestId={RequestId} — otro proceso lo está procesando. Retornando estado actual.",
+                    requestId);
+                return (null, new RefreshResult(txRow.OrderId, requestId, txRow.Status, false));
+            }
+
+            // ===== 4) Determine baseUri from ProcessUrl =====
             var baseUri = new Uri(_cfg["PlacetoPay:BaseUrl"]);
             if (!string.IsNullOrWhiteSpace(txRow.ProcessUrl))
             {

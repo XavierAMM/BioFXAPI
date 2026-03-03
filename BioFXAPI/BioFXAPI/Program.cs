@@ -10,6 +10,7 @@ using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Serilog;
+using System.IdentityModel.Tokens.Jwt;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -17,9 +18,22 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 
 builder.Services.AddControllers();
+builder.Services.AddSingleton<TokenBlacklistService>();
 
-var jwtSettings = builder.Configuration.GetSection("Jwt");
-builder.Configuration.AddUserSecrets<Program>();
+// WebApplication.CreateBuilder ya carga User Secrets (en Development) y variables
+// de entorno automáticamente — no se necesita AddUserSecrets() explícito.
+var jwtSecret = builder.Configuration["Jwt:Secret"];
+if (string.IsNullOrWhiteSpace(jwtSecret))
+    throw new InvalidOperationException("Jwt:Secret no configurado. Definir la variable de entorno Jwt__Secret.");
+
+var jwtIssuer = builder.Configuration["Jwt:Issuer"];
+if (string.IsNullOrWhiteSpace(jwtIssuer))
+    throw new InvalidOperationException("Jwt:Issuer no configurado. Definir la variable de entorno Jwt__Issuer.");
+
+var jwtAudience = builder.Configuration["Jwt:Audience"];
+if (string.IsNullOrWhiteSpace(jwtAudience))
+    throw new InvalidOperationException("Jwt:Audience no configurado. Definir la variable de entorno Jwt__Audience.");
+
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
@@ -28,9 +42,11 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         {
             ValidateIssuerSigningKey = true,
             IssuerSigningKey = new SymmetricSecurityKey(
-                Encoding.UTF8.GetBytes(jwtSettings["Secret"])),
-            ValidateIssuer = false,
-            ValidateAudience = false,
+                Encoding.UTF8.GetBytes(jwtSecret)),
+            ValidateIssuer = true,
+            ValidIssuer = jwtIssuer,
+            ValidateAudience = true,
+            ValidAudience = jwtAudience,
             ValidateLifetime = true,
             ClockSkew = TimeSpan.Zero
         };
@@ -44,6 +60,15 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
                 {
                     context.Token = cookieToken;
                 }
+                return Task.CompletedTask;
+            },
+            OnTokenValidated = context =>
+            {
+                var blacklist = context.HttpContext.RequestServices
+                    .GetRequiredService<TokenBlacklistService>();
+                var jti = context.Principal?.FindFirst(JwtRegisteredClaimNames.Jti)?.Value;
+                if (jti != null && blacklist.IsRevoked(jti))
+                    context.Fail("Token revocado.");
                 return Task.CompletedTask;
             }
         };
@@ -170,11 +195,23 @@ builder.Services.AddSingleton<IAmazonS3>(sp =>
 builder.Services.AddSingleton<IFileStorageService, S3FileStorageService>();
 
 
-Log.Logger = new LoggerConfiguration()
-    .MinimumLevel.Debug()
+var logConfig = new LoggerConfiguration()
     .WriteTo.Console()
-    .WriteTo.File("Logs/biofxapi-.log", rollingInterval: RollingInterval.Day)
-    .CreateLogger();
+    .WriteTo.File("Logs/biofxapi-.log", rollingInterval: RollingInterval.Day);
+
+if (builder.Environment.IsDevelopment())
+{
+    logConfig = logConfig.MinimumLevel.Debug();
+}
+else
+{
+    logConfig = logConfig
+        .MinimumLevel.Information()
+        .MinimumLevel.Override("Microsoft", Serilog.Events.LogEventLevel.Warning)
+        .MinimumLevel.Override("System", Serilog.Events.LogEventLevel.Warning);
+}
+
+Log.Logger = logConfig.CreateLogger();
 
 builder.Host.UseSerilog();
 
@@ -217,7 +254,6 @@ if (!app.Environment.IsDevelopment())
         });
     });
 }
-
 
 app.UseWhen(ctx => !HttpMethods.IsOptions(ctx.Request.Method), branch =>
 {

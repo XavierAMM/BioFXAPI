@@ -12,11 +12,15 @@ namespace BioFXAPI.Services
     {
         private readonly string _cs;
         private readonly IConfiguration _cfg;
+        private readonly IHttpClientFactory _httpClientFactory;
+        private readonly ILogger<OrderCancellationService> _logger;
 
-        public OrderCancellationService(IConfiguration cfg)
+        public OrderCancellationService(IConfiguration cfg, IHttpClientFactory httpClientFactory, ILogger<OrderCancellationService> logger)
         {
             _cfg = cfg;
             _cs = cfg.GetConnectionString("DefaultConnection");
+            _httpClientFactory = httpClientFactory;
+            _logger = logger;
         }
 
         private static bool IsFinalNegative(string s) =>
@@ -84,7 +88,23 @@ namespace BioFXAPI.Services
                 }
             }
 
-            // Liberar reserva SOLO una vez (porque venimos de no-final a CANCELLED)
+            // Transición atómica de estado: solo procede si la orden sigue en estado cancelable.
+            // Esto actúa como gate contra cancelaciones concurrentes — solo una request puede
+            // ganar este UPDATE; las demás obtendrán 0 filas afectadas.
+            var rowsUpdated = await con.ExecuteAsync(@"
+                UPDATE [Order]
+                SET Status='CANCELLED', ActualizadoEl=GETUTCDATE()
+                WHERE Id=@Id
+                  AND Status NOT IN ('CANCELLED','PAID','REJECTED','EXPIRED')",
+                new { Id = orderId }, tx);
+
+            if (rowsUpdated == 0)
+            {
+                await tx.RollbackAsync(ct);
+                return (null, "CANCELLED"); // otra request ganó la carrera — idempotente
+            }
+
+            // Liberar reserva SOLO si ganamos el UPDATE de estado (garantía de una sola vez)
             await con.ExecuteAsync(@"
                 UPDATE p
                 SET p.StockReservado = CASE WHEN p.StockReservado >= oi.Quantity THEN p.StockReservado - oi.Quantity ELSE 0 END,
@@ -93,12 +113,8 @@ namespace BioFXAPI.Services
                 INNER JOIN OrderItem oi ON oi.ProductId = p.Id
                 WHERE oi.OrderId = @OrderId;", new { OrderId = orderId }, tx);
 
-            // Marcar orden y transacciones activas como CANCELLED
+            // Marcar transacciones activas como CANCELLED
             await con.ExecuteAsync(@"
-                UPDATE [Order]
-                SET Status='CANCELLED', ActualizadoEl=GETUTCDATE()
-                WHERE Id=@Id;
-
                 UPDATE [Transaction]
                 SET Status='CANCELLED', ActualizadoEl=GETUTCDATE()
                 WHERE OrderId=@Id AND Activo=1;", new { Id = orderId }, tx);
@@ -133,7 +149,8 @@ namespace BioFXAPI.Services
                 baseUri = new Uri($"{u.Scheme}://{u.Host}/");
             }
 
-            using var http = new HttpClient { BaseAddress = baseUri };
+            using var http = _httpClientFactory.CreateClient();
+            http.BaseAddress = baseUri;
             http.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
 
             // Endpoint de PlacetoPay: POST /api/session/:requestId/cancel
@@ -142,7 +159,33 @@ namespace BioFXAPI.Services
                 new StringContent(authJson, Encoding.UTF8, "application/json"),
                 ct);
 
-            return resp.IsSuccessStatusCode;
+            if (!resp.IsSuccessStatusCode) return false;
+
+            // Verificar error de negocio: PlacetoPay puede retornar HTTP 200 con status != "OK"
+            var respBody = await resp.Content.ReadAsStringAsync(ct);
+            try
+            {
+                using var doc = JsonDocument.Parse(respBody);
+                if (doc.RootElement.TryGetProperty("status", out var stEl) &&
+                    stEl.TryGetProperty("status", out var stStatus))
+                {
+                    var s = stStatus.GetString();
+                    if (!string.Equals(s, "OK", StringComparison.OrdinalIgnoreCase))
+                    {
+                        _logger.LogWarning(
+                            "PlacetoPay cancelación rechazada por error de negocio. RequestId={RequestId}, Status={Status}, Body={Body}",
+                            requestId, s, respBody.Length > 500 ? respBody[..500] : respBody);
+                        return false;
+                    }
+                    return true;
+                }
+            }
+            catch (JsonException ex)
+            {
+                _logger.LogWarning(ex, "No se pudo parsear respuesta de cancelación PlacetoPay. RequestId={RequestId}", requestId);
+            }
+
+            return false;
         }
     }
 }

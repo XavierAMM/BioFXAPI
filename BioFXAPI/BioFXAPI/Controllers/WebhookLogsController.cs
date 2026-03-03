@@ -13,7 +13,15 @@ namespace BioFXAPI.Controllers
     public class WebhookLogsController : ControllerBase
     {
         private readonly string _cs;
-        public WebhookLogsController(IConfiguration cfg) => _cs = cfg.GetConnectionString("DefaultConnection");
+        private readonly ILogger<WebhookLogsController> _logger;
+        private readonly IHttpClientFactory _httpClientFactory;
+
+        public WebhookLogsController(IConfiguration cfg, ILogger<WebhookLogsController> logger, IHttpClientFactory httpClientFactory)
+        {
+            _cs = cfg.GetConnectionString("DefaultConnection");
+            _logger = logger;
+            _httpClientFactory = httpClientFactory;
+        }
 
         [HttpPost("placetopay")]
         [AllowAnonymous]
@@ -64,9 +72,10 @@ namespace BioFXAPI.Controllers
                 if (root.TryGetProperty("signature", out var sigEl) && sigEl.ValueKind == JsonValueKind.String)
                     bodySignature = sigEl.GetString();
             }
-            catch
+            catch (Exception ex)
             {
-                // Si body no es JSON válido, requestId = -1 y sin firma
+                _logger.LogWarning(ex, "Payload de webhook malformado o no parseable. Body (primeros 500 chars): {Body}",
+                    body.Length > 500 ? body[..500] : body);
             }
 
             // Firma esperada según Checkout: SHA-256(requestId + status.status + status.date + secretKey)
@@ -79,28 +88,36 @@ namespace BioFXAPI.Controllers
                     return Unauthorized(new { message = "Invalid signature" });
                 }
 
+                // Validar que el timestamp sea reciente (±5 minutos — protección contra replay attacks)
+                if (DateTime.TryParse(statusDate, null, System.Globalization.DateTimeStyles.RoundtripKind, out var webhookTime))
+                {
+                    var diffMinutes = Math.Abs((DateTime.UtcNow - webhookTime.ToUniversalTime()).TotalMinutes);
+                    if (diffMinutes > 5)
+                    {
+                        _logger.LogWarning(
+                            "Webhook rechazado por timestamp expirado. RequestId={RequestId}, StatusDate={StatusDate}, DiffMinutes={Diff:F1}",
+                            requestId, statusDate, diffMinutes);
+                        await InsertInvalidSignatureLog(requestId, body, bodySignature);
+                        return Unauthorized(new { message = "Invalid signature" });
+                    }
+                }
+
                 var raw = $"{requestId}{statusStatus}{statusDate}{secret}";
                 var received = bodySignature!.Trim();
 
-                bool ok;
+                // Solo se acepta SHA-256 — SHA-1 está criptográficamente roto desde 2017
+                if (!received.StartsWith("sha256:", StringComparison.OrdinalIgnoreCase))
+                {
+                    _logger.LogWarning("Webhook rechazado: firma no usa SHA-256. RequestId={RequestId}", requestId);
+                    await InsertInvalidSignatureLog(requestId, body, bodySignature);
+                    return Unauthorized(new { message = "Invalid signature" });
+                }
 
-                if (received.StartsWith("sha256:", StringComparison.OrdinalIgnoreCase))
-                {
-                    // SHA-256
-                    received = received.Substring("sha256:".Length);
-                    using var sha256 = SHA256.Create();
-                    var hashBytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(raw));
-                    var expectedHex = BitConverter.ToString(hashBytes).Replace("-", "").ToLowerInvariant();
-                    ok = string.Equals(expectedHex, received, StringComparison.OrdinalIgnoreCase);
-                }
-                else
-                {
-                    // SHA-1 (modo legado) -- Para las pruebas. 
-                    using var sha1 = SHA1.Create();
-                    var hashBytes = sha1.ComputeHash(Encoding.UTF8.GetBytes(raw));
-                    var expectedHex = BitConverter.ToString(hashBytes).Replace("-", "").ToLowerInvariant();
-                    ok = string.Equals(expectedHex, received, StringComparison.OrdinalIgnoreCase);
-                }
+                received = received["sha256:".Length..];
+                using var sha256 = SHA256.Create();
+                var hashBytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(raw));
+                var expectedHex = BitConverter.ToString(hashBytes).Replace("-", "").ToLowerInvariant();
+                var ok = string.Equals(expectedHex, received, StringComparison.OrdinalIgnoreCase);
 
                 if (!ok)
                 {
@@ -110,10 +127,26 @@ namespace BioFXAPI.Controllers
             }
 
 
-            // Registrar log 'RECEIVED'
+            // Idempotencia: si ya existe un webhook PROCESSED para este requestId, no reprocesar
             using var con = new SqlConnection(_cs);
             await con.OpenAsync();
 
+            if (requestId > 0)
+            {
+                var alreadyProcessed = await con.ExecuteScalarAsync<int>(
+                    "SELECT COUNT(*) FROM WebhookLog WHERE RequestId = @RequestId AND Status = 'PROCESSED'",
+                    new { RequestId = requestId });
+
+                if (alreadyProcessed > 0)
+                {
+                    _logger.LogInformation(
+                        "Webhook duplicado ignorado para RequestId={RequestId} — ya existe registro PROCESSED",
+                        requestId);
+                    return Ok(new { received = true, requestId, duplicate = true });
+                }
+            }
+
+            // Registrar log 'RECEIVED'
             var logId = await con.ExecuteScalarAsync<int>(
                      @"INSERT INTO WebhookLog(RequestId, Payload, Signature, Status, Processed, CreadoEl, ActualizadoEl, Activo)
                OUTPUT INSERTED.Id
@@ -131,7 +164,7 @@ namespace BioFXAPI.Controllers
                 var apiBase = cfg["Webhook:InternalApiBaseUrl"];
                 if (string.IsNullOrWhiteSpace(apiBase))
                     apiBase = $"{Request.Scheme}://{Request.Host}";
-                using var http = new HttpClient();
+                using var http = _httpClientFactory.CreateClient();
                 var content = new StringContent(JsonSerializer.Serialize(new { requestId }), Encoding.UTF8, "application/json");
 
                 try

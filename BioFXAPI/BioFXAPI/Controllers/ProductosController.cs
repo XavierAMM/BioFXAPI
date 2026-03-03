@@ -87,7 +87,7 @@ namespace BioFXAPI.Controllers
             }
             catch (SqlException ex)
             {
-                return StatusCode(500, new { error = "Error de base de datos", details = ex.Message });
+                return StatusCode(500, new { error = "Error de base de datos" });
             }
         }
 
@@ -130,7 +130,7 @@ namespace BioFXAPI.Controllers
             }
             catch (SqlException ex)
             {
-                return StatusCode(500, new { error = "Error de base de datos", details = ex.Message });
+                return StatusCode(500, new { error = "Error de base de datos" });
             }
         }
 
@@ -190,7 +190,7 @@ namespace BioFXAPI.Controllers
             }
             catch (SqlException ex)
             {
-                return StatusCode(500, new { error = "Error de base de datos", details = ex.Message });
+                return StatusCode(500, new { error = "Error de base de datos" });
             }
         }
 
@@ -203,7 +203,9 @@ namespace BioFXAPI.Controllers
                 using var connection = new SqlConnection(_connectionString);
                 await connection.OpenAsync();
 
-                var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+                if (!int.TryParse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value, out var userId))
+
+                    return Unauthorized(new { message = "Usuario no identificado." });
                 if (!await IsAdmin(connection, userId)) return Forbid();
 
                 using var tx = connection.BeginTransaction();
@@ -251,7 +253,7 @@ namespace BioFXAPI.Controllers
             }
             catch (SqlException ex)
             {
-                return StatusCode(500, new { error = "Error de base de datos", details = ex.Message });
+                return StatusCode(500, new { error = "Error de base de datos" });
             }
         }
 
@@ -264,7 +266,9 @@ namespace BioFXAPI.Controllers
                 using var connection = new SqlConnection(_connectionString);
                 await connection.OpenAsync();
 
-                var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+                if (!int.TryParse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value, out var userId))
+
+                    return Unauthorized(new { message = "Usuario no identificado." });
                 if (!await IsAdmin(connection, userId)) return Forbid();
 
                 using var tx = connection.BeginTransaction();
@@ -348,7 +352,7 @@ namespace BioFXAPI.Controllers
             }
             catch (SqlException ex)
             {
-                return StatusCode(500, new { error = "Error de base de datos", details = ex.Message });
+                return StatusCode(500, new { error = "Error de base de datos" });
             }
         }
 
@@ -361,7 +365,9 @@ namespace BioFXAPI.Controllers
                 using var connection = new SqlConnection(_connectionString);
                 await connection.OpenAsync();
 
-                var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+                if (!int.TryParse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value, out var userId))
+
+                    return Unauthorized(new { message = "Usuario no identificado." });
                 if (!await IsAdmin(connection, userId)) return Forbid();
 
                 var affected = await connection.ExecuteAsync(@"
@@ -384,7 +390,7 @@ namespace BioFXAPI.Controllers
             }
             catch (SqlException ex)
             {
-                return StatusCode(500, new { error = "Error de base de datos", details = ex.Message });
+                return StatusCode(500, new { error = "Error de base de datos" });
             }
         }
 

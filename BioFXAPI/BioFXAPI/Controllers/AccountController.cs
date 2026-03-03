@@ -2,8 +2,10 @@
 using BioFXAPI.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using System.Data.SqlClient;
 using System.Security.Claims;
+using System.Security.Cryptography;
 
 namespace BioFXAPI.Controllers
 {
@@ -25,7 +27,8 @@ namespace BioFXAPI.Controllers
             _emailService = emailService;
             _logger = logger;
             _emailVerification = emailVerification;
-            _frontendBaseUrl = configuration["Frontend:BaseUrl"] ?? "https://biofx.com.ec/";
+            _frontendBaseUrl = configuration["Frontend:BaseUrl"]
+                ?? throw new InvalidOperationException("Frontend:BaseUrl no está configurado en appsettings.");
         }
 
         public record TestEmailRequest(string To, string Subject, string Body);
@@ -102,7 +105,7 @@ namespace BioFXAPI.Controllers
             }
             catch (SqlException ex)
             {
-                return StatusCode(500, new { error = "Error de base de datos", details = ex.Message });
+                return StatusCode(500, new { error = "Error de base de datos" });
             }
         }
 
@@ -147,7 +150,8 @@ namespace BioFXAPI.Controllers
         [HttpPost("change-email-request")]
         public async Task<IActionResult> ChangeEmailRequest([FromBody] ChangeEmailRequest request)
         {
-            var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value);
+            if (!int.TryParse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value, out var userId))
+                return Unauthorized(new { message = "Usuario no identificado." });
 
             using var connection = new SqlConnection(_connectionString);
             await connection.OpenAsync();
@@ -223,7 +227,8 @@ namespace BioFXAPI.Controllers
         [HttpPost("change-password")]
         public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordRequest request)
         {
-            var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value);
+            if (!int.TryParse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value, out var userId))
+                return Unauthorized(new { message = "Usuario no identificado." });
 
             if (string.IsNullOrEmpty(request.CurrentPassword) || string.IsNullOrEmpty(request.NewPassword))
                 return BadRequest(new { message = "La contraseña actual y la nueva contraseña son requeridas." });
@@ -270,11 +275,12 @@ namespace BioFXAPI.Controllers
             }
             catch (SqlException ex)
             {
-                return StatusCode(500, new { error = "Error de base de datos", details = ex.Message });
+                return StatusCode(500, new { error = "Error de base de datos" });
             }
         }
 
-        [AllowAnonymous]
+        [Authorize]
+        [EnableRateLimiting("StrictPasswordOps")]
         [HttpPost("test-email")]
         public async Task<IActionResult> TestEmail([FromBody] TestEmailRequest req)
         {
@@ -292,7 +298,7 @@ namespace BioFXAPI.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Fallo envío de prueba a {To}", req.To);
-                return StatusCode(500, new { error = "Fallo SMTP", details = ex.Message });
+                return StatusCode(500, new { error = "Fallo SMTP" });
             }
         }
 
@@ -352,7 +358,7 @@ namespace BioFXAPI.Controllers
             }
             catch (SqlException ex)
             {
-                return StatusCode(500, new { error = "Error de base de datos", details = ex.Message });
+                return StatusCode(500, new { error = "Error de base de datos" });
             }
         }
 
@@ -506,12 +512,9 @@ namespace BioFXAPI.Controllers
 
         }
 
-        private string GenerateSixDigitCode()
+        private static string GenerateSixDigitCode()
         {
-            const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-            var random = new Random();
-            return new string(Enumerable.Repeat(chars, 6)
-                .Select(s => s[random.Next(s.Length)]).ToArray());
+            return RandomNumberGenerator.GetInt32(0, 1_000_000).ToString("D6");
         }        
 
         public record ResendVerificationRequest(string Email);

@@ -1,7 +1,8 @@
 ﻿using BioFXAPI.Models;
+using Dapper;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Data.SqlClient;
-using Dapper;
 
 namespace BioFXAPI.Controllers
 {
@@ -31,7 +32,7 @@ namespace BioFXAPI.Controllers
             }
             catch (SqlException ex)
             {
-                return StatusCode(500, new { error = "Error de base de datos", details = ex.Message });
+                return StatusCode(500, new { error = "Error de base de datos" });
             }
         }
 
@@ -53,10 +54,11 @@ namespace BioFXAPI.Controllers
             }
             catch (SqlException ex)
             {
-                return StatusCode(500, new { error = "Error de base de datos", details = ex.Message });
+                return StatusCode(500, new { error = "Error de base de datos" });
             }
         }
 
+        [Authorize]
         [HttpPost]
         public async Task<IActionResult> CrearTestimonio([FromBody] Testimonios testimonio)
         {
@@ -80,10 +82,11 @@ namespace BioFXAPI.Controllers
             }
             catch (SqlException ex)
             {
-                return StatusCode(500, new { error = "Error de base de datos", details = ex.Message });
+                return StatusCode(500, new { error = "Error de base de datos" });
             }
         }
 
+        [Authorize]
         [HttpPut("{id}")]
         public async Task<IActionResult> ActualizarTestimonio(int id, [FromBody] Testimonios testimonio)
         {
@@ -115,10 +118,11 @@ namespace BioFXAPI.Controllers
             }
             catch (SqlException ex)
             {
-                return StatusCode(500, new { error = "Error de base de datos", details = ex.Message });
+                return StatusCode(500, new { error = "Error de base de datos" });
             }
         }
 
+        [Authorize]
         [HttpDelete("{id}")]
         public async Task<IActionResult> EliminarTestimonio(int id)
         {
@@ -139,7 +143,7 @@ namespace BioFXAPI.Controllers
             }
             catch (SqlException ex)
             {
-                return StatusCode(500, new { error = "Error de base de datos", details = ex.Message });
+                return StatusCode(500, new { error = "Error de base de datos" });
             }
         }
     }

@@ -1,6 +1,7 @@
 ﻿using BioFXAPI.Models;
 using BioFXAPI.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.IdentityModel.Tokens;
@@ -22,8 +23,9 @@ namespace BioFXAPI.Controllers
         private readonly ILogger<AuthController> _logger;
         private readonly IConfiguration _configuration;
         private readonly EmailVerificationService _emailVerification;
+        private readonly TokenBlacklistService _blacklist;
 
-        public AuthController(IConfiguration configuration, PasswordService passwordService, EmailService emailService, ILogger<AuthController> logger,EmailVerificationService emailVerification)
+        public AuthController(IConfiguration configuration, PasswordService passwordService, EmailService emailService, ILogger<AuthController> logger, EmailVerificationService emailVerification, TokenBlacklistService blacklist)
         {
             _connectionString = configuration.GetConnectionString("DefaultConnection");
             _passwordService = passwordService;
@@ -31,6 +33,7 @@ namespace BioFXAPI.Controllers
             _logger = logger;
             _configuration = configuration;
             _emailVerification = emailVerification;
+            _blacklist = blacklist;
         }
 
         [EnableRateLimiting("StrictLogin")]
@@ -59,22 +62,34 @@ namespace BioFXAPI.Controllers
             }
             catch (SqlException ex)
             {
-                return StatusCode(500, new { error = "Error de base de datos", details = ex.Message });
+                return StatusCode(500, new { error = "Error de base de datos" });
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new { error = "Error interno", details = ex.Message });
+                return StatusCode(500, new { error = "Error interno" });
             }
         }
 
+        [Authorize]
         [HttpPost("logout")]
         public IActionResult Logout()
         {
+            var jti = User.FindFirst(JwtRegisteredClaimNames.Jti)?.Value;
+            var expClaim = User.FindFirst(JwtRegisteredClaimNames.Exp)?.Value;
+
+            if (jti != null)
+            {
+                var expiresAt = long.TryParse(expClaim, out var expUnix)
+                    ? DateTimeOffset.FromUnixTimeSeconds(expUnix)
+                    : DateTimeOffset.UtcNow.AddHours(24);
+
+                _blacklist.Revoke(jti, expiresAt);
+            }
+
             Response.Cookies.Delete("biofx_auth", new CookieOptions
             {
                 Path = "/",
                 Secure = true,
-                //SameSite = SameSiteMode.Lax
                 SameSite = SameSiteMode.None
             });
             return Ok(new { Message = "Logout exitoso." });

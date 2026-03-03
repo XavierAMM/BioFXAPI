@@ -18,7 +18,8 @@ namespace BioFXAPI.Controllers
 		[HttpGet("mine")]
 		public async Task<IActionResult> GetOrCreateMyCart()
 		{
-			var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+			if (!int.TryParse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value, out var userId))
+			    return Unauthorized(new { message = "Usuario no identificado." });
 			using var con = new SqlConnection(_cs);
 			await con.OpenAsync();
 
@@ -56,7 +57,8 @@ namespace BioFXAPI.Controllers
 		[HttpPost("clear")]
 		public async Task<IActionResult> ClearMyCart()
 		{
-			var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+			if (!int.TryParse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value, out var userId))
+			    return Unauthorized(new { message = "Usuario no identificado." });
 			using var con = new SqlConnection(_cs);
 			await con.OpenAsync();
 

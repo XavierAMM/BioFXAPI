@@ -5317,11 +5317,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\Users\\xmanc\\OneDrive\\Desktop\\BioFXAPI-Github\\BioFXAPI\\BioFXAPI\\BioFXAPI.csproj",
+      "projectUniqueName": "C:\\Users\\xmanc\\Desktop\\BioFXAPI-Github\\BioFXAPI\\BioFXAPI\\BioFXAPI.csproj",
       "projectName": "BioFXAPI",
-      "projectPath": "C:\\Users\\xmanc\\OneDrive\\Desktop\\BioFXAPI-Github\\BioFXAPI\\BioFXAPI\\BioFXAPI.csproj",
+      "projectPath": "C:\\Users\\xmanc\\Desktop\\BioFXAPI-Github\\BioFXAPI\\BioFXAPI\\BioFXAPI.csproj",
       "packagesPath": "C:\\Users\\xmanc\\.nuget\\packages\\",
-      "outputPath": "C:\\Users\\xmanc\\OneDrive\\Desktop\\BioFXAPI-Github\\BioFXAPI\\BioFXAPI\\obj\\",
+      "outputPath": "C:\\Users\\xmanc\\Desktop\\BioFXAPI-Github\\BioFXAPI\\BioFXAPI\\obj\\",
       "projectStyle": "PackageReference",
       "fallbackFolders": [
         "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"

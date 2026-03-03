@@ -1,0 +1,1994 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>BioFXAPI — Auditoría de Código</title>
+    <style>
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        background: #0f1117;
+        color: #e2e8f0;
+        min-height: 100vh;
+      }
+      .header {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        z-index: 100;
+        background: #0a0d14;
+        border-bottom: 1px solid #1e2235;
+        padding: 0 24px;
+        height: 60px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+      .header-title {
+        font-size: 18px;
+        font-weight: 700;
+        color: #fff;
+      }
+      .header-title span {
+        color: #60a5fa;
+      }
+      .header-meta {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+      }
+      .header-date {
+        font-size: 12px;
+        color: #64748b;
+      }
+      .header-badge {
+        background: #ef4444;
+        color: #fff;
+        font-size: 12px;
+        font-weight: 700;
+        padding: 3px 10px;
+        border-radius: 20px;
+      }
+      .layout {
+        display: flex;
+        margin-top: 60px;
+        min-height: calc(100vh - 60px);
+      }
+      .sidebar {
+        width: 248px;
+        flex-shrink: 0;
+        background: #0d1020;
+        border-right: 1px solid #1e2235;
+        position: fixed;
+        top: 60px;
+        bottom: 0;
+        overflow-y: auto;
+        padding: 16px 0;
+      }
+      .sidebar-section-title {
+        font-size: 10px;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        color: #475569;
+        padding: 8px 16px;
+        margin-top: 8px;
+      }
+      .sidebar-link {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 16px;
+        font-size: 13px;
+        color: #94a3b8;
+        cursor: pointer;
+        text-decoration: none;
+        transition: all 0.15s;
+        border-left: 3px solid transparent;
+      }
+      .sidebar-link:hover {
+        color: #e2e8f0;
+        background: #13172a;
+      }
+      .sidebar-link.active {
+        color: #60a5fa;
+        border-left-color: #60a5fa;
+        background: #13172a;
+      }
+      .sidebar-count {
+        margin-left: auto;
+        font-size: 11px;
+        background: #1e2235;
+        padding: 1px 7px;
+        border-radius: 10px;
+        color: #64748b;
+      }
+      .main {
+        margin-left: 248px;
+        padding: 24px;
+        flex: 1;
+      }
+      .stats-bar {
+        display: flex;
+        gap: 12px;
+        margin-bottom: 24px;
+        flex-wrap: wrap;
+      }
+      .stat-card {
+        background: #1a1d2e;
+        border: 1px solid #1e2235;
+        border-radius: 8px;
+        padding: 12px 20px;
+        flex: 1;
+        min-width: 120px;
+      }
+      .stat-label {
+        font-size: 11px;
+        color: #64748b;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+      .stat-value {
+        font-size: 28px;
+        font-weight: 700;
+        margin-top: 2px;
+      }
+      .stat-critical .stat-value {
+        color: #ef4444;
+      }
+      .stat-high .stat-value {
+        color: #f97316;
+      }
+      .stat-medium .stat-value {
+        color: #eab308;
+      }
+      .stat-low .stat-value {
+        color: #3b82f6;
+      }
+      .stat-total .stat-value {
+        color: #e2e8f0;
+      }
+      .controls {
+        display: flex;
+        gap: 12px;
+        margin-bottom: 24px;
+        flex-wrap: wrap;
+        align-items: center;
+      }
+      .search-box {
+        flex: 1;
+        min-width: 200px;
+        background: #1a1d2e;
+        border: 1px solid #2d3252;
+        border-radius: 8px;
+        padding: 8px 14px;
+        color: #e2e8f0;
+        font-size: 14px;
+        outline: none;
+      }
+      .search-box:focus {
+        border-color: #60a5fa;
+      }
+      .search-box::placeholder {
+        color: #475569;
+      }
+      .filter-group {
+        display: flex;
+        gap: 6px;
+      }
+      .filter-btn {
+        padding: 7px 14px;
+        border-radius: 6px;
+        font-size: 12px;
+        font-weight: 600;
+        cursor: pointer;
+        border: 1px solid #2d3252;
+        transition: all 0.15s;
+        background: #1a1d2e;
+        color: #64748b;
+      }
+      .filter-btn:hover {
+        color: #e2e8f0;
+      }
+      .f-all.active {
+        background: #334155;
+        color: #e2e8f0;
+        border-color: #475569;
+      }
+      .f-critical.active {
+        background: #7f1d1d;
+        color: #fca5a5;
+        border-color: #ef4444;
+      }
+      .f-high.active {
+        background: #7c2d12;
+        color: #fdba74;
+        border-color: #f97316;
+      }
+      .f-medium.active {
+        background: #713f12;
+        color: #fde047;
+        border-color: #eab308;
+      }
+      .f-low.active {
+        background: #1e3a5f;
+        color: #93c5fd;
+        border-color: #3b82f6;
+      }
+      .f-resolved.active {
+        background: #052e16;
+        color: #86efac;
+        border-color: #22c55e;
+      }
+      .btn-toggle-resolved {
+        padding: 7px 14px;
+        border-radius: 6px;
+        font-size: 12px;
+        font-weight: 600;
+        cursor: pointer;
+        border: 1px dashed #334155;
+        transition: all 0.15s;
+        background: transparent;
+        color: #475569;
+        white-space: nowrap;
+      }
+      .btn-toggle-resolved:hover {
+        border-color: #475569;
+        color: #94a3b8;
+      }
+      .btn-toggle-resolved.active {
+        background: #052e16;
+        color: #86efac;
+        border-color: #22c55e;
+        border-style: solid;
+      }
+      /* Resolved cards */
+      .issue-card.resolved-full {
+        border-left: 3px solid #22c55e;
+        opacity: 0.75;
+      }
+      .issue-card.resolved-partial {
+        border-left: 3px solid #eab308;
+        opacity: 0.8;
+      }
+      .badge-resolved-full {
+        background: #052e16; color: #86efac; border: 1px solid #22c55e;
+      }
+      .badge-resolved-partial {
+        background: #422006; color: #fde047; border: 1px solid #eab308;
+      }
+      .resolved-block {
+        margin-top: 10px;
+        border-radius: 6px;
+        padding: 10px 12px;
+        font-size: 13px;
+        line-height: 1.6;
+      }
+      .resolved-block.full {
+        background: #052e16; border: 1px solid #166534; color: #86efac;
+      }
+      .resolved-block.partial {
+        background: #422006; border: 1px solid #92400e; color: #fde047;
+      }
+      .resolved-label {
+        font-size: 11px; font-weight: 700; text-transform: uppercase;
+        letter-spacing: .5px; margin-bottom: 4px;
+      }
+      .section {
+        margin-bottom: 40px;
+      }
+      .section.all-hidden {
+        display: none;
+      }
+      .section-header {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 16px;
+        padding-bottom: 12px;
+        border-bottom: 1px solid #1e2235;
+      }
+      .section-icon {
+        font-size: 22px;
+      }
+      .section-title {
+        font-size: 18px;
+        font-weight: 700;
+        color: #e2e8f0;
+      }
+      .section-subtitle {
+        font-size: 13px;
+        color: #64748b;
+        margin-top: 2px;
+      }
+      .section-badge {
+        margin-left: auto;
+        font-size: 12px;
+        background: #1e2235;
+        padding: 3px 10px;
+        border-radius: 12px;
+        color: #94a3b8;
+        white-space: nowrap;
+      }
+      .issues-grid {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+      .issue-card {
+        background: #1a1d2e;
+        border: 1px solid #1e2235;
+        border-radius: 8px;
+        overflow: hidden;
+        transition: border-color 0.15s;
+      }
+      .issue-card:hover {
+        border-color: #334155;
+      }
+      .issue-card.hidden {
+        display: none;
+      }
+      .issue-header {
+        display: flex;
+        align-items: flex-start;
+        gap: 12px;
+        padding: 14px 16px;
+        cursor: pointer;
+      }
+      .severity-badge {
+        flex-shrink: 0;
+        font-size: 10px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        padding: 3px 8px;
+        border-radius: 4px;
+        margin-top: 2px;
+      }
+      .badge-critical {
+        background: #7f1d1d;
+        color: #fca5a5;
+        border: 1px solid #ef4444;
+      }
+      .badge-high {
+        background: #7c2d12;
+        color: #fdba74;
+        border: 1px solid #f97316;
+      }
+      .badge-medium {
+        background: #713f12;
+        color: #fde047;
+        border: 1px solid #eab308;
+      }
+      .badge-low {
+        background: #1e3a5f;
+        color: #93c5fd;
+        border: 1px solid #3b82f6;
+      }
+      .issue-title-block {
+        flex: 1;
+        min-width: 0;
+      }
+      .issue-title {
+        font-size: 14px;
+        font-weight: 600;
+        color: #e2e8f0;
+      }
+      .issue-location {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        margin-top: 4px;
+        font-size: 11px;
+        color: #60a5fa;
+        background: #0f172a;
+        padding: 2px 8px;
+        border-radius: 4px;
+        font-family: monospace;
+      }
+      .expand-icon {
+        flex-shrink: 0;
+        color: #475569;
+        font-size: 14px;
+        margin-top: 4px;
+        transition: transform 0.2s;
+      }
+      .expand-icon.open {
+        transform: rotate(180deg);
+      }
+      .issue-body {
+        display: none;
+        padding: 0 16px 14px;
+      }
+      .issue-body.open {
+        display: block;
+      }
+      .issue-section-label {
+        font-size: 11px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: #64748b;
+        margin-top: 12px;
+        margin-bottom: 6px;
+      }
+      .issue-problem {
+        font-size: 13px;
+        color: #cbd5e1;
+        line-height: 1.6;
+      }
+      .issue-fix {
+        font-size: 13px;
+        color: #86efac;
+        line-height: 1.6;
+        background: #052e16;
+        border: 1px solid #166534;
+        border-radius: 6px;
+        padding: 10px 12px;
+        margin-top: 4px;
+      }
+      code {
+        font-family: "Consolas", "Monaco", monospace;
+        background: #0f172a;
+        color: #f472b6;
+        padding: 1px 5px;
+        border-radius: 3px;
+        font-size: 12px;
+      }
+      .no-results {
+        text-align: center;
+        padding: 60px 20px;
+        color: #475569;
+        font-size: 16px;
+      }
+      .anchor-target {
+        scroll-margin-top: 80px;
+      }
+      @media (max-width: 768px) {
+        .sidebar {
+          display: none;
+        }
+        .main {
+          margin-left: 0;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="header">
+      <div class="header-title">BioFX<span>API</span> &mdash; Auditoría de Código</div>
+      <div class="header-meta">
+        <div class="header-date" id="hdrDate">Actualizado: 23 Feb 2026 — 99 issues, 23 resueltos</div>
+        <div class="header-badge" id="totalBadge">— problemas</div>
+      </div>
+    </div>
+
+    <div class="layout">
+      <nav class="sidebar" id="sidebar">
+        <div class="sidebar-section-title">Categorías</div>
+        <a class="sidebar-link active" href="#secretos" onclick="navClick(this, 'secretos')"
+          >🔑 Secretos y Credenciales <span class="sidebar-count" id="cnt-secretos"></span
+        ></a>
+        <a class="sidebar-link" href="#autenticacion" onclick="navClick(this, 'autenticacion')"
+          >🔐 Autenticación y JWT <span class="sidebar-count" id="cnt-autenticacion"></span
+        ></a>
+        <a
+          class="sidebar-link"
+          href="#vulnerabilidades"
+          onclick="navClick(this, 'vulnerabilidades')"
+          >🛡️ Vulnerabilidades <span class="sidebar-count" id="cnt-vulnerabilidades"></span
+        ></a>
+        <a class="sidebar-link" href="#cors" onclick="navClick(this, 'cors')"
+          >🌐 CORS y Headers <span class="sidebar-count" id="cnt-cors"></span
+        ></a>
+        <a class="sidebar-link" href="#errores" onclick="navClick(this, 'errores')"
+          >⚠️ Errores y Logging <span class="sidebar-count" id="cnt-errores"></span
+        ></a>
+        <a class="sidebar-link" href="#concurrencia" onclick="navClick(this, 'concurrencia')"
+          >⚡ Concurrencia <span class="sidebar-count" id="cnt-concurrencia"></span
+        ></a>
+        <a class="sidebar-link" href="#practicas" onclick="navClick(this, 'practicas')"
+          >🔧 Malas Prácticas <span class="sidebar-count" id="cnt-practicas"></span
+        ></a>
+        <a class="sidebar-link" href="#validacion" onclick="navClick(this, 'validacion')"
+          >✅ Validación de Entradas <span class="sidebar-count" id="cnt-validacion"></span
+        ></a>
+        <a class="sidebar-link" href="#inconsistencias" onclick="navClick(this, 'inconsistencias')"
+          >📋 Inconsistencias <span class="sidebar-count" id="cnt-inconsistencias"></span
+        ></a>
+      </nav>
+
+      <main class="main">
+        <div class="stats-bar">
+          <div class="stat-card stat-total">
+            <div class="stat-label">Total</div>
+            <div class="stat-value" id="statTotal">—</div>
+          </div>
+          <div class="stat-card stat-critical">
+            <div class="stat-label">🔴 Crítico</div>
+            <div class="stat-value" id="statCritical">—</div>
+          </div>
+          <div class="stat-card stat-high">
+            <div class="stat-label">🟠 Alto</div>
+            <div class="stat-value" id="statHigh">—</div>
+          </div>
+          <div class="stat-card stat-medium">
+            <div class="stat-label">🟡 Medio</div>
+            <div class="stat-value" id="statMedium">—</div>
+          </div>
+          <div class="stat-card stat-low">
+            <div class="stat-label">🔵 Bajo</div>
+            <div class="stat-value" id="statLow">—</div>
+          </div>
+        </div>
+
+        <div class="controls">
+          <input
+            class="search-box"
+            id="searchBox"
+            type="text"
+            placeholder="🔍 Buscar por título, archivo o descripción..."
+            oninput="applyFilters()"
+          />
+          <div class="filter-group">
+            <button class="filter-btn f-all active" onclick="setFilter('all')">Todos</button>
+            <button class="filter-btn f-critical" onclick="setFilter('critical')">
+              🔴 Crítico
+            </button>
+            <button class="filter-btn f-high" onclick="setFilter('high')">🟠 Alto</button>
+            <button class="filter-btn f-medium" onclick="setFilter('medium')">🟡 Medio</button>
+            <button class="filter-btn f-low" onclick="setFilter('low')">🔵 Bajo</button>
+            <button class="filter-btn f-resolved" onclick="setFilter('resolved')">✅ Solo resueltos</button>
+          </div>
+          <button class="btn-toggle-resolved" id="btnToggleResolved" onclick="toggleResolved()">👁 Mostrar resueltas</button>
+        </div>
+
+        <div id="issuesContainer"></div>
+        <div class="no-results hidden" id="noResults">
+          No se encontraron problemas que coincidan con el filtro.
+        </div>
+      </main>
+    </div>
+
+    <script>
+      const CATS = [
+        {
+          id: "secretos",
+          icon: "🔑",
+          title: "Secretos y Credenciales",
+          sub: "Credenciales hardcodeadas en el código fuente y configuración",
+        },
+        {
+          id: "autenticacion",
+          icon: "🔐",
+          title: "Autenticación y JWT",
+          sub: "Problemas en el sistema de autenticación y manejo de tokens",
+        },
+        {
+          id: "vulnerabilidades",
+          icon: "🛡️",
+          title: "Vulnerabilidades de Seguridad",
+          sub: "Fallos de seguridad que pueden ser explotados directamente",
+        },
+        {
+          id: "cors",
+          icon: "🌐",
+          title: "CORS, Headers y Configuración",
+          sub: "Configuración incorrecta de CORS, headers HTTP y opciones del servidor",
+        },
+        {
+          id: "errores",
+          icon: "⚠️",
+          title: "Manejo de Errores y Logging",
+          sub: "Errores no manejados, excepciones silenciadas y logging insuficiente",
+        },
+        {
+          id: "concurrencia",
+          icon: "⚡",
+          title: "Concurrencia y Race Conditions",
+          sub: "Problemas en operaciones concurrentes y consistencia de datos",
+        },
+        {
+          id: "practicas",
+          icon: "🔧",
+          title: "Malas Prácticas y Código",
+          sub: "Antipatrones, código obsoleto y técnicas no recomendadas",
+        },
+        {
+          id: "validacion",
+          icon: "✅",
+          title: "Validación de Entradas",
+          sub: "Falta de validación en datos de entrada y parámetros",
+        },
+        {
+          id: "inconsistencias",
+          icon: "📋",
+          title: "Inconsistencias y Menores",
+          sub: "Inconsistencias de convenciones, nomenclatura y funcionalidades faltantes",
+        },
+      ];
+
+      const SEV = { critical: "Crítico", high: "Alto", medium: "Medio", low: "Bajo" };
+      const SORD = { critical: 0, high: 1, medium: 2, low: 3 };
+
+      const ISSUES = [
+        // ═══════════════════════════════════════════════
+        // SECRETOS Y CREDENCIALES
+        // ═══════════════════════════════════════════════
+        {
+          id: 1,
+          cat: "secretos",
+          sev: "critical",
+          title: "Contraseña de base de datos hardcodeada en el repositorio",
+          file: "appsettings.json, appsettings.Development.json",
+          line: "9",
+          why: "La cadena de conexión SQL Server contiene el usuario (<code>api_app</code>) y la contraseña (<code>#Cliente2631</code>) en texto plano en archivos commiteados. Cualquier persona con acceso al repositorio tiene acceso directo a la base de datos de producción.",
+          fix: "Mover las credenciales a <code>dotnet user-secrets</code> o variables de entorno. Nunca commitear credenciales. Rotar la contraseña inmediatamente después de limpiar el historial de git.",
+          res: "full",
+          resNote: "✅ Resuelto (23 Feb 2026) — cadena de conexión movida a variable de entorno en el servidor EC2. <code>appsettings.json</code> y <code>appsettings.Development.json</code> limpiados, ambos con <code>DefaultConnection: \"\"</code>.",
+        },
+
+        {
+          id: 2,
+          cat: "secretos",
+          sev: "critical",
+          title: "JWT secret commiteado al repositorio",
+          file: "appsettings.json",
+          line: "28",
+          why: "La clave de firmado JWT (<code>hcYJplSqOpFqSy+7Cy2se43te...</code>) está expuesta en el archivo de configuración. Con ella, un atacante puede forjar tokens JWT válidos para cualquier usuario, incluyendo administradores, sin necesidad de credenciales.",
+          fix: "Mover el secreto a <code>dotnet user-secrets</code> o variable de entorno (<code>JWT__Secret</code>). Rotar el secreto y hacer logout de todos los usuarios activos.",
+          res: "full",
+          resNote: "✅ Resuelto (23 Feb 2026) — el campo <code>Jwt:Secret</code> en <code>appsettings.json</code> quedó vacío. El valor real se configura como variable de entorno (<code>Jwt__Secret</code>) en el servidor EC2 Windows Server.",
+        },
+
+        {
+          id: 3,
+          cat: "secretos",
+          sev: "critical",
+          title: "Credenciales de PlacetoPay (pasarela de pago) expuestas",
+          file: "appsettings.json",
+          line: "38-39",
+          why: "El <code>Login</code> y <code>SecretKey</code> de PlacetoPay están commiteados. Un atacante puede crear sesiones de pago fraudulentas, cancelar transacciones legítimas o consultar el estado de pagos de otros usuarios.",
+          fix: "Mover a <code>dotnet user-secrets</code> o variables de entorno. Contactar a PlacetoPay para rotar las credenciales de inmediato.",
+          res: "full",
+          resNote: "✅ Resuelto (23 Feb 2026) — <code>PlacetoPay:Login</code> y <code>PlacetoPay:SecretKey</code> movidos a variables de entorno en EC2. <code>appsettings.json</code> y <code>appsettings.Development.json</code> limpiados.",
+        },
+
+        {
+          id: 4,
+          cat: "secretos",
+          sev: "critical",
+          title: "Credenciales AWS S3 expuestas en appsettings.Development.json",
+          file: "appsettings.Development.json",
+          line: "31-32",
+          why: "AccessKey y SecretKey de AWS están commiteados. Un atacante puede acceder, leer, modificar o eliminar todos los archivos del bucket S3, que contiene prescripciones y documentos médicos de pacientes (datos sensibles bajo regulación).",
+          fix: "Rotar inmediatamente las credenciales en AWS IAM. Auditar el bucket por accesos no autorizados. Usar IAM roles si se despliega en EC2/ECS, o mover a User Secrets.",
+          res: "full",
+          resNote: "✅ Resuelto (23 Feb 2026) — claves AWS movidas a variables de entorno en EC2. <code>appsettings.json</code> y <code>appsettings.Development.json</code> limpiados, ambos con campos vacíos. Verificar que las claves antiguas (<code>AKIARHCOAWH42H63G6UY</code>) hayan sido rotadas en AWS IAM si aún no se hizo.",
+        },
+
+        {
+          id: 5,
+          cat: "secretos",
+          sev: "critical",
+          title: "Internal API Key expuesta en configuración versionada",
+          file: "appsettings.json",
+          line: "49",
+          why: "El valor de <code>InternalApiKey</code> está en texto plano en el repositorio. Cualquiera puede llamar directamente a los endpoints internos de refresh de transacciones y cancelaciones, saltando el flujo normal de la pasarela de pago.",
+          fix: "Mover a User Secrets o variable de entorno. Considerar mutual TLS o restricción por IP para comunicación interna en lugar de un API key simple.",
+          res: "full",
+          resNote: "✅ Resuelto (23 Feb 2026) — <code>InternalApiKey</code> eliminado de <code>appsettings.json</code> y configurado como variable de entorno en el servidor EC2.",
+        },
+
+        {
+          id: 6,
+          cat: "secretos",
+          sev: "high",
+          title: "User Secrets se carga DESPUÉS de leer la configuración JWT",
+          file: "Program.cs",
+          line: "21-22",
+          why: 'La línea 21 lee <code>builder.Configuration.GetSection("Jwt")</code> ANTES de que <code>AddUserSecrets()</code> se ejecute en la línea 22. Esto significa que el JWT secret siempre viene del <code>appsettings.json</code> commiteado, ignorando cualquier User Secret configurado.',
+          fix: "<code>WebApplication.CreateBuilder()</code> ya incluye User Secrets automáticamente. No llamar a <code>AddUserSecrets()</code> explícitamente después de leer secciones de config, o mover toda lectura de config después de que el builder esté completamente configurado.",
+          res: "full",
+          resNote: "✅ Resuelto (23 Feb 2026) — se eliminó la llamada explícita a <code>builder.Configuration.AddUserSecrets&lt;Program&gt;()</code> (línea 22). <code>WebApplication.CreateBuilder(args)</code> ya carga User Secrets y variables de entorno automáticamente antes de que corra cualquier código. Se agregó validación al startup: si <code>Jwt:Secret</code> está vacío, la aplicación lanza excepción y no inicia.",
+        },
+
+        {
+          id: 7,
+          cat: "secretos",
+          sev: "medium",
+          title: "URL de frontend hardcodeada como fallback en AccountController",
+          file: "AccountController.cs",
+          line: "28",
+          why: '<code>configuration["Frontend:BaseUrl"] ?? "https://biofx.com.ec/"</code> — si la configuración está vacía o mal configurada en staging/dev, los emails de verificación apuntan silenciosamente al dominio de producción. El error de config no es detectado.',
+          fix: 'Usar el patrón que lanza excepción explícita: <code>configuration["Frontend:BaseUrl"] ?? throw new InvalidOperationException("Frontend:BaseUrl no configurado")</code>',
+          res: "full",
+          resNote: '✅ Resuelto (23 Feb 2026) — <code>AccountController.cs L28</code> cambiado de <code>?? "https://biofx.com.ec/"</code> a <code>?? throw new InvalidOperationException(...)</code>. Si <code>Frontend:BaseUrl</code> no está configurado, la aplicación falla al arrancar con un error claro en lugar de usar silenciosamente el dominio de producción.',
+        },
+
+        // ═══════════════════════════════════════════════
+        // AUTENTICACIÓN Y JWT
+        // ═══════════════════════════════════════════════
+        {
+          id: 8,
+          cat: "autenticacion",
+          sev: "critical",
+          title: "ValidateIssuer y ValidateAudience desactivados en la validación JWT",
+          file: "Program.cs",
+          line: "32-33",
+          why: "<code>ValidateIssuer = false</code> y <code>ValidateAudience = false</code> permiten que cualquier token firmado con el secreto correcto sea aceptado sin importar su emisor o audiencia. En arquitecturas con múltiples servicios, un token de un servicio distinto podría ser usado en este.",
+          fix: 'Activar ambas validaciones y configurar los valores: <code>ValidateIssuer = true, ValidIssuer = config["Jwt:Issuer"], ValidateAudience = true, ValidAudience = config["Jwt:Audience"]</code>',
+          res: "full",
+          resNote: "✅ Resuelto (23 Feb 2026) — <code>Program.cs</code>: activados <code>ValidateIssuer = true</code> y <code>ValidateAudience = true</code>, con <code>ValidIssuer</code> y <code>ValidAudience</code> leídos desde config (<code>Jwt:Issuer</code> / <code>Jwt:Audience</code>). Se añadió validación al arranque que lanza <code>InvalidOperationException</code> si alguno de los tres valores JWT no está configurado.",
+        },
+
+        {
+          id: 9,
+          cat: "autenticacion",
+          sev: "high",
+          title: "Sin mecanismo de revocación de tokens JWT — compromiso dura 24 horas",
+          file: "Program.cs + todos los controladores",
+          line: "N/A",
+          why: "Los tokens JWT tienen vida de 24 horas y no pueden ser revocados. Si un token es robado (mediante XSS, MITM, acceso físico al dispositivo), el atacante mantiene acceso completo durante 24h. El usuario tampoco puede cerrar sesión en todos los dispositivos.",
+          fix: "Implementar una blacklist de tokens (JTI claim) en Redis o caché en memoria. Al logout agregar el JTI a la blacklist. El middleware de auth debe verificar contra la blacklist en cada request.",
+          res: "full",
+          resNote: "✅ Resuelto (23 Feb 2026) — Creado <code>TokenBlacklistService</code> (singleton, <code>ConcurrentDictionary</code>) en <code>Services/TokenBlacklistService.cs</code>. El JTI ya se generaba en cada token (<code>AuthController.cs</code> L281). <code>POST /api/Auth/logout</code> ahora requiere <code>[Authorize]</code>, extrae el JTI del claim y lo revoca con su fecha de expiración. <code>Program.cs</code>: hook <code>OnTokenValidated</code> verifica cada token contra la blacklist; si está revocado retorna 401. Las entradas expiradas se auto-limpian. Limitación: la blacklist es en memoria — se pierde si el servidor reinicia.",
+        },
+
+        {
+          id: 10,
+          cat: "autenticacion",
+          sev: "high",
+          title: "Generación de tokens con new Random() — no es criptográficamente seguro",
+          file: "AccountController.cs",
+          line: "509-515",
+          why: "<code>new Random()</code> es un generador pseudoaleatorio predecible. Los tokens de verificación de email y reset de contraseña generados con esta clase pueden ser predichos por un atacante que observe suficientes tokens generados por el sistema.",
+          fix: "Usar <code>System.Security.Cryptography.RandomNumberGenerator.GetHexString(32)</code> o <code>Convert.ToHexString(RandomNumberGenerator.GetBytes(32))</code> para tokens seguros.",
+          res: "full",
+          resNote: "✅ Resuelto (23 Feb 2026) — AccountController.cs: GenerateSixDigitCode() reemplaza new Random() + random.Next() por RandomNumberGenerator.GetInt32(chars.Length). Agregado using System.Security.Cryptography.",
+        },
+
+        {
+          id: 11,
+          cat: "autenticacion",
+          sev: "high",
+          title: "PBKDF2 con solo 10,000 iteraciones — vulnerable a cracking con GPU",
+          file: "PasswordService.cs",
+          line: "11",
+          why: "El hash de contraseñas usa 10,000 iteraciones de PBKDF2, estándar de 2010. OWASP 2024 recomienda mínimo 310,000 iteraciones con SHA-1 o 100,000 con SHA-256. Con GPUs modernas, 10k iteraciones son crackeables en minutos para passwords débiles.",
+          fix: "Aumentar a <code>IterationCount = 310000</code>. Agregar un campo de versión de hash en la BD para migrar usuarios progresivamente: re-hashear en el siguiente login exitoso.",
+          res: "full",
+          resNote: "✅ Resuelto (23 Feb 2026) — PasswordService.cs: IterationCount aumentado a 310,000. Compatibilidad con hashes existentes mantenida via detección de formato por longitud: 48 bytes = legado (10,000 iter), 49 bytes = nuevo (310,000 iter, con byte de versión 0x01 como prefijo). Sin cambios en BD requeridos; los hashes migran solos al cambiar/resetear contraseña.",
+        },
+
+        {
+          id: 12,
+          cat: "autenticacion",
+          sev: "medium",
+          title: "Comparación de hash de contraseña no es timing-safe",
+          file: "PasswordService.cs",
+          line: "60-66",
+          why: "El loop de comparación de bytes se detiene en el primer byte diferente, lo que permite timing attacks: midiendo el tiempo de respuesta, un atacante puede deducir cuántos bytes del hash coinciden y estrechar el espacio de búsqueda.",
+          fix: "Reemplazar la comparación manual con <code>CryptographicOperations.FixedTimeEquals(computedHash, storedHash)</code> que siempre tarda exactamente el mismo tiempo.",
+          res: "full",
+          resNote: "✅ Resuelto (23 Feb 2026) — PasswordService.cs: loop de comparación manual reemplazado por CryptographicOperations.FixedTimeEquals(storedHash, hash). Resuelto junto con #11 en el mismo refactor de VerifyPassword.",
+        },
+
+        {
+          id: 13,
+          cat: "autenticacion",
+          sev: "medium",
+          title: "GenerateSixDigitCode() genera alfanumérico, no solo dígitos",
+          file: "AccountController.cs",
+          line: "159",
+          why: 'El método se llama "SixDigit" pero genera caracteres alfanuméricos (letras + números). Un usuario que espera un código numérico (como los de SMS OTP) puede confundirse. Además, el nombre incorrecto hace el código más difícil de mantener.',
+          fix: "Renombrar a <code>GenerateVerificationCode()</code> que describe el comportamiento real, o cambiar la implementación para generar solo dígitos si el contexto lo requiere.",
+          res: "full",
+          resNote: "✅ Resuelto (25 Feb 2026) — Implementación reemplazada por <code>RandomNumberGenerator.GetInt32(0, 1_000_000).ToString(\"D6\")</code>. Genera exactamente 6 dígitos numéricos con padding de ceros, usando CSPRNG.",
+        },
+
+        {
+          id: 14,
+          cat: "autenticacion",
+          sev: "medium",
+          title: "Sin cooldown por email en solicitudes de reset de contraseña",
+          file: "PasswordController.cs",
+          line: "24-52",
+          why: "El rate limiting de 3 req/min es global por IP, no por email. Un atacante puede bombardear la misma dirección de email con solicitudes de reset desde múltiples IPs, inundando la bandeja de entrada del usuario objetivo.",
+          fix: "Registrar en BD el timestamp de la última solicitud de reset por email. Limitar a 1 solicitud por email por hora. Retornar mensaje genérico si se supera el límite.",
+        },
+
+        {
+          id: 15,
+          cat: "autenticacion",
+          sev: "low",
+          title: "Respuesta inconsistente en ForgotPassword — filtra existencia de cuenta",
+          file: "PasswordController.cs",
+          line: "37-38",
+          why: 'ForgotPassword retorna mensaje genérico para proteger contra enumeración, pero luego retorna un error específico "cuenta no verificada" que confirma que el email SÍ existe. Esto rompe la protección de enumeración.',
+          fix: 'Retornar siempre el mismo mensaje genérico independientemente del estado de la cuenta: "Si el correo existe, recibirás instrucciones."',
+        },
+
+        // ═══════════════════════════════════════════════
+        // VULNERABILIDADES DE SEGURIDAD
+        // ═══════════════════════════════════════════════
+        {
+          id: 16,
+          cat: "vulnerabilidades",
+          sev: "critical",
+          title: "Endpoint /test-email público sin autenticación — permite email bombing",
+          file: "AccountController.cs",
+          line: "278-297",
+          why: "<code>[AllowAnonymous] POST /api/account/test-email</code> permite que cualquier persona anónima envíe emails desde el dominio de la empresa a cualquier dirección. Esto puede usarse para spam masivo, phishing usando la identidad de BioFX, o quemar la reputación del dominio de email.",
+          fix: 'Agregar <code>[Authorize]</code> con verificación de rol admin. Agregar <code>[EnableRateLimiting("StrictPasswordOps")]</code>. Considerar eliminar este endpoint de producción y usarlo solo en desarrollo.',
+          res: "full",
+          resNote: "✅ Resuelto (23 Feb 2026) — <code>AccountController.cs L278</code>: reemplazado <code>[AllowAnonymous]</code> por <code>[Authorize]</code> + <code>[EnableRateLimiting(\"StrictPasswordOps\")]</code> (máx. 3 req/min). El endpoint ahora requiere JWT válido. Nota: no hay sistema de roles aún, por lo que la restricción es a cualquier usuario autenticado.",
+        },
+
+        {
+          id: 17,
+          cat: "vulnerabilidades",
+          sev: "high",
+          title: "Fallback a SHA-1 en verificación de firma de webhook",
+          file: "WebhookLogsController.cs",
+          line: "87-103",
+          why: 'Si la firma no comienza con <code>"sha256:"</code>, el sistema usa SHA-1. SHA-1 está criptográficamente roto desde 2017 (ataque SHAttered publicado por Google). Un atacante puede forjar firmas SHA-1 para inyectar webhooks fraudulentos que modifiquen estados de órdenes.',
+          fix: "Eliminar completamente el soporte SHA-1. Si hay sistemas legacy que solo soportan SHA-1, documentar el riesgo y requerir migración. Loggear un error grave si se recibe una firma que no es SHA-256.",
+          res: "full",
+          resNote: "✅ Resuelto (25 Feb 2026) — Eliminado el bloque SHA-1. Ahora si la firma no empieza con <code>sha256:</code> se loggea un warning y se retorna 401 inmediatamente.",
+        },
+
+        {
+          id: 18,
+          cat: "vulnerabilidades",
+          sev: "high",
+          title: "Sin validación de timestamp en webhooks — vulnerable a replay attacks",
+          file: "WebhookLogsController.cs",
+          line: "18-173",
+          why: "El webhook recibe <code>status.date</code> pero nunca verifica que sea reciente. Un atacante que intercepte un payload de webhook legítimo (con firma válida) puede reenviarlo horas después para revertir o forzar un estado en una transacción.",
+          fix: 'Validar que el timestamp sea reciente: <code>if (Math.Abs((DateTime.UtcNow - webhookDate).TotalMinutes) > 5) return BadRequest("Webhook expirado");</code>',
+          res: "full",
+          resNote: "✅ Resuelto (25 Feb 2026) — Añadida validación de timestamp dentro del bloque <code>if (verify)</code>: si <code>statusDate</code> difiere más de 5 minutos de UTC actual, se loggea warning y retorna 401.",
+        },
+
+        {
+          id: 19,
+          cat: "vulnerabilidades",
+          sev: "high",
+          title: "Endpoints de Testimonios sin autorización — cualquiera puede crear/editar/borrar",
+          file: "TestimonioController.cs",
+          line: "61, 88, ~120",
+          why: "Los endpoints de creación, actualización y eliminación de testimonios no tienen <code>[Authorize]</code> ni verificación de rol. Cualquier persona puede publicar testimonios falsos, modificar testimonios existentes o borrarlos todos.",
+          fix: "Agregar <code>[Authorize]</code> a todos los métodos de escritura. Para creación y edición, agregar verificación de rol admin como se hace en <code>ProductosController.cs</code>.",
+          res: "full",
+          resNote: "✅ Resuelto (23 Feb 2026) — <code>[Authorize]</code> agregado a <code>CrearTestimonio</code>, <code>ActualizarTestimonio</code> y <code>EliminarTestimonio</code>. Nota: no hay sistema de roles aún; restricción aplica a cualquier usuario autenticado.",
+        },
+
+        {
+          id: 20,
+          cat: "vulnerabilidades",
+          sev: "high",
+          title: 'AllowedHosts = "*" — vulnerable a Host Header Injection',
+          file: "appsettings.json",
+          line: "69",
+          why: '<code>"AllowedHosts": "*"</code> desactiva la validación del header <code>Host</code>. Un atacante puede enviar requests con un Host header manipulado, causando que los links generados en emails (reset de contraseña, verificación) apunten a un dominio controlado por el atacante.',
+          fix: 'Configurar explícitamente: <code>"AllowedHosts": "api.biofx.com.ec,biofx.com.ec"</code>',
+          res: "full",
+          resNote: '✅ Resuelto (23 Feb 2026) — <code>appsettings.json</code>: cambiado <code>"AllowedHosts": "*"</code> a <code>"AllowedHosts": "api.biofx.com.ec;biofx.com.ec;www.biofx.com.ec"</code>. En <code>appsettings.Development.json</code> se mantiene <code>"AllowedHosts": "*"</code> para desarrollo local.',
+        },
+
+        {
+          id: 21,
+          cat: "vulnerabilidades",
+          sev: "high",
+          title: "Sin validación de magic bytes en uploads — ejecutables disfrazados de PDF",
+          file: "OrdersController.cs",
+          line: "310",
+          why: "<code>EsAdjuntoValido()</code> verifica solo la extensión y el Content-Type declarado por el cliente, que son trivialmente falsificables. Un atacante puede renombrar un ejecutable malicioso como <code>receta.pdf</code> y subirlo al sistema.",
+          fix: "Leer los primeros bytes del archivo y verificar contra firmas conocidas: PDF comienza con <code>%PDF-</code> (hex: 25 50 44 46 2D), PNG con <code>\\x89PNG</code>, JPEG con <code>\\xFF\\xD8\\xFF</code>. Rechazar si no coincide.",
+          res: "full",
+          resNote: "✅ Resuelto (25 Feb 2026) — <code>EsAdjuntoValido()</code> ahora recibe <code>ReadOnlySpan&lt;byte&gt; magicBytes</code>. Se validan los primeros 4 bytes contra firmas conocidas (PDF: 25 50 44 46, PNG: 89 50 4E 47, JPEG: FF D8 FF). En el call site se leen 4 bytes con un stream separado antes de llamar al método.",
+        },
+
+        {
+          id: 22,
+          cat: "vulnerabilidades",
+          sev: "high",
+          title: "Path traversal en S3 key via nombre de archivo del usuario",
+          file: "OrderAttachmentsController.cs",
+          line: "72",
+          why: '<code>$"test/{Guid.NewGuid():N}_{file.FileName}"</code> incluye el filename provisto por el usuario en el S3 key. Un archivo nombrado <code>../../secrets/config.json</code> podría causar comportamiento inesperado en algunos SDKs o sobreescribir objetos existentes.',
+          fix: 'Nunca usar el filename del usuario en storage keys. Usar exclusivamente: <code>$"orders/{orderId}/{Guid.NewGuid():N}{extensionValidada}"</code> donde la extensión se valida contra una whitelist estricta.',
+          res: "full",
+          resNote: "✅ Resuelto (25 Feb 2026) — <b>OrderAttachmentsController.cs</b>: eliminado <code>file.FileName</code> del key; ahora solo <code>Guid + ext</code>. <b>OrdersController.cs</b>: extensión derivada de magic bytes ya validados (no del nombre del cliente); whitelist implícita: .pdf / .png / .jpg / .bin.",
+        },
+
+        {
+          id: 23,
+          cat: "vulnerabilidades",
+          sev: "medium",
+          title: "Console.WriteLine expone detalles de error — filtración de información",
+          file: "AuthController.cs",
+          line: "296",
+          why: '<code>Console.WriteLine($"Error generando JWT: {ex.Message}")</code> escribe al stdout en producción. Dependiendo de la infraestructura (contenedores, logs centralizados), esto puede ser visible en sistemas de monitoreo con acceso más amplio que los logs de aplicación.',
+          fix: 'Usar el logger inyectado: <code>_logger.LogError(ex, "Error generando JWT para usuario {UserId}", userId);</code>',
+        },
+
+        {
+          id: 24,
+          cat: "vulnerabilidades",
+          sev: "medium",
+          title: "Comparación de Internal API Key no es timing-safe",
+          file: "TransactionsController.cs",
+          line: "56",
+          why: "<code>string.Equals(provided, configured, StringComparison.Ordinal)</code> puede ser vulnerable a timing attacks. Un atacante que mida tiempos de respuesta con precisión suficiente podría adivinar el API key carácter por carácter.",
+          fix: "Usar comparación de tiempo constante: <code>CryptographicOperations.FixedTimeEquals(Encoding.UTF8.GetBytes(provided), Encoding.UTF8.GetBytes(configured))</code>",
+        },
+
+        {
+          id: 25,
+          cat: "vulnerabilidades",
+          sev: "medium",
+          title:
+            "VerifyWebhookSignature desactivable — sin firmas, cualquiera puede enviar webhooks",
+          file: "appsettings.json + WebhookLogsController.cs",
+          line: "N/A",
+          why: "<code>PlacetoPay:VerifyWebhookSignature: false</code> deshabilita toda la verificación de firma. Si esta opción queda en false en producción por error de configuración, cualquier request a <code>POST /api/webhooklogs/placetopay</code> es procesado como válido.",
+          fix: 'Hacer que el default sea <code>true</code> y loggear un warning grave al startup si está desactivado: <code>_logger.LogCritical("⚠️ Verificación de firma de webhook DESACTIVADA");</code>',
+        },
+
+        // ═══════════════════════════════════════════════
+        // CORS Y HEADERS
+        // ═══════════════════════════════════════════════
+        {
+          id: 26,
+          cat: "cors",
+          sev: "high",
+          title: "Orígenes de desarrollo localhost permitidos en config de producción",
+          file: "appsettings.json",
+          line: "66-67",
+          why: "<code>http://127.0.0.1:5500</code> y <code>http://localhost:5500</code> están en la lista de orígenes CORS del archivo de producción. Herramientas de desarrollo locales (Live Server, etc.) pueden hacer cross-origin requests a la API de producción, potencialmente ejecutando scripts de prueba contra datos reales.",
+          fix: "Mover estos orígenes exclusivamente a <code>appsettings.Development.json</code>. En producción, mantener solo <code>https://biofx.com.ec</code> y <code>https://www.biofx.com.ec</code>.",
+          res: "full",
+          resNote: "✅ Resuelto (23 Feb 2026) — <code>http://127.0.0.1:5500</code> y <code>http://localhost:5500</code> eliminados de <code>appsettings.json</code>. Movidos a <code>appsettings.Development.json</code> como array completo de <code>AllowedOrigins</code>, que sobreescribe al de producción en entorno Development.",
+        },
+
+        {
+          id: 27,
+          cat: "cors",
+          sev: "high",
+          title: "Nivel de log Debug activado globalmente en producción",
+          file: "Program.cs",
+          line: "174",
+          why: "<code>MinimumLevel.Debug()</code> registra información extremadamente detallada: valores de parámetros SQL, contenido de requests, potencialmente tokens y datos de usuarios. En producción genera logs masivos y puede exponer datos sensibles a quien tenga acceso a los logs.",
+          fix: 'Usar <code>MinimumLevel.Information()</code> en producción y suprimir logs de framework: <code>.MinimumLevel.Override("Microsoft", LogEventLevel.Warning).MinimumLevel.Override("System", LogEventLevel.Warning)</code>',
+          res: "full",
+          resNote: "✅ Resuelto (23 Feb 2026) — <code>Program.cs</code>: nivel de log ahora condicional por entorno. Development: <code>MinimumLevel.Debug()</code>. Production: <code>MinimumLevel.Information()</code> con overrides <code>Warning</code> para namespaces <code>Microsoft</code> y <code>System</code>.",
+        },
+
+        {
+          id: 28,
+          cat: "cors",
+          sev: "medium",
+          title: "Sin Content-Security-Policy header",
+          file: "Program.cs",
+          line: "229-231",
+          why: "El middleware de seguridad no incluye CSP. Sin este header, si el frontend tiene alguna vulnerabilidad XSS, un atacante puede inyectar y ejecutar scripts arbitrarios en el contexto de la aplicación, robar cookies o realizar acciones en nombre del usuario.",
+          fix: "Agregar en el middleware: <code>ctx.Response.Headers.Append(\"Content-Security-Policy\", \"default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:\");</code>",
+        },
+
+        {
+          id: 29,
+          cat: "cors",
+          sev: "medium",
+          title: "OPTIONS requests bypass el rate limiter — DoS sin restricción",
+          file: "Program.cs",
+          line: "222-225",
+          why: "<code>UseWhen(ctx => !HttpMethods.IsOptions(...))</code> excluye TODAS las solicitudes OPTIONS del rate limiting. Un atacante puede enviar solicitudes OPTIONS ilimitadas para consumir recursos del servidor o probar orígenes CORS sin restricción.",
+          fix: "Aplicar rate limiting también a OPTIONS, o configurar un rate limit específico más permisivo solo para preflight CORS.",
+        },
+
+        {
+          id: 30,
+          cat: "cors",
+          sev: "medium",
+          title: "CORS preflight max-age de 1 hora — cambios de política tardan en aplicar",
+          file: "Program.cs",
+          line: "71",
+          why: "<code>SetPreflightMaxAge(TimeSpan.FromHours(1))</code> hace que los navegadores cacheen respuestas preflight por 1 hora. Si se necesita revocar acceso a un origen comprometido, los clientes continuarán usando la caché durante hasta 60 minutos.",
+          fix: "Reducir a <code>TimeSpan.FromMinutes(10)</code> para permitir cambios de política CORS más ágiles.",
+        },
+
+        {
+          id: 31,
+          cat: "cors",
+          sev: "low",
+          title: "Sin X-XSS-Protection header",
+          file: "Program.cs",
+          line: "229-231",
+          why: "No se configura el header <code>X-XSS-Protection: 1; mode=block</code>. Aunque los navegadores modernos lo ignoran en favor de CSP, navegadores legacy (IE11, Chrome antiguo) aún lo utilizan como capa de protección adicional.",
+          fix: 'Agregar: <code>ctx.Response.Headers.Append("X-XSS-Protection", "1; mode=block");</code>',
+        },
+
+        // ═══════════════════════════════════════════════
+        // MANEJO DE ERRORES Y LOGGING
+        // ═══════════════════════════════════════════════
+        {
+          id: 32,
+          cat: "errores",
+          sev: "high",
+          title: "ex.Message retornado al cliente — expone schema de base de datos",
+          file: "AuthController.cs, AccountController.cs, PasswordController.cs + otros",
+          line: "Múltiples",
+          why: "<code>StatusCode(500, new { details = ex.Message })</code> en múltiples controladores expone mensajes de error SQL que contienen nombres de tablas, columnas, constraints y stored procedures. Esta información es invaluable para un atacante que planea inyecciones SQL.",
+          fix: 'Loggear el error completo internamente. Retornar al cliente solo: <code>StatusCode(500, new { error = "Error interno del servidor. Contacte soporte." })</code>',
+          res: "full",
+          resNote: "✅ Resuelto (25 Feb 2026) — Eliminados <code>details = ex.Message</code>, <code>error = ex.Message</code> y <code>code = ex.Number</code> de todas las respuestas 500 en 10 controladores (AccountController, AuthController, CategoriasController, DatosFacturacionController, OrdersController, PasswordController, PersonaController, ProductosController, PromocionesController, TestimonioController).",
+        },
+
+        {
+          id: 33,
+          cat: "errores",
+          sev: "high",
+          title: "catch{} vacío silencia excepciones de parseo de webhook",
+          file: "WebhookLogsController.cs",
+          line: "67-70",
+          why: "Un bloque <code>catch { }</code> vacío swallows toda excepción durante el parseo JSON del payload del webhook. Si el payload es malformado, <code>requestId</code> queda en -1 y la aplicación continúa sin ningún registro del error, dificultando el diagnóstico.",
+          fix: 'Mínimo: <code>catch (Exception ex) { _logger.LogWarning(ex, "Payload de webhook malformado. Body: {Body}", body.Length > 500 ? body[..500] : body); }</code>',
+          res: "full",
+          resNote: "✅ Resuelto (23 Feb 2026) — <code>WebhookLogsController.cs</code>: inyectado <code>ILogger&lt;WebhookLogsController&gt;</code> en el constructor. <code>catch {}</code> reemplazado por <code>catch (Exception ex)</code> con <code>_logger.LogWarning()</code> que registra la excepción y los primeros 500 chars del body malformado.",
+        },
+
+        {
+          id: 34,
+          cat: "errores",
+          sev: "high",
+          title: "Adjunto S3 eliminado aunque ningún email fue enviado exitosamente",
+          file: "OrderNotificationService.cs",
+          line: "237-265",
+          why: "Si todos los emails de notificación fallan, el código aún procede a eliminar el adjunto (prescripción médica) de S3 y limpia la referencia en BD. El equipo de envío nunca recibe los documentos y estos se pierden permanentemente sin posibilidad de recuperación.",
+          fix: "Rastrear éxito: <code>bool atLeastOneSent = false;</code> Solo eliminar si <code>atLeastOneSent == true</code>. Si ningún email fue enviado, marcar la orden para reintento manual y alertar.",
+          res: "full",
+          resNote: "✅ Resuelto (23 Feb 2026) — <code>OrderNotificationService.cs</code>: añadida variable <code>bool atLeastOneSent = false</code>; se establece <code>true</code> solo tras un envío exitoso. Si ningún email fue enviado, se loggea <code>LogError</code> indicando que el adjunto S3 fue conservado deliberadamente y se retorna sin borrar nada. El adjunto S3 solo se elimina si al menos un destinatario recibió el correo correctamente.",
+        },
+
+        {
+          id: 35,
+          cat: "errores",
+          sev: "high",
+          title: "Respuesta de cancelación de PlacetoPay no verificada por errores de negocio",
+          file: "OrderCancellationService.cs",
+          line: "136-145",
+          why: '<code>TryCancelPlacetoPaySessionAsync()</code> solo verifica <code>resp.IsSuccessStatusCode</code> (HTTP 200-299). PlacetoPay puede retornar HTTP 200 con un payload indicando fallo de negocio (ej: "transacción ya aprobada, no se puede cancelar"). Este error se ignora completamente.',
+          fix: "Deserializar la respuesta JSON y verificar el campo de estado interno de PlacetoPay además del código HTTP. Loggear el body completo de la respuesta cuando sea un fallo.",
+          res: "full",
+          resNote: "✅ Resuelto (25 Feb 2026) — Ahora se parsea el body JSON y se verifica <code>status.status == \"OK\"</code>. Si el campo no es OK (error de negocio) o el JSON no parsea, se loggea warning y retorna false. HTTP no-2xx también retorna false.",
+        },
+
+        {
+          id: 36,
+          cat: "errores",
+          sev: "medium",
+          title: "Fallo de email no impide que la orden quede como PAID — notificaciones perdidas",
+          file: "PlacetoPayRefreshService.cs",
+          line: "356-370",
+          why: "Si <code>SendOrderPaidNotificationsAsync()</code> falla, la excepción se captura y se loggea pero la orden ya está marcada como PAID sin retroceso. El equipo de envío no recibe la orden. No hay mecanismo de reintento automático ni alerta.",
+          fix: "Implementar una tabla <code>NotificacionesPendientes</code> donde se registren notificaciones fallidas. Un background service reintenta periódicamente las pendientes.",
+        },
+
+        {
+          id: 37,
+          cat: "errores",
+          sev: "medium",
+          title: "Sin correlation IDs — imposible rastrear una transacción a través de los logs",
+          file: "Todos los servicios",
+          line: "N/A",
+          why: "Las operaciones de negocio que abarcan múltiples servicios (orden → webhook → refresh → email) no tienen un ID de correlación compartido. Diagnosticar una falla en el flujo completo requiere buscar manualmente en logs por timestamp, lo cual es propenso a error.",
+          fix: "Usar <code>Activity.Current?.TraceId</code> o middleware que inyecte <code>X-Correlation-Id</code>. Incluirlo en todos los <code>_logger.Log*()</code> calls usando scopes de Serilog.",
+        },
+
+        {
+          id: 38,
+          cat: "errores",
+          sev: "medium",
+          title: "Sin timeout en requests HTTP a PlacetoPay — threads pueden quedar colgados",
+          file: "PlacetoPayRefreshService.cs, OrderCancellationService.cs",
+          line: "111-121",
+          why: "Los requests HTTP a PlacetoPay no tienen timeout explícito. Si PlacetoPay está lento o caído, los requests quedan pendientes indefinidamente, bloqueando threads del thread pool y potencialmente agotando el connection pool en carga alta.",
+          fix: 'Configurar timeout en el named client: <code>services.AddHttpClient("PlacetoPay").ConfigureHttpClient(c => c.Timeout = TimeSpan.FromSeconds(30));</code>',
+        },
+
+        {
+          id: 39,
+          cat: "errores",
+          sev: "low",
+          title: "Fallo de parseo de fecha en PlacetoPayRefreshService sin logging",
+          file: "PlacetoPayRefreshService.cs",
+          line: "574-576",
+          why: "<code>DateTime.TryParse()</code> puede fallar silenciosamente si PlacetoPay retorna una fecha en formato no estándar. El resultado es <code>null</code> y las decisiones basadas en fechas se toman con datos incorrectos sin ningún aviso en los logs.",
+          fix: '<code>if (!DateTime.TryParse(dateStr, CultureInfo.InvariantCulture, DateTimeStyles.None, out var dt)) _logger.LogWarning("No se pudo parsear fecha de PlacetoPay: {Value}", dateStr);</code>',
+        },
+
+        // ═══════════════════════════════════════════════
+        // CONCURRENCIA
+        // ═══════════════════════════════════════════════
+        {
+          id: 40,
+          cat: "concurrencia",
+          sev: "high",
+          title: "Webhook duplicado — mismo RequestId puede procesarse dos veces",
+          file: "WebhookLogsController.cs",
+          line: "113-162",
+          why: "PlacetoPay puede enviar el mismo webhook dos veces para garantizar entrega (comportamiento estándar). Si esto ocurre, se crean dos registros en <code>WebhookLog</code> y se ejecutan dos refreshes de transacción, causando potencialmente: doble envío de emails de confirmación, doble modificación de stock, o estados inconsistentes.",
+          fix: "Antes de insertar en <code>WebhookLog</code>, verificar si ya existe un registro con el mismo <code>RequestId</code> y estado procesado. Si existe, retornar HTTP 200 inmediatamente sin reprocesar (idempotencia).",
+          res: "full",
+          resNote: "✅ Resuelto (23 Feb 2026) — <code>WebhookLogsController.cs</code>: check de idempotencia añadido después de la verificación de firma y antes del INSERT. Si existe un registro con <code>RequestId</code> igual y <code>Status='PROCESSED'</code>, se retorna HTTP 200 con <code>duplicate:true</code> sin reprocesar. Se loggea el evento como <code>LogInformation</code>. Nota: si el procesamiento previo falló (<code>Status='ERROR'</code>), el reintento sigue permitido.",
+        },
+
+        {
+          id: 41,
+          cat: "concurrencia",
+          sev: "high",
+          title: "Doble decremento de stock posible en cancelaciones concurrentes",
+          file: "OrderCancellationService.cs",
+          line: "88-94",
+          why: "Si dos requests de cancelación llegan simultáneamente para la misma orden, ambos pueden ejecutar el UPDATE de liberación de stock antes de que el primero haya actualizado el estado de la orden. El resultado es que el stock se libera dos veces, inflando el inventario.",
+          fix: "Usar una única query atómica: <code>UPDATE Orden SET Status='CANCELLED' WHERE Id=@Id AND Status NOT IN ('CANCELLED','PAID')</code>. Solo proceder con la liberación de stock si el UPDATE afectó exactamente 1 fila.",
+          res: "full",
+          resNote: "✅ Resuelto (23 Feb 2026) — <code>OrderCancellationService.cs</code>: el <code>UPDATE [Order]</code> se movió ANTES de la liberación de stock y se convirtió en gate atómico con <code>WHERE Status NOT IN ('CANCELLED','PAID','REJECTED','EXPIRED')</code>. Si <code>rowsUpdated == 0</code>, otra request ganó la carrera y se retorna idempotente sin tocar el stock. La liberación de stock solo ocurre si este UPDATE afecta exactamente 1 fila. El <code>UPDLOCK/ROWLOCK</code> en el SELECT de Transaction se mantiene como primera capa de protección.",
+        },
+
+        {
+          id: 42,
+          cat: "concurrencia",
+          sev: "high",
+          title: "Batch refresh puede solaparse — mismo requestId procesado desde dos instancias",
+          file: "PlacetoPayRefreshService.cs",
+          line: "433-461",
+          why: "<code>RefreshPendingBatchAsync()</code> usa <code>SemaphoreSlim</code> para concurrencia local, pero si el intervalo de ejecución es más corto que el tiempo de procesamiento, un nuevo batch puede comenzar mientras el anterior sigue corriendo. El mismo <code>requestId</code> puede ser procesado en paralelo.",
+          fix: "Usar <code>sp_getapplock</code> por <code>requestId</code> como distributed lock, como ya se hace en <code>AccountMaintenanceHostedService.cs</code>. Esto garantiza que solo un proceso a la vez trabaje sobre el mismo request.",
+          res: "full",
+          resNote: "✅ Resuelto (23 Feb 2026) — <code>PlacetoPayRefreshService.cs</code>: añadido <code>sp_getapplock</code> por requestId (<code>\"p2p:req:{requestId}\"</code>, <code>@LockTimeout=0</code>) en <code>RefreshByRequestIdAsync</code> ANTES de la llamada a PlacetoPay. Si el lock no se adquiere (otro proceso ya lo tiene), se retorna el estado actual de la BD sin llamar a la API externa — evitando llamadas redundantes. <code>PlacetoPayAutoRefreshHostedService</code> ya tenía <code>sp_getapplock(\"placetopay:auto-refresh\")</code> que previene dos batches simultáneos; el nuevo lock por requestId cubre el caso batch+webhook concurrente sobre el mismo requestId.",
+        },
+
+        {
+          id: 43,
+          cat: "concurrencia",
+          sev: "medium",
+          title: "Adjunto eliminado sin verificar estado PAID de la orden",
+          file: "OrderNotificationService.cs",
+          line: "238-265",
+          why: "El servicio elimina el adjunto S3 asumiendo que la orden está en estado PAID. Si este método se invoca incorrectamente después de una cancelación (por un bug en el flujo), la prescripción médica del cliente se elimina permanentemente.",
+          fix: 'Siempre verificar el estado actual de la orden en BD antes de eliminar: <code>var status = await GetOrderStatusAsync(orderId); if (status != "PAID") { _logger.LogError(...); return; }</code>',
+        },
+
+        {
+          id: 44,
+          cat: "concurrencia",
+          sev: "medium",
+          title: "Sin idempotencia en SendOrderPaidNotificationsAsync — emails duplicados",
+          file: "OrderNotificationService.cs",
+          line: "59-270",
+          why: "Si <code>SendOrderPaidNotificationsAsync()</code> es llamado más de una vez para la misma orden (por un bug en el refresh service, retry manual, etc.), el equipo de envío recibe múltiples emails por la misma orden, causando confusión y posibles envíos duplicados al cliente.",
+          fix: "Agregar un flag <code>NotificacionEnviada</code> en la tabla de órdenes. Verificar al inicio del método y retornar si ya fue notificada: <code>if (order.NotificacionEnviada) return;</code>",
+        },
+
+        // ═══════════════════════════════════════════════
+        // MALAS PRÁCTICAS
+        // ═══════════════════════════════════════════════
+        {
+          id: 45,
+          cat: "practicas",
+          sev: "high",
+          title: "HttpClient creado con new HttpClient() — riesgo de socket exhaustion",
+          file: "WebhookLogsController.cs (L134), OrderCancellationService.cs (L136)",
+          line: "134, 136",
+          why: "Crear <code>new HttpClient()</code> por instancia es un antipatrón documentado en .NET. Cada instancia abre conexiones TCP que no son reutilizadas y no son liberadas apropiadamente. En producción con carga alta, esto puede agotar los sockets disponibles del sistema.",
+          fix: 'Registrar en <code>Program.cs</code>: <code>builder.Services.AddHttpClient("PlacetoPay");</code> Inyectar <code>IHttpClientFactory</code> y usar <code>_factory.CreateClient("PlacetoPay")</code>.',
+          res: "full",
+          resNote: "✅ Resuelto (25 Feb 2026) — <code>IHttpClientFactory</code> inyectado en <code>WebhookLogsController</code> y <code>OrderCancellationService</code>. Ya estaba registrado con <code>AddHttpClient()</code> en Program.cs. Ambos <code>new HttpClient()</code> reemplazados por <code>_httpClientFactory.CreateClient()</code>.",
+        },
+
+        {
+          id: 46,
+          cat: "practicas",
+          sev: "medium",
+          title: "connection.Open() sincrónico dentro de métodos async — bloquea threads",
+          file: "PasswordController.cs (L34, L67), AuthController.cs (L34), PromocionesController.cs (L25)",
+          line: "Múltiples",
+          why: "Llamar a <code>connection.Open()</code> sincrónico dentro de métodos <code>async</code> bloquea el thread del pool mientras espera la conexión a la BD, negando los beneficios del modelo async y reduciendo el throughput máximo del servidor.",
+          fix: "Usar <code>await connection.OpenAsync();</code> consistentemente en todos los métodos async.",
+        },
+
+        {
+          id: 47,
+          cat: "practicas",
+          sev: "medium",
+          title: "Binding de parámetros SQL con Reflection — frágil y difícil de auditar",
+          file: "AuthController.cs (L301-308), PasswordController.cs (L128-134)",
+          line: "301, 128",
+          why: "<code>foreach (var prop in parameters.GetType().GetProperties())</code> mapea propiedades a parámetros SQL usando reflection. Si un nombre de propiedad no coincide exactamente con el parámetro SQL, el parámetro queda en NULL silenciosamente, causando bugs difíciles de detectar.",
+          fix: "Usar Dapper con objetos anónimos directamente: <code>await conn.ExecuteAsync(sql, new { UserId = id, Status = status })</code>. Dapper maneja el binding automáticamente y es explícito.",
+        },
+
+        {
+          id: 48,
+          cat: "practicas",
+          sev: "medium",
+          title: "Costo de envío hardcodeado con comentario TODO en el código",
+          file: "OrdersController.cs",
+          line: "100",
+          why: "<code>var costoEnvio = subtotalNeto >= 50 ? 0m : 3.50m;</code> con el comentario explícito <code>// CAMBIAR COSTO DE ENVÍO AQUÍ</code>. Cambiar el costo de envío requiere modificar el código, recompilar y redesplegar la aplicación — no es operable.",
+          fix: 'Agregar a <code>appsettings.json</code>: <code>"Shipping": { "FreeThresholdUSD": 50.0, "DefaultCostUSD": 3.50 }</code> y leer con una clase de opciones tipada.',
+        },
+
+        {
+          id: 49,
+          cat: "practicas",
+          sev: "medium",
+          title: "URLs de email hardcodeadas en EmailService — no cambian entre entornos",
+          file: "EmailService.cs",
+          line: "130, 234",
+          why: "La URL de verificación de email y la de reset de contraseña apuntan siempre a <code>https://api.biofx.com.ec/...</code>. En desarrollo o staging, los emails envían al usuario a producción. Un cambio de dominio requiere modificar el código fuente.",
+          fix: "Inyectar <code>IConfiguration</code> o un <code>IOptions&lt;FrontendOptions&gt;</code> y construir las URLs usando <code>Frontend:BaseUrl</code> que ya existe en <code>appsettings.json</code>.",
+        },
+
+        {
+          id: 50,
+          cat: "practicas",
+          sev: "medium",
+          title: "Queries síncronos en PromocionesController — no es async",
+          file: "PromocionesController.cs",
+          line: "25, 55",
+          why: "<code>connection.Open()</code> y <code>connection.Query&lt;Promocion&gt;()</code> son síncronos en un controlador que no es <code>async</code>. Bloquea threads del pool de ASP.NET Core durante operaciones de I/O, reduciendo la escalabilidad del servidor.",
+          fix: "Convertir el método a <code>async Task&lt;IActionResult&gt;</code>, usar <code>await connection.OpenAsync()</code> y <code>await connection.QueryAsync&lt;Promocion&gt;()</code>.",
+        },
+
+        {
+          id: 51,
+          cat: "practicas",
+          sev: "medium",
+          title: "SELECT * en queries públicos — over-fetching y exposición de datos internos",
+          file: "CategoriasController.cs (L27), ProductosController.cs (L40), TestimonioController.cs (L27)",
+          line: "Múltiples",
+          why: "<code>SELECT * FROM Tabla</code> retorna todas las columnas, incluyendo campos de auditoría, IDs internos y campos que no deben ser expuestos en la API. Aumenta el tráfico de red innecesariamente y puede filtrar información del schema de la BD.",
+          fix: "Especificar solo las columnas necesarias: <code>SELECT Id, Nombre, Descripcion, Precio FROM Producto WHERE Disponible = 1</code>",
+        },
+
+        {
+          id: 52,
+          cat: "practicas",
+          sev: "medium",
+          title: "System.Data.SqlClient deprecado coexiste con Microsoft.Data.SqlClient",
+          file: "BioFXAPI.csproj",
+          line: "18, 29",
+          why: "El proyecto referencia <code>System.Data.SqlClient</code> (deprecado, sin actualizaciones de seguridad desde 2021) junto a <code>Microsoft.Data.SqlClient</code> (el sucesor activo). Tener ambos puede causar conflictos de tipos y aumenta la superficie de ataque con una librería desactualizada.",
+          fix: "Eliminar la referencia a <code>System.Data.SqlClient</code> del archivo <code>.csproj</code>. Usar exclusivamente <code>Microsoft.Data.SqlClient</code>.",
+        },
+
+        {
+          id: 53,
+          cat: "practicas",
+          sev: "medium",
+          title: "Paquetes de Entity Framework Core incluidos sin ser usados en ningún lado",
+          file: "BioFXAPI.csproj",
+          line: "19-24",
+          why: "Se referencian <code>EntityFrameworkCore</code>, <code>EntityFrameworkCore.Design</code> y <code>EntityFrameworkCore.SqlServer</code> pero el codebase usa ADO.NET + Dapper puro, sin ningún DbContext. Esto aumenta el tamaño del deployment, el tiempo de compilación y la superficie de ataque.",
+          fix: "Ejecutar: eliminar todas las referencias a EF Core del <code>.csproj</code>. Si en el futuro se decide usar EF, se puede volver a agregar.",
+        },
+
+        {
+          id: 54,
+          cat: "practicas",
+          sev: "medium",
+          title:
+            "Microsoft.AspNetCore.Diagnostics v2.3.0 — paquete de 2018 sin parches de seguridad",
+          file: "BioFXAPI.csproj",
+          line: "N/A",
+          why: "La versión 2.3.0 de este paquete es de 2018, más de 6 años de antigüedad. No recibe parches de seguridad. Puede contener vulnerabilidades conocidas y públicas que ponen en riesgo la aplicación.",
+          fix: "Actualizar a la versión compatible con <code>net8.0</code>. Ejecutar <code>dotnet list package --vulnerable</code> para identificar todos los paquetes con vulnerabilidades conocidas.",
+        },
+
+        {
+          id: 55,
+          cat: "practicas",
+          sev: "low",
+          title: "Estados de pago como strings literales en todo el código — sin enum",
+          file: "PlacetoPayRefreshService.cs, Order.cs, Transaction.cs + otros",
+          line: "Múltiples",
+          why: 'Los estados <code>"PENDING"</code>, <code>"PAID"</code>, <code>"REJECTED"</code>, <code>"EXPIRED"</code>, <code>"CANCELLED"</code> se usan como strings literales en decenas de comparaciones. Un typo como <code>"CANCELD"</code> o <code>"Paid"</code> no sería detectado por el compilador.',
+          fix: "Crear un enum: <code>public enum OrderStatus { PENDING, PENDING_VALIDATION, PAID, REJECTED, EXPIRED, CANCELLED }</code> y usarlo en modelos, servicios y controladores.",
+        },
+
+        {
+          id: 56,
+          cat: "practicas",
+          sev: "low",
+          title: "tieneReceta en Order.cs usa camelCase — viola convenciones C#",
+          file: "Order.cs",
+          line: "19",
+          why: "La propiedad <code>tieneReceta</code> usa camelCase, violando las convenciones de nomenclatura de C# (PascalCase para propiedades públicas). Es inconsistente con todas las otras propiedades del modelo.",
+          fix: 'Renombrar a <code>TieneReceta</code>. Si el nombre de columna en BD difiere, agregar el atributo <code>[Column("tieneReceta")]</code> para el mapping de Dapper.',
+        },
+
+        {
+          id: 57,
+          cat: "practicas",
+          sev: "low",
+          title: "Cadena de conexión repetida manualmente en cada servicio",
+          file: "Múltiples servicios",
+          line: "Constructor",
+          why: 'Cada servicio llama individualmente a <code>cfg.GetConnectionString("DefaultConnection")</code> en su constructor. Si el nombre de la cadena cambia, hay que actualizar N archivos. Es código duplicado sin valor.',
+          fix: "Crear una interfaz <code>IDbConnectionFactory</code> con un método <code>CreateConnection()</code> e inyectarla en todos los servicios. O usar un delegate registrado: <code>services.AddScoped(_ => new SqlConnection(connStr));</code>",
+        },
+
+        {
+          id: 58,
+          cat: "practicas",
+          sev: "low",
+          title: "Import no utilizado en OrderInfo.cs — refactorización incompleta",
+          file: "OrderInfo.cs",
+          line: "1",
+          why: "<code>using BioFXAPI.Controllers;</code> está importado pero no se utiliza en la clase. Indica una refactorización incompleta y agrega ruido al código.",
+          fix: "Eliminar el using no utilizado.",
+        },
+
+        // ═══════════════════════════════════════════════
+        // VALIDACIÓN DE ENTRADAS
+        // ═══════════════════════════════════════════════
+        {
+          id: 59,
+          cat: "validacion",
+          sev: "high",
+          title:
+            "int.Parse() en claims de usuario sin TryParse — NullReferenceException en producción",
+          file: "CartItemsController, OrderItemsController, PersonaController, ProductosController, ShoppingCartController, DatosFacturacionController, AccountController",
+          line: "Múltiples",
+          why: "Patrón repetido en 10+ controladores: <code>int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value)</code>. Si el claim es nulo (token malformado, versión de token incompatible), lanza <code>NullReferenceException</code> o <code>FormatException</code> no manejadas, resultando en un error 500 poco informativo.",
+          fix: 'Centralizar en BaseController: <code>protected int GetUserId() { if (!int.TryParse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value, out var id)) throw new UnauthorizedAccessException("Token inválido"); return id; }</code>',
+          res: "full",
+          resNote: "✅ Resuelto (25 Feb 2026) — 15 ocurrencias reemplazadas en 7 controladores por <code>if (!int.TryParse(...?.Value, out var userId)) return Unauthorized(...);</code>. Ambas variantes (<code>!.Value</code> y <code>?.Value</code>) unificadas a <code>?.Value</code> con TryParse.",
+        },
+
+        {
+          id: 60,
+          cat: "validacion",
+          sev: "medium",
+          title: "Sin validación de formato de email en registro",
+          file: "AccountController.cs",
+          line: "36-37",
+          why: "El campo email solo se verifica para no estar vacío. Emails como <code>notanemail</code>, <code>user@</code> o <code>@domain.com</code> son aceptados, almacenados en BD, y el usuario nunca recibe el email de verificación sin ningún error claro.",
+          fix: '<code>if (!new System.ComponentModel.DataAnnotations.EmailAddressAttribute().IsValid(email)) return BadRequest(new { error = "Formato de email inválido" });</code>',
+        },
+
+        {
+          id: 61,
+          cat: "validacion",
+          sev: "medium",
+          title: "Sin paginación en endpoints de lista — respuestas sin límite de tamaño",
+          file: "OrdersController.cs (GetMyPaidOrdersHistory), ProductosController.cs",
+          line: "N/A",
+          why: "Los endpoints que retornan listas no tienen parámetros de paginación. Un usuario con historial de 1000+ órdenes, o una tabla de productos con miles de registros, puede causar respuestas que consuman memoria significativa del servidor y tarden segundos en completarse.",
+          fix: "Agregar: <code>[FromQuery] int page = 1, [FromQuery] int pageSize = 20</code> con un máximo: <code>pageSize = Math.Min(pageSize, 100)</code>. Retornar también el total en el response.",
+        },
+
+        {
+          id: 62,
+          cat: "validacion",
+          sev: "medium",
+          title:
+            "int.Parse en valor de config PlacetoPay:TimeoutMinutes — crash si mal configurado",
+          file: "OrdersController.cs",
+          line: "551",
+          why: '<code>int.Parse(_cfg["PlacetoPay:TimeoutMinutes"]!)</code> lanza <code>FormatException</code> si el valor de configuración contiene un typo o no es un entero válido. Cualquier error de configuración derriba el endpoint de creación de sesión de pago.',
+          fix: '<code>int timeout = int.TryParse(_cfg["PlacetoPay:TimeoutMinutes"], out var t) ? t : 15;</code> O mejor aún, usar opciones tipadas con validación al startup.',
+        },
+
+        {
+          id: 63,
+          cat: "validacion",
+          sev: "medium",
+          title: "Sin límite máximo en parámetro take de WebhookLogsController",
+          file: "WebhookLogsController.cs",
+          line: "193",
+          why: "El endpoint <code>GET /api/webhooklogs/last?take=N</code> no valida el valor de <code>take</code>. Un usuario autenticado puede solicitar <code>take=9999999</code>, causando un SELECT masivo que puede degradar la base de datos o agotar la memoria del servidor.",
+          fix: "<code>take = Math.Max(1, Math.Min(take, 1000));</code> Documentar el límite en la descripción del endpoint.",
+        },
+
+        {
+          id: 64,
+          cat: "validacion",
+          sev: "medium",
+          title: "Campos requeridos de DatosFacturacion permiten strings vacíos",
+          file: "DatosFacturacionController.cs",
+          line: "89-93",
+          why: "<code>Nombre_Razon_Social</code>, <code>RUC_Cedula</code> y <code>Direccion</code> son procesados sin verificar que no sean cadenas vacías o solo espacios en blanco. Un cliente puede guardar datos de facturación vacíos que luego causan problemas en generación de documentos fiscales.",
+          fix: 'Agregar al inicio del método: <code>if (string.IsNullOrWhiteSpace(dto.Nombre_Razon_Social) || string.IsNullOrWhiteSpace(dto.RUC_Cedula)) return BadRequest("Campos requeridos vacíos");</code>',
+        },
+
+        {
+          id: 65,
+          cat: "validacion",
+          sev: "medium",
+          title: "Valoracion en Testimonio sin restricción de rango — puede ser negativo o 9999",
+          file: "Testimonio.cs",
+          line: "9",
+          why: "El campo <code>Valoracion</code> es un <code>int</code> sin validación de rango. Pueden insertarse valores como -5 o 9999, corrompiendo el sistema de calificaciones y potencialmente causando problemas en el frontend que renderiza estrellas.",
+          fix: 'Agregar <code>[Range(1, 5, ErrorMessage = "La valoración debe ser entre 1 y 5")]</code> al modelo y verificar también en el controlador.',
+        },
+
+        {
+          id: 66,
+          cat: "validacion",
+          sev: "medium",
+          title: "Descuento en Producto puede ser negativo o mayor al 100%",
+          file: "Producto.cs",
+          line: "22",
+          why: "El campo <code>Descuento</code> (int) no tiene validación de rango. Un administrador podría configurar un descuento de -10 (precio aumenta) o 200 (precio negativo), causando errores de cálculo en el carrito y potencialmente productos con precio cero o negativo.",
+          fix: "Agregar <code>[Range(0, 100)]</code> al modelo. Validar también en <code>ProductosController</code> antes de insertar/actualizar.",
+        },
+
+        {
+          id: 67,
+          cat: "validacion",
+          sev: "medium",
+          title: "Valores de configuración críticos leídos sin null-check con operador !",
+          file: "OrdersController.cs (L515), TransactionsController.cs (L51)",
+          line: "515, 51",
+          why: '<code>_cfg["PlacetoPay:SecretKey"]!.Trim()</code> usa el operador <code>!</code> para suprimir el warning del compilador sobre el null. Si la configuración está ausente, lanza <code>NullReferenceException</code> en tiempo de ejecución, exactamente cuando se intenta procesar un pago.',
+          fix: '<code>var secretKey = _cfg["PlacetoPay:SecretKey"] ?? throw new InvalidOperationException("Configuración PlacetoPay:SecretKey faltante");</code> Mejor aún: validar todas las configs críticas al inicio de la aplicación.',
+        },
+
+        {
+          id: 68,
+          cat: "validacion",
+          sev: "low",
+          title: "Sin validación de formato de número de documento (RUC/Cédula ecuatoriana)",
+          file: "OrdersController.cs",
+          line: "118",
+          why: "El campo <code>DocNumber</code> acepta cualquier string como número de documento. Números inválidos son almacenados y pueden causar rechazo de facturas por el SRI ecuatoriano, problemas en generación de documentos fiscales y datos incorrectos en el sistema.",
+          fix: "Implementar el algoritmo de verificación del SRI para validar cédulas (10 dígitos con dígito verificador) y RUC (13 dígitos). Existen librerías .NET disponibles para esto.",
+        },
+
+        {
+          id: 69,
+          cat: "validacion",
+          sev: "low",
+          title: "Sin validación de formato de número telefónico",
+          file: "AccountController.cs + modelos",
+          line: "N/A",
+          why: 'Los campos de teléfono no tienen validación de formato. Se pueden almacenar valores como "abc123", "1", o números con formato incorrecto, imposibilitando el contacto con el cliente en caso necesario.',
+          fix: 'Validar con regex: <code>if (!Regex.IsMatch(telefono, @"^\\+?[0-9]{7,15}$")) return BadRequest("Formato de teléfono inválido");</code>',
+        },
+
+        // ═══════════════════════════════════════════════
+        // INCONSISTENCIAS
+        // ═══════════════════════════════════════════════
+        {
+          id: 70,
+          cat: "inconsistencias",
+          sev: "medium",
+          title: "Sin política de naming JSON — API retorna PascalCase en lugar de camelCase",
+          file: "Program.cs + todos los modelos",
+          line: "N/A",
+          why: 'Sin configurar <code>JsonNamingPolicy.CamelCase</code>, la API retorna propiedades en PascalCase (ej: <code>{"Nombre":"...", "Apellido":"..."}</code>). La convención REST es camelCase. El frontend probablemente tiene mapeos manuales para compensar.',
+          fix: "En <code>Program.cs</code>: <code>builder.Services.AddControllers().AddJsonOptions(o => o.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase);</code>",
+        },
+
+        {
+          id: 71,
+          cat: "inconsistencias",
+          sev: "medium",
+          title: "Modelos sin atributos de validación — validación dispersa e inconsistente",
+          file: "Persona.cs, DatosFacturacion.cs, Order.cs, Transaction.cs, Producto.cs + otros",
+          line: "N/A",
+          why: "Ningún modelo tiene atributos <code>[Required]</code>, <code>[StringLength]</code>, <code>[EmailAddress]</code>, etc. La validación está implementada manualmente en algunos controladores pero no en todos, creando inconsistencias en qué datos son aceptados.",
+          fix: "Agregar anotaciones de validación a todos los modelos y DTOs. Usar <code>if (!ModelState.IsValid) return ValidationProblem(ModelState);</code> al inicio de cada action method.",
+        },
+
+        {
+          id: 72,
+          cat: "inconsistencias",
+          sev: "medium",
+          title:
+            "OrderInfo.cs referencia al tipo User que no existe — posible error de compilación",
+          file: "OrderInfo.cs",
+          line: "8",
+          why: "La propiedad <code>User</code> de tipo <code>User</code> está definida en <code>OrderInfo.cs</code>, pero la clase <code>User</code> no parece existir en el codebase. Esto puede ser un error de compilación latente o el vestigio de una refactorización incompleta.",
+          fix: "Ejecutar <code>dotnet build</code> para confirmar si hay error. Si es un tipo no definido, crear la clase o cambiar el tipo a uno que sí exista (ej: <code>Persona</code>).",
+        },
+
+        {
+          id: 73,
+          cat: "inconsistencias",
+          sev: "medium",
+          title: "Sin límite de destinatarios en notificaciones de envío",
+          file: "OrderNotificationService.cs",
+          line: "34-46",
+          why: "La lista <code>_shippingEmails</code> se carga desde configuración sin ningún límite máximo. Una configuración incorrecta con cientos de emails podría resultar en spam masivo a cada orden pagada, saturando el servidor SMTP y causando problemas legales.",
+          fix: 'Agregar validación al cargar: <code>if (emails.Count > 20) throw new InvalidOperationException($"Demasiados destinatarios de envío: {emails.Count}. Máximo permitido: 20");</code>',
+        },
+
+        {
+          id: 74,
+          cat: "inconsistencias",
+          sev: "low",
+          title: "Sin versionamiento de API en rutas",
+          file: "Todos los controladores",
+          line: "N/A",
+          why: 'Todos los controladores usan <code>[Route("api/[controller]")]</code> sin versión. Cuando sea necesario hacer cambios breaking en la API (cambios en contratos de request/response), todos los clientes existentes serán afectados simultáneamente.',
+          fix: 'Adoptar versionamiento de rutas: <code>[Route("api/v1/[controller]")]</code> o instalar <code>Microsoft.AspNetCore.Mvc.Versioning</code> para versionamiento más sofisticado.',
+        },
+
+        {
+          id: 75,
+          cat: "inconsistencias",
+          sev: "low",
+          title: "AccountMaintenanceService corre cada 1 minuto en desarrollo",
+          file: "appsettings.Development.json",
+          line: "12",
+          why: '<code>"IntervalMinutes": 1</code> ejecuta el job de mantenimiento de cuentas cada minuto en desarrollo. Esto genera I/O de BD innecesario, puede interferir con pruebas, y no refleja el comportamiento de producción (24h).',
+          fix: 'Cambiar a un intervalo mayor: <code>"IntervalMinutes": 1440</code> o al menos <code>60</code> en desarrollo.',
+        },
+
+        {
+          id: 76,
+          cat: "inconsistencias",
+          sev: "low",
+          title: "Sin email de advertencia antes de desactivar cuentas a los 7 días",
+          file: "AccountMaintenanceHostedService.cs",
+          line: "108-121",
+          why: "Las cuentas no verificadas son desactivadas automáticamente a los 7 días sin ningún email previo de advertencia. Un usuario que no recibió o no vio el email de verificación perderá su cuenta sin aviso, generando fricción y tickets de soporte.",
+          fix: "Enviar un email recordatorio al día 5 (2 días antes). Solo desactivar al día 7 si aún no verificó. Agregar el envío del recordatorio al job de mantenimiento.",
+        },
+
+        {
+          id: 77,
+          cat: "inconsistencias",
+          sev: "low",
+          title: "Swagger configurado con Bearer auth pero la API usa cookies HttpOnly",
+          file: "Program.cs",
+          line: "122-144",
+          why: 'El UI de Swagger muestra la opción de autorización con "Bearer token", pero la API autentica mediante cookies HttpOnly que el navegador maneja automáticamente. Los desarrolladores que intenten usar Swagger para pruebas autenticadas no pueden hacerlo.',
+          fix: "Agregar documentación en Swagger que explique el mecanismo de cookie, o configurar el endpoint de login de Swagger para que establezca la cookie automáticamente.",
+        },
+
+        {
+          id: 78,
+          cat: "inconsistencias",
+          sev: "low",
+          title: "PrecioFinal en Producto — ¿calculado o almacenado en BD? No está documentado",
+          file: "Producto.cs",
+          line: "25",
+          why: "La propiedad <code>PrecioFinal</code> coexiste con <code>Precio</code> y <code>Descuento</code>, pero no es claro si es calculada en código o almacenada en BD. Si es ambas, pueden desincronizarse. Si es solo calculada, no debería estar en el modelo de BD.",
+          fix: "Agregar un comentario XML: si es calculada, moverla a un DTO de respuesta con lógica explícita. Si es almacenada, agregar un trigger o lógica que la mantenga sincronizada con <code>Precio</code> y <code>Descuento</code>.",
+        },
+
+        {
+          id: 79,
+          cat: "inconsistencias",
+          sev: "low",
+          title: "S3Options sin validación de formato de BucketName y Region al startup",
+          file: "S3Options.cs",
+          line: "5-6",
+          why: "<code>BucketName</code> y <code>Region</code> son strings sin validación. Un BucketName con mayúsculas, espacios o caracteres inválidos, o una Region AWS inexistente, causarán errores en cada operación de archivo — pero solo en runtime, no al iniciar la aplicación.",
+          fix: "Usar <code>IOptions</code> con validación: <code>services.AddOptions&lt;S3Options&gt;().ValidateDataAnnotations().ValidateOnStart();</code> Agregar <code>[Required]</code> a las propiedades del modelo de opciones.",
+        },
+
+        // ═══════════════════════════════════════════════
+        // ADICIONALES — PasswordService
+        // ═══════════════════════════════════════════════
+        {
+          id: 80,
+          cat: "practicas",
+          sev: "low",
+          title: "Constantes MaxFailedAttempts y LockoutMinutes duplicadas en PasswordService",
+          file: "PasswordService.cs",
+          line: "13-14, 79-80",
+          why: "Las constantes <code>MaxFailedAttempts</code> y <code>LockoutMinutes</code> están definidas dos veces: a nivel de clase (líneas 13-14) y como constantes locales dentro de <code>CalculateLockoutEnd()</code> (líneas 79-80). Si se cambia una y se olvida la otra, el comportamiento de bloqueo será inconsistente.",
+          fix: "Eliminar las constantes locales del método y usar exclusivamente las de clase: <code>private const int MaxFailedAttempts = 5; private const int LockoutMinutes = 15;</code>",
+        },
+
+        {
+          id: 81,
+          cat: "autenticacion",
+          sev: "medium",
+          title: "Política de contraseñas no exige caracteres especiales",
+          file: "PasswordService.cs",
+          line: "86-101",
+          why: "El método <code>IsPasswordStrong()</code> verifica longitud mínima (8), mayúscula, minúscula y dígito, pero no exige ningún carácter especial. Las contraseñas como <code>Password1</code> son aceptadas. Esto facilita ataques de diccionario contra hashes robados.",
+          fix: 'Agregar verificación de carácter especial: <code>password.Any(c => "!@#$%^&*()-_=+[]{}|;:,.<>?".Contains(c))</code> y retornar false si no se cumple.',
+        },
+
+        // ═══════════════════════════════════════════════
+        // ADICIONALES — S3FileStorageService
+        // ═══════════════════════════════════════════════
+        {
+          id: 82,
+          cat: "errores",
+          sev: "medium",
+          title: "MemoryStream no liberado si CopyToAsync falla en S3FileStorageService.GetAsync",
+          file: "S3FileStorageService.cs",
+          line: "52-68",
+          why: "El método <code>GetAsync()</code> crea un <code>MemoryStream</code> y llama a <code>CopyToAsync()</code> sin try-catch. Si la copia falla a mitad de camino (error de red, timeout de S3), el MemoryStream queda en estado parcial y no se libera, causando memory leak y retornando datos corruptos al caller.",
+          fix: "Envolver en try-finally: <code>var ms = new MemoryStream(); try { await response.ResponseStream.CopyToAsync(ms); ms.Position = 0; return ms; } catch { ms.Dispose(); throw; }</code>",
+        },
+
+        {
+          id: 83,
+          cat: "errores",
+          sev: "medium",
+          title: "Sin manejo de excepciones en ningún método de S3FileStorageService",
+          file: "S3FileStorageService.cs",
+          line: "29-85",
+          why: "Ninguno de los métodos de S3 (<code>UploadAsync</code>, <code>GetAsync</code>, <code>DeleteAsync</code>) tiene bloques try-catch. Excepciones del SDK de AWS (errores de red, credenciales inválidas, bucket no encontrado, permisos insuficientes) se propagan sin manejar, llegando al controller como errores 500 no controlados.",
+          fix: 'Agregar try-catch en cada método, loggear el error con contexto (<code>_logger.LogError(ex, "Error S3 al subir {Key}", storageKey)</code>) y lanzar una excepción de aplicación con mensaje seguro para el cliente.',
+        },
+
+        // ═══════════════════════════════════════════════
+        // ADICIONALES — PlacetoPayAutoRefreshHostedService
+        // ═══════════════════════════════════════════════
+        {
+          id: 84,
+          cat: "practicas",
+          sev: "low",
+          title:
+            "Campo _instanceId generado pero nunca utilizado en PlacetoPayAutoRefreshHostedService",
+          file: "PlacetoPayAutoRefreshHostedService.cs",
+          line: "13",
+          why: "<code>_instanceId = Guid.NewGuid()</code> se genera en el constructor pero nunca se usa en ningún log ni operación. Es código muerto que sugiere una implementación incompleta de tracking de instancias.",
+          fix: 'Eliminar el campo si no se necesita, o usarlo en los logs de inicio/fin del servicio: <code>_logger.LogInformation("AutoRefresh instancia {Id} iniciada", _instanceId)</code>',
+        },
+
+        {
+          id: 85,
+          cat: "errores",
+          sev: "low",
+          title:
+            "Fallo de parseo de configuración silencioso en PlacetoPayAutoRefreshHostedService",
+          file: "PlacetoPayAutoRefreshHostedService.cs",
+          line: "40-42",
+          why: 'Si <code>AutoRefreshMinutes</code> contiene un valor no numérico (ej: <code>"abc"</code>), el parseo falla silenciosamente y se usa el valor por defecto sin ningún aviso en los logs. Un operador que intente cambiar el intervalo no sabrá que su cambio fue ignorado.',
+          fix: 'Loggear un warning cuando se usa el valor por defecto: <code>if (!int.TryParse(cfg["..."], out var interval)) { _logger.LogWarning("AutoRefreshMinutes inválido, usando default 15min"); interval = 15; }</code>',
+        },
+
+        // ═══════════════════════════════════════════════
+        // ADICIONALES — EmailVerificationService
+        // ═══════════════════════════════════════════════
+        {
+          id: 86,
+          cat: "vulnerabilidades",
+          sev: "medium",
+          title:
+            "Token de verificación en texto plano en parámetros de función — riesgo de exposición en logs",
+          file: "EmailVerificationService.cs",
+          line: "116, 200",
+          why: "El token de verificación en texto plano se pasa como parámetro a <code>SendVerificationEmailAsync(token)</code>. Si algún middleware de logging loggea los argumentos de funciones (p.ej. Application Insights, Serilog con destructuring), el token queda expuesto en los logs. Con ese token, cualquiera puede verificar la cuenta del usuario.",
+          fix: "Pasar solo el hash del token a las funciones de email. El email puede construirse con el token original antes de hashear, pero nunca debe persistir o loguearse en texto plano.",
+        },
+
+        {
+          id: 87,
+          cat: "concurrencia",
+          sev: "medium",
+          title: "Race condition en verificación de cooldown de generación de tokens",
+          file: "EmailVerificationService.cs",
+          line: "119-145",
+          why: "Entre la verificación del cooldown (check si ya pasó el tiempo mínimo) y la creación del nuevo token, dos requests concurrentes pueden pasar la verificación simultáneamente y ambos generar tokens válidos. Esto permite acumular tokens para ataques de fuerza bruta.",
+          fix: "Realizar el check y la creación dentro de una única transacción con row lock: <code>BEGIN TRAN; SELECT ... WITH (UPDLOCK); IF cooldown OK THEN INSERT token; COMMIT</code>",
+        },
+
+        {
+          id: 88,
+          cat: "errores",
+          sev: "medium",
+          title: "Sin registro de intentos fallidos de verificación de email",
+          file: "EmailVerificationService.cs",
+          line: "Método de verificación",
+          why: "No hay logging ni tracking de intentos fallidos de verificación de token. Un atacante puede intentar tokens de 6 caracteres alfanuméricos de forma automatizada sin que el sistema detecte el patrón. No hay forma de detectar o responder a un ataque de fuerza bruta.",
+          fix: "Registrar en BD o log cada intento fallido con: IP, timestamp, hash del token intentado, email objetivo. Bloquear temporalmente si hay más de N intentos fallidos en X minutos.",
+        },
+
+        // ═══════════════════════════════════════════════
+        // ADICIONALES — AccountMaintenanceHostedService
+        // ═══════════════════════════════════════════════
+        {
+          id: 89,
+          cat: "errores",
+          sev: "low",
+          title: "Resultado de tareas de limpieza no validado — fallo silencioso",
+          file: "AccountMaintenanceHostedService.cs",
+          line: "87-88",
+          why: "El valor de retorno (filas afectadas) de <code>DisableOldUnconfirmedUsersAsync()</code> y <code>DeactivateOldEmailTokensAsync()</code> se captura pero no se valida. Si las queries retornan 0 cuando se esperaban N actualizaciones, se loggea como éxito sin advertencia.",
+          fix: 'Loggear el conteo de filas afectadas y emitir warning si el resultado es inesperadamente bajo: <code>_logger.LogInformation("Cuentas desactivadas: {Count}", affected);</code>',
+        },
+
+        {
+          id: 90,
+          cat: "practicas",
+          sev: "low",
+          title: "Tareas de mantenimiento sin transacción — inconsistencia si una falla",
+          file: "AccountMaintenanceHostedService.cs",
+          line: "108-139",
+          why: "<code>DisableOldUnconfirmedUsersAsync()</code> y <code>DeactivateOldEmailTokensAsync()</code> se ejecutan como operaciones independientes sin transacción compartida. Si la primera tiene éxito y la segunda falla, queda en un estado inconsistente: cuentas desactivadas pero tokens no limpiados.",
+          fix: "Envolver ambas operaciones en una única transacción: <code>using var tx = await conn.BeginTransactionAsync(); await DisableOldUnconfirmedUsersAsync(conn, tx); await DeactivateOldEmailTokensAsync(conn, tx); await tx.CommitAsync();</code>",
+        },
+
+        {
+          id: 91,
+          cat: "practicas",
+          sev: "low",
+          title: "Limpieza de cuentas no elimina datos huérfanos asociados",
+          file: "AccountMaintenanceHostedService.cs",
+          line: "108-140",
+          why: "Cuando una cuenta es desactivada, el servicio no limpia datos asociados: items de carrito, direcciones de facturación guardadas, o carrito activo del usuario. Con el tiempo, estos registros huérfanos acumulan bloat en la BD y pueden confundir análisis de datos.",
+          fix: "Extender la limpieza para incluir (como mínimo) los carritos y items de carrito de usuarios desactivados: <code>DELETE FROM CartItem WHERE CartId IN (SELECT Id FROM ShoppingCart WHERE UserId = @DisabledUserId)</code>",
+        },
+
+        // ═══════════════════════════════════════════════
+        // ADICIONALES — Modelos
+        // ═══════════════════════════════════════════════
+        {
+          id: 92,
+          cat: "inconsistencias",
+          sev: "low",
+          title:
+            "Producto.Promocionados es List<int> — comportamiento de serialización indefinido en API",
+          file: "Producto.cs",
+          line: "19",
+          why: "La propiedad <code>Promocionados</code> de tipo <code>List&lt;int&gt;</code> no tiene atributos de serialización JSON. Si el modelo se retorna directamente en una respuesta de API, se serializará como un array JSON, pero si no se necesita en la respuesta, expone IDs internos innecesariamente.",
+          fix: "Si no se necesita en la respuesta de API, agregar <code>[System.Text.Json.Serialization.JsonIgnore]</code>. Si se necesita, documentar explícitamente qué contiene y cuándo está poblado.",
+        },
+
+        {
+          id: 93,
+          cat: "validacion",
+          sev: "medium",
+          title: "StockReservado puede ser mayor que Stock sin ninguna validación",
+          file: "Producto.cs",
+          line: "28-29",
+          why: "El modelo permite que <code>StockReservado</code> supere a <code>Stock</code>, lo que representa un estado inválido del inventario (más unidades reservadas que disponibles). Si esto ocurre por un bug o race condition, el cálculo de stock disponible (<code>Stock - StockReservado</code>) resulta negativo.",
+          fix: 'Agregar validación en la capa de servicio antes de cualquier modificación de stock: <code>if (nuevaReserva > producto.Stock) throw new InvalidOperationException("Stock insuficiente");</code>',
+        },
+
+        {
+          id: 94,
+          cat: "inconsistencias",
+          sev: "low",
+          title: "Propiedades string en Transaction.cs sin anotación de nullable",
+          file: "Transaction.cs",
+          line: "9-17",
+          why: "Propiedades como <code>Reason</code>, <code>Message</code>, <code>PaymentMethod</code>, <code>IssuerName</code>, <code>Authorization</code> son <code>string</code> sin <code>?</code>, lo que implica que son requeridas. Sin embargo, muchas de estas pueden ser nulas (p.ej. <code>Authorization</code> antes de pagar). Esta inconsistencia genera NullReferenceExceptions o warnings del compilador.",
+          fix: "Marcar como nullable las propiedades opcionales: <code>public string? Reason { get; set; }</code>, <code>public string? Authorization { get; set; }</code>, etc.",
+        },
+
+        {
+          id: 95,
+          cat: "validacion",
+          sev: "medium",
+          title:
+            "Sin validación de integridad financiera en Order — TotalAmount puede ser incorrecto",
+          file: "Order.cs",
+          line: "Propiedades monetarias",
+          why: "No existe validación que garantice que <code>TotalAmount == Subtotal + TaxAmount - DescuentoUSD + CostoEnvio</code>. Un bug en el cálculo del order puede almacenar un TotalAmount que no coincide con la suma de sus partes, causando discrepancias entre lo que paga el cliente y lo que registra el sistema.",
+          fix: 'Agregar validación en <code>OrdersController</code> antes de persistir: <code>var expectedTotal = subtotal + tax - discount + shipping; if (Math.Abs(expectedTotal - dto.TotalAmount) > 0.01m) throw new InvalidOperationException("Total inconsistente");</code>',
+        },
+
+        {
+          id: 96,
+          cat: "validacion",
+          sev: "medium",
+          title: "Campo Payload en WebhookLog sin límite de tamaño — puede agotar memoria o BD",
+          file: "Webhooklog.cs",
+          line: "7",
+          why: "La propiedad <code>Payload</code> es un <code>string</code> sin restricción de tamaño. Un atacante puede enviar un webhook con un payload de varios MB. Esto puede agotar la memoria al deserializar, saturar el campo en SQL Server, y llenar el disco con logs masivos.",
+          fix: 'Limitar el tamaño del payload antes de guardarlo: <code>var payload = body.Length > 64_000 ? body[..64_000] + "...[TRUNCADO]" : body;</code> Y agregar <code>[StringLength(65535)]</code> al modelo.',
+        },
+
+        {
+          id: 97,
+          cat: "vulnerabilidades",
+          sev: "medium",
+          title:
+            "StorageKey de S3 expuesto en respuestas de API — revela estructura interna del bucket",
+          file: "OrderAttachment.cs",
+          line: "16",
+          why: "Si el modelo <code>OrderAttachment</code> se retorna directamente en respuestas de API, el campo <code>StorageKey</code> (con formato <code>orders/{orderId}/attachments/{guid}.ext</code>) es visible para el cliente. Esto revela la estructura interna del bucket S3 y podría facilitar ataques dirigidos.",
+          fix: "Agregar <code>[System.Text.Json.Serialization.JsonIgnore]</code> al campo <code>StorageKey</code> en el modelo. Las descargas de archivos deben hacerse a través de un endpoint dedicado que genere URLs pre-firmadas de S3.",
+        },
+
+        {
+          id: 98,
+          cat: "inconsistencias",
+          sev: "low",
+          title: "EsAdministrador en LoginResponse sin documentación ni validación",
+          file: "LoginResponse.cs",
+          line: "11",
+          why: "El campo <code>EsAdministrador</code> controla acceso a funciones administrativas en el frontend, pero no hay documentación sobre cómo se establece, qué entidad lo valida, ni si el valor puede ser manipulado. Es un campo de seguridad crítico sin especificación clara.",
+          fix: "Agregar comentario XML documentando cómo se determina el valor. Asegurarse de que se establece desde la BD (campo del usuario), no desde el input del cliente. Verificar que el backend valida el rol en cada request protegido, independientemente de este campo del response.",
+        },
+
+        // ═══════════════════════════════════════════════
+        // INFRAESTRUCTURA — Acceso local
+        // ═══════════════════════════════════════════════
+        {
+          id: 99,
+          cat: "practicas",
+          sev: "critical",
+          title: "ConnectionString apunta a IP privada de VPC — BD inaccesible en desarrollo local",
+          file: "appsettings.json / User Secrets",
+          line: "ConnectionStrings:DefaultConnection",
+          why: "<code>172.31.41.7</code> es la IP privada interna del EC2 en la VPC de AWS. Esta dirección solo es enrutable dentro de la misma red de AWS; desde una máquina de desarrollo local no existe ruta de red hacia ella. El API arranca en modo Development pero falla en el primer query a la BD. Exponer el puerto 1433 directamente en el Security Group sería un riesgo de seguridad.",
+          fix: "Solución recomendada: túnel SSH a través del servidor EC2 (que sí tiene acceso a la BD por estar en la misma VPC). Pasos: (1) verificar acceso SSH al EC2 con la keypair.pem, (2) levantar el túnel <code>ssh -L 1433:172.31.41.7:1433 Administrator@&lt;ip-publica-ec2&gt; -i keypair.pem -N</code>, (3) cambiar <code>ConnectionStrings:DefaultConnection</code> en User Secrets locales a <code>Data Source=localhost;...</code>. El túnel redirige el tráfico de <code>localhost:1433</code> a través del EC2 hacia el servidor de BD sin exponer puertos adicionales al exterior.",
+          res: "full",
+          resNote: "✅ Resuelto (23 Feb 2026) — El servidor SQL tiene puerto 1433 abierto con IP elástica pública <code>3.150.177.219</code>. Se actualizó el User Secret local <code>ConnectionStrings:DefaultConnection</code> para apuntar a esa IP directamente. No se requirió túnel SSH.",
+        },
+      ];
+
+      // ═══════════════════════════════════════════════
+      // RENDER ENGINE
+      // ═══════════════════════════════════════════════
+
+      let currentFilter = "all";
+      let showResolved = false;
+
+      function toggleResolved() {
+        showResolved = !showResolved;
+        const resolvedCount = ISSUES.filter((i) => !!i.res).length;
+        const btn = document.getElementById("btnToggleResolved");
+        btn.textContent = showResolved
+          ? `🙈 Ocultar resueltas (${resolvedCount})`
+          : `👁 Mostrar resueltas (${resolvedCount})`;
+        btn.classList.toggle("active", showResolved);
+        if (!showResolved && currentFilter === "resolved") setFilter("all");
+        else applyFilters();
+      }
+
+      function renderAll() {
+        const container = document.getElementById("issuesContainer");
+        container.innerHTML = "";
+        CATS.forEach((cat) => {
+          const catIssues = ISSUES.filter((i) => i.cat === cat.id).sort(
+            (a, b) => SORD[a.sev] - SORD[b.sev],
+          );
+          const sec = document.createElement("div");
+          sec.className = "section anchor-target";
+          sec.id = cat.id;
+          sec.innerHTML = `
+      <div class="section-header">
+        <span class="section-icon">${cat.icon}</span>
+        <div>
+          <div class="section-title">${cat.title}</div>
+          <div class="section-subtitle">${cat.sub}</div>
+        </div>
+        <div class="section-badge" id="badge-${cat.id}">${catIssues.length} problemas</div>
+      </div>
+      <div class="issues-grid" id="grid-${cat.id}">
+        ${catIssues.map(renderCard).join("")}
+      </div>`;
+          container.appendChild(sec);
+          const cnt = document.getElementById("cnt-" + cat.id);
+          if (cnt) cnt.textContent = catIssues.length;
+        });
+        updateStats();
+      }
+
+      function renderCard(issue) {
+        const loc =
+          issue.line && issue.line !== "N/A" && issue.line !== "Múltiples"
+            ? ` : L${issue.line}`
+            : issue.line === "Múltiples"
+              ? " : múltiples ubicaciones"
+              : "";
+        const searchText = [issue.title, issue.file, issue.why, issue.fix, issue.resNote || ""]
+          .join(" ")
+          .toLowerCase()
+          .replace(/<[^>]+>/g, "");
+        const isRes = !!issue.res;
+        const cardClass = isRes ? `issue-card resolved-${issue.res}` : "issue-card";
+        const sevBadge = isRes
+          ? `<span class="severity-badge badge-resolved-${issue.res}">${issue.res === "full" ? "✅ Resuelto" : "⚠️ Parcial"}</span>`
+          : `<span class="severity-badge badge-${issue.sev}">${SEV[issue.sev]}</span>`;
+        const resBlock = isRes
+          ? `<div class="resolved-block ${issue.res}"><div class="resolved-label">${issue.res === "full" ? "✅ Cómo se resolvió" : "⚠️ Estado parcial"}</div>${issue.resNote}</div>`
+          : "";
+        return `<div class="${cardClass}" id="card-${issue.id}" data-sev="${issue.sev}" data-res="${isRes ? issue.res : 'no'}" data-text="${searchText.replace(/"/g, "&quot;")}">
+    <div class="issue-header" onclick="toggle(${issue.id})">
+      ${sevBadge}
+      <div class="issue-title-block">
+        <div class="issue-title">${issue.title}</div>
+        <div class="issue-location">📁 ${issue.file}${loc}</div>
+      </div>
+      <span class="expand-icon" id="icon-${issue.id}">▼</span>
+    </div>
+    <div class="issue-body" id="body-${issue.id}">
+      <div class="issue-section-label">¿Por qué es un problema?</div>
+      <div class="issue-problem">${issue.why}</div>
+      <div class="issue-section-label">¿Cómo se soluciona?</div>
+      <div class="issue-fix">${issue.fix}</div>
+      ${resBlock}
+    </div>
+  </div>`;
+      }
+
+      function toggle(id) {
+        document.getElementById("body-" + id).classList.toggle("open");
+        document.getElementById("icon-" + id).classList.toggle("open");
+      }
+
+      function setFilter(f) {
+        currentFilter = f;
+        document.querySelectorAll(".filter-btn").forEach((b) => b.classList.remove("active"));
+        document.querySelector(".f-" + f).classList.add("active");
+        if (f === "resolved" && !showResolved) {
+          showResolved = true;
+          const resolvedCount = ISSUES.filter((i) => !!i.res).length;
+          const btn = document.getElementById("btnToggleResolved");
+          btn.textContent = `🙈 Ocultar resueltas (${resolvedCount})`;
+          btn.classList.add("active");
+        }
+        applyFilters();
+      }
+
+      function applyFilters() {
+        const q = document.getElementById("searchBox").value.toLowerCase();
+        document.querySelectorAll(".issue-card").forEach((card) => {
+          const isResolved = card.dataset.res !== "no";
+          let sevOk;
+          if (currentFilter === "all") {
+            sevOk = showResolved || !isResolved;
+          } else if (currentFilter === "resolved") {
+            sevOk = isResolved;
+          } else {
+            sevOk = card.dataset.sev === currentFilter && !isResolved;
+          }
+          const txtOk = !q || card.dataset.text.includes(q);
+          card.classList.toggle("hidden", !(sevOk && txtOk));
+        });
+        CATS.forEach((cat) => {
+          const grid = document.getElementById("grid-" + cat.id);
+          const sec = document.getElementById(cat.id);
+          const visible = grid ? grid.querySelectorAll(".issue-card:not(.hidden)").length : 0;
+          if (sec) sec.classList.toggle("all-hidden", visible === 0);
+          const badge = document.getElementById("badge-" + cat.id);
+          if (badge) badge.textContent = visible + " problemas";
+          const cnt = document.getElementById("cnt-" + cat.id);
+          if (cnt) cnt.textContent = visible;
+        });
+        const anyVisible = document.querySelectorAll(".issue-card:not(.hidden)").length > 0;
+        document.getElementById("noResults").classList.toggle("hidden", anyVisible);
+        updateStats();
+      }
+
+      function updateStats() {
+        const visible = [...document.querySelectorAll(".issue-card:not(.hidden)")];
+        const c = { critical: 0, high: 0, medium: 0, low: 0 };
+        visible.forEach((v) => c[v.dataset.sev]++);
+        document.getElementById("statTotal").textContent = visible.length;
+        document.getElementById("statCritical").textContent = c.critical;
+        document.getElementById("statHigh").textContent = c.high;
+        document.getElementById("statMedium").textContent = c.medium;
+        document.getElementById("statLow").textContent = c.low;
+        document.getElementById("totalBadge").textContent = ISSUES.length + " problemas";
+      }
+
+      function navClick(el, id) {
+        document.querySelectorAll(".sidebar-link").forEach((l) => l.classList.remove("active"));
+        el.classList.add("active");
+        setTimeout(
+          () => document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" }),
+          10,
+        );
+        return false;
+      }
+
+      renderAll();
+      applyFilters();
+    </script>
+  </body>
+</html>

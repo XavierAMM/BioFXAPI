@@ -18,7 +18,8 @@ namespace BioFXAPI.Controllers
 		public async Task<IActionResult> Add([FromBody] AddItemRequest req)
 		{
 			if (req.ProductId <= 0 || req.Quantity <= 0) return BadRequest(new { message = "Datos inválidos." });
-			var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+			if (!int.TryParse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value, out var userId))
+			    return Unauthorized(new { message = "Usuario no identificado." });
 
 			using var con = new SqlConnection(_cs);
 			await con.OpenAsync();
@@ -64,7 +65,8 @@ namespace BioFXAPI.Controllers
         public async Task<IActionResult> UpdateQty(int itemId, [FromBody] UpdateQtyRequest req)
         {
             if (req.Quantity <= 0) return BadRequest(new { message = "Cantidad inválida." });
-            var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+            if (!int.TryParse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value, out var userId))
+                return Unauthorized(new { message = "Usuario no identificado." });
 
             using var con = new SqlConnection(_cs);
             await con.OpenAsync();
@@ -93,7 +95,8 @@ namespace BioFXAPI.Controllers
         [HttpDelete("{itemId}")]
         public async Task<IActionResult> Remove(int itemId)
         {
-            var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+            if (!int.TryParse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value, out var userId))
+                return Unauthorized(new { message = "Usuario no identificado." });
             using var con = new SqlConnection(_cs);
             await con.OpenAsync();
 

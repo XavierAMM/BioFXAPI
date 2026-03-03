@@ -166,39 +166,41 @@ namespace BioFXAPI.Notifications
             }
 
             // 3) Email a todos los destinatarios de ShippingEmails
+            bool atLeastOneSent = false;
+
             foreach (var email in _shippingEmails)
             {
                 var model = new OrderPaidToShippingEmail
                 {
                     ToEmail = email,
-                    
+
                     CustomerFullName = $"{header.FirstName} {header.LastName}".Trim(),
                     CustomerEmail = header.UserEmail!,
                     CustomerPhone = header.PhoneNumber,
-                    
-                    OrderReference = header.Reference,                    
+
+                    OrderReference = header.Reference,
                     RequestId = header.RequestId,
                     OrderStatus = header.OrderStatus,
                     OrderCreatedAt = EnsureUtc(header.OrderCreatedAt),
-                    
+
                     TotalAmount = header.TotalAmount,
                     Currency = header.Currency,
-                    
-                    AddressLine = header.AddressLine,                    
+
+                    AddressLine = header.AddressLine,
                     City = header.City,
                     Province = header.Province,
                     Country = header.Country,
                     PostalCode = header.PostalCode,
-                    
+
                     DocumentType = header.DocumentType,
                     DocumentNumber = header.DocumentNumber,
-                    
+
                     DoctorName = header.DoctorName,
-                    
+
                     PaymentStatus = header.TxStatus,
                     PaymentMethod = header.PaymentMethod,
                     PaymentMethodName = header.PaymentMethodName,
-                    
+
                     IssuerName = header.IssuerName,
                     Items = items.Select(i => new OrderPaidItemModel
                     {
@@ -219,6 +221,7 @@ namespace BioFXAPI.Notifications
                         email, orderId);
 
                     await _emailService.SendOrderPaidToShippingAsync(model, ct);
+                    atLeastOneSent = true;
 
                     _logger.LogInformation(
                         "OrderNotificationService: correo enviado correctamente a {Email} para OrderId={OrderId}",
@@ -229,12 +232,21 @@ namespace BioFXAPI.Notifications
                     _logger.LogError(ex,
                         "OrderNotificationService: error enviando correo a {Email} para OrderId={OrderId}. Continuando con los demás.",
                         email, orderId);
-                    // No retornamos — un fallo en un destinatario no bloquea los demás ni el borrado del adjunto
                 }
             }
 
+            // 4) Borrar adjunto en S3 y limpiar BD — SOLO si al menos un email fue enviado exitosamente.
+            // Si ningún email llegó, conservar el adjunto para que el equipo pueda reintentarlo manualmente.
+            if (!atLeastOneSent && header.OrderAttachmentId.HasValue)
+            {
+                _logger.LogError(
+                    "OrderNotificationService: NINGÚN correo fue enviado para OrderId={OrderId}. " +
+                    "El adjunto S3 (key={Key}) NO fue eliminado para evitar pérdida de la prescripción. " +
+                    "Requiere revisión manual.",
+                    orderId, header.AttachmentStorageKey);
+                return;
+            }
 
-            // 4) Si se envió el correo, borrar adjunto en S3 y limpiar BD
             if (header.OrderAttachmentId.HasValue &&
                 !string.IsNullOrWhiteSpace(header.AttachmentStorageKey))
             {

@@ -21,7 +21,8 @@ namespace BioFXAPI.Controllers
         [HttpGet]
         public async Task<IActionResult> Get()
         {
-            var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value);
+            if (!int.TryParse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value, out var userId))
+                return Unauthorized(new { message = "Usuario no identificado." });
 
             try
             {
@@ -58,14 +59,15 @@ namespace BioFXAPI.Controllers
             }
             catch (SqlException ex)
             {
-                return StatusCode(500, new { error = "Error de base de datos", details = ex.Message });
+                return StatusCode(500, new { error = "Error de base de datos" });
             }
         }
 
         [HttpPost]
         public async Task<IActionResult> Post([FromBody] DatosFacturacionRequest request)
         {
-            var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value);
+            if (!int.TryParse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value, out var userId))
+                return Unauthorized(new { message = "Usuario no identificado." });
 
             try
             {
@@ -98,14 +100,15 @@ namespace BioFXAPI.Controllers
             }
             catch (SqlException ex)
             {
-                return StatusCode(500, new { error = "Error de base de datos", details = ex.Message });
+                return StatusCode(500, new { error = "Error de base de datos" });
             }
         }
 
         [HttpPut]
         public async Task<IActionResult> Put([FromBody] DatosFacturacionRequest request)
         {
-            var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value);
+            if (!int.TryParse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value, out var userId))
+                return Unauthorized(new { message = "Usuario no identificado." });
 
             try
             {
@@ -138,7 +141,7 @@ namespace BioFXAPI.Controllers
             }
             catch (SqlException ex)
             {
-                return StatusCode(500, new { error = "Error de base de datos", details = ex.Message });
+                return StatusCode(500, new { error = "Error de base de datos" });
             }
         }
     }
