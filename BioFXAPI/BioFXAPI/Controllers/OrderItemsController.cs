@@ -20,7 +20,9 @@ namespace BioFXAPI.Controllers
             using var con = new SqlConnection(_cs);
             await con.OpenAsync();
 
-            var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+            if (!int.TryParse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value, out var userId))
+
+                return Unauthorized(new { message = "Usuario no identificado." });
             var isMine = await con.ExecuteScalarAsync<int>(
                 "SELECT COUNT(1) FROM [Order] WHERE Id=@Id AND UserId=@Uid AND Activo=1",
                 new { Id = orderId, Uid = userId });

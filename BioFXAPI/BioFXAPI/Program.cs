@@ -225,6 +225,8 @@ if (!app.Environment.IsDevelopment())
 
 if (app.Environment.IsDevelopment()) { app.UseSwagger(); app.UseSwaggerUI(); }
 
+app.UseCors("Frontend");
+
 app.UseHttpsRedirection();
 
 if (!app.Environment.IsDevelopment())
@@ -252,9 +254,6 @@ if (!app.Environment.IsDevelopment())
         });
     });
 }
-
-
-app.UseCors("Frontend");
 
 app.UseWhen(ctx => !HttpMethods.IsOptions(ctx.Request.Method), branch =>
 {

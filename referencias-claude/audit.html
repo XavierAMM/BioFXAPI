@@ -788,6 +788,8 @@
           line: "159",
           why: 'El método se llama "SixDigit" pero genera caracteres alfanuméricos (letras + números). Un usuario que espera un código numérico (como los de SMS OTP) puede confundirse. Además, el nombre incorrecto hace el código más difícil de mantener.',
           fix: "Renombrar a <code>GenerateVerificationCode()</code> que describe el comportamiento real, o cambiar la implementación para generar solo dígitos si el contexto lo requiere.",
+          res: "full",
+          resNote: "✅ Resuelto (25 Feb 2026) — Implementación reemplazada por <code>RandomNumberGenerator.GetInt32(0, 1_000_000).ToString(\"D6\")</code>. Genera exactamente 6 dígitos numéricos con padding de ceros, usando CSPRNG.",
         },
 
         {
@@ -837,6 +839,8 @@
           line: "87-103",
           why: 'Si la firma no comienza con <code>"sha256:"</code>, el sistema usa SHA-1. SHA-1 está criptográficamente roto desde 2017 (ataque SHAttered publicado por Google). Un atacante puede forjar firmas SHA-1 para inyectar webhooks fraudulentos que modifiquen estados de órdenes.',
           fix: "Eliminar completamente el soporte SHA-1. Si hay sistemas legacy que solo soportan SHA-1, documentar el riesgo y requerir migración. Loggear un error grave si se recibe una firma que no es SHA-256.",
+          res: "full",
+          resNote: "✅ Resuelto (25 Feb 2026) — Eliminado el bloque SHA-1. Ahora si la firma no empieza con <code>sha256:</code> se loggea un warning y se retorna 401 inmediatamente.",
         },
 
         {
@@ -848,6 +852,8 @@
           line: "18-173",
           why: "El webhook recibe <code>status.date</code> pero nunca verifica que sea reciente. Un atacante que intercepte un payload de webhook legítimo (con firma válida) puede reenviarlo horas después para revertir o forzar un estado en una transacción.",
           fix: 'Validar que el timestamp sea reciente: <code>if (Math.Abs((DateTime.UtcNow - webhookDate).TotalMinutes) > 5) return BadRequest("Webhook expirado");</code>',
+          res: "full",
+          resNote: "✅ Resuelto (25 Feb 2026) — Añadida validación de timestamp dentro del bloque <code>if (verify)</code>: si <code>statusDate</code> difiere más de 5 minutos de UTC actual, se loggea warning y retorna 401.",
         },
 
         {
@@ -885,6 +891,8 @@
           line: "310",
           why: "<code>EsAdjuntoValido()</code> verifica solo la extensión y el Content-Type declarado por el cliente, que son trivialmente falsificables. Un atacante puede renombrar un ejecutable malicioso como <code>receta.pdf</code> y subirlo al sistema.",
           fix: "Leer los primeros bytes del archivo y verificar contra firmas conocidas: PDF comienza con <code>%PDF-</code> (hex: 25 50 44 46 2D), PNG con <code>\\x89PNG</code>, JPEG con <code>\\xFF\\xD8\\xFF</code>. Rechazar si no coincide.",
+          res: "full",
+          resNote: "✅ Resuelto (25 Feb 2026) — <code>EsAdjuntoValido()</code> ahora recibe <code>ReadOnlySpan&lt;byte&gt; magicBytes</code>. Se validan los primeros 4 bytes contra firmas conocidas (PDF: 25 50 44 46, PNG: 89 50 4E 47, JPEG: FF D8 FF). En el call site se leen 4 bytes con un stream separado antes de llamar al método.",
         },
 
         {
@@ -896,6 +904,8 @@
           line: "72",
           why: '<code>$"test/{Guid.NewGuid():N}_{file.FileName}"</code> incluye el filename provisto por el usuario en el S3 key. Un archivo nombrado <code>../../secrets/config.json</code> podría causar comportamiento inesperado en algunos SDKs o sobreescribir objetos existentes.',
           fix: 'Nunca usar el filename del usuario en storage keys. Usar exclusivamente: <code>$"orders/{orderId}/{Guid.NewGuid():N}{extensionValidada}"</code> donde la extensión se valida contra una whitelist estricta.',
+          res: "full",
+          resNote: "✅ Resuelto (25 Feb 2026) — <b>OrderAttachmentsController.cs</b>: eliminado <code>file.FileName</code> del key; ahora solo <code>Guid + ext</code>. <b>OrdersController.cs</b>: extensión derivada de magic bytes ya validados (no del nombre del cliente); whitelist implícita: .pdf / .png / .jpg / .bin.",
         },
 
         {
@@ -1017,6 +1027,8 @@
           line: "Múltiples",
           why: "<code>StatusCode(500, new { details = ex.Message })</code> en múltiples controladores expone mensajes de error SQL que contienen nombres de tablas, columnas, constraints y stored procedures. Esta información es invaluable para un atacante que planea inyecciones SQL.",
           fix: 'Loggear el error completo internamente. Retornar al cliente solo: <code>StatusCode(500, new { error = "Error interno del servidor. Contacte soporte." })</code>',
+          res: "full",
+          resNote: "✅ Resuelto (25 Feb 2026) — Eliminados <code>details = ex.Message</code>, <code>error = ex.Message</code> y <code>code = ex.Number</code> de todas las respuestas 500 en 10 controladores (AccountController, AuthController, CategoriasController, DatosFacturacionController, OrdersController, PasswordController, PersonaController, ProductosController, PromocionesController, TestimonioController).",
         },
 
         {
@@ -1054,6 +1066,8 @@
           line: "136-145",
           why: '<code>TryCancelPlacetoPaySessionAsync()</code> solo verifica <code>resp.IsSuccessStatusCode</code> (HTTP 200-299). PlacetoPay puede retornar HTTP 200 con un payload indicando fallo de negocio (ej: "transacción ya aprobada, no se puede cancelar"). Este error se ignora completamente.',
           fix: "Deserializar la respuesta JSON y verificar el campo de estado interno de PlacetoPay además del código HTTP. Loggear el body completo de la respuesta cuando sea un fallo.",
+          res: "full",
+          resNote: "✅ Resuelto (25 Feb 2026) — Ahora se parsea el body JSON y se verifica <code>status.status == \"OK\"</code>. Si el campo no es OK (error de negocio) o el JSON no parsea, se loggea warning y retorna false. HTTP no-2xx también retorna false.",
         },
 
         {
@@ -1176,6 +1190,8 @@
           line: "134, 136",
           why: "Crear <code>new HttpClient()</code> por instancia es un antipatrón documentado en .NET. Cada instancia abre conexiones TCP que no son reutilizadas y no son liberadas apropiadamente. En producción con carga alta, esto puede agotar los sockets disponibles del sistema.",
           fix: 'Registrar en <code>Program.cs</code>: <code>builder.Services.AddHttpClient("PlacetoPay");</code> Inyectar <code>IHttpClientFactory</code> y usar <code>_factory.CreateClient("PlacetoPay")</code>.',
+          res: "full",
+          resNote: "✅ Resuelto (25 Feb 2026) — <code>IHttpClientFactory</code> inyectado en <code>WebhookLogsController</code> y <code>OrderCancellationService</code>. Ya estaba registrado con <code>AddHttpClient()</code> en Program.cs. Ambos <code>new HttpClient()</code> reemplazados por <code>_httpClientFactory.CreateClient()</code>.",
         },
 
         {
@@ -1335,6 +1351,8 @@
           line: "Múltiples",
           why: "Patrón repetido en 10+ controladores: <code>int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value)</code>. Si el claim es nulo (token malformado, versión de token incompatible), lanza <code>NullReferenceException</code> o <code>FormatException</code> no manejadas, resultando en un error 500 poco informativo.",
           fix: 'Centralizar en BaseController: <code>protected int GetUserId() { if (!int.TryParse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value, out var id)) throw new UnauthorizedAccessException("Token inválido"); return id; }</code>',
+          res: "full",
+          resNote: "✅ Resuelto (25 Feb 2026) — 15 ocurrencias reemplazadas en 7 controladores por <code>if (!int.TryParse(...?.Value, out var userId)) return Unauthorized(...);</code>. Ambas variantes (<code>!.Value</code> y <code>?.Value</code>) unificadas a <code>?.Value</code> con TryParse.",
         },
 
         {

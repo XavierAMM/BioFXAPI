@@ -69,7 +69,8 @@ namespace BioFXAPI.Controllers
                 return BadRequest(new { message = "Archivo requerido." });
             }
 
-            var key = $"test/{Guid.NewGuid():N}_{file.FileName}";
+            var ext = Path.GetExtension(file.FileName);
+            var key = $"test/{Guid.NewGuid():N}{ext}";
 
             await using var stream = file.OpenReadStream();
             var storedKey = await _fileStorage.UploadAsync(stream, key, file.ContentType, ct);

@@ -12,11 +12,15 @@ namespace BioFXAPI.Services
     {
         private readonly string _cs;
         private readonly IConfiguration _cfg;
+        private readonly IHttpClientFactory _httpClientFactory;
+        private readonly ILogger<OrderCancellationService> _logger;
 
-        public OrderCancellationService(IConfiguration cfg)
+        public OrderCancellationService(IConfiguration cfg, IHttpClientFactory httpClientFactory, ILogger<OrderCancellationService> logger)
         {
             _cfg = cfg;
             _cs = cfg.GetConnectionString("DefaultConnection");
+            _httpClientFactory = httpClientFactory;
+            _logger = logger;
         }
 
         private static bool IsFinalNegative(string s) =>
@@ -145,7 +149,8 @@ namespace BioFXAPI.Services
                 baseUri = new Uri($"{u.Scheme}://{u.Host}/");
             }
 
-            using var http = new HttpClient { BaseAddress = baseUri };
+            using var http = _httpClientFactory.CreateClient();
+            http.BaseAddress = baseUri;
             http.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
 
             // Endpoint de PlacetoPay: POST /api/session/:requestId/cancel
@@ -154,7 +159,33 @@ namespace BioFXAPI.Services
                 new StringContent(authJson, Encoding.UTF8, "application/json"),
                 ct);
 
-            return resp.IsSuccessStatusCode;
+            if (!resp.IsSuccessStatusCode) return false;
+
+            // Verificar error de negocio: PlacetoPay puede retornar HTTP 200 con status != "OK"
+            var respBody = await resp.Content.ReadAsStringAsync(ct);
+            try
+            {
+                using var doc = JsonDocument.Parse(respBody);
+                if (doc.RootElement.TryGetProperty("status", out var stEl) &&
+                    stEl.TryGetProperty("status", out var stStatus))
+                {
+                    var s = stStatus.GetString();
+                    if (!string.Equals(s, "OK", StringComparison.OrdinalIgnoreCase))
+                    {
+                        _logger.LogWarning(
+                            "PlacetoPay cancelación rechazada por error de negocio. RequestId={RequestId}, Status={Status}, Body={Body}",
+                            requestId, s, respBody.Length > 500 ? respBody[..500] : respBody);
+                        return false;
+                    }
+                    return true;
+                }
+            }
+            catch (JsonException ex)
+            {
+                _logger.LogWarning(ex, "No se pudo parsear respuesta de cancelación PlacetoPay. RequestId={RequestId}", requestId);
+            }
+
+            return false;
         }
     }
 }

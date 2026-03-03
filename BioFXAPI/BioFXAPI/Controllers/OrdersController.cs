@@ -276,12 +276,12 @@ namespace BioFXAPI.Controllers
                 catch (SqlException ex)
                 {
                     try { await tx.RollbackAsync(); } catch { }
-                    return StatusCode(500, new { message = "Error de base de datos.", code = ex.Number, error = ex.Message });
+                    return StatusCode(500, new { message = "Error de base de datos." });
                 }
                 catch (Exception ex)
                 {
                     try { await tx.RollbackAsync(); } catch { }
-                    return StatusCode(500, new { message = "Error interno al crear la orden.", error = ex.Message });
+                    return StatusCode(500, new { message = "Error interno al crear la orden." });
                 }
             }
             catch (Exception ex)
@@ -306,8 +306,12 @@ namespace BioFXAPI.Controllers
             if (file == null || file.Length == 0)
                 return BadRequest(new { message = "Archivo requerido." });
 
-            // Solo aceptamos PDF o imágenes
-            if (!EsAdjuntoValido(file.FileName, file.ContentType))
+            // Solo aceptamos PDF o imágenes — validar magic bytes para no confiar solo en extensión/Content-Type
+            byte[] headerBytes = new byte[4];
+            await using (var headerStream = file.OpenReadStream())
+                _ = await headerStream.ReadAsync(headerBytes, 0, 4);
+
+            if (!EsAdjuntoValido(file.FileName, file.ContentType, headerBytes))
             {
                 return BadRequest(new
                 {
@@ -341,11 +345,14 @@ namespace BioFXAPI.Controllers
                 return BadRequest(new { message = "La orden ya tiene una factura asociada." });
             }
 
-            var ext = Path.GetExtension(file.FileName);
-            if (string.IsNullOrWhiteSpace(ext))
+            // Derivar extensión de los magic bytes ya validados, no del nombre provisto por el cliente
+            var ext = headerBytes[0] switch
             {
-                ext = ".bin";
-            }
+                0x25 => ".pdf",  // %PDF
+                0x89 => ".png",  // PNG
+                0xFF => ".jpg",  // JPEG
+                _    => ".bin"
+            };
 
             var key = $"orders/{orderId}/attachments/{Guid.NewGuid():N}{ext}";
             var uploadedToS3 = false;
@@ -423,8 +430,7 @@ namespace BioFXAPI.Controllers
                 _logger.LogError(ex, "Error al asociar factura a la orden {OrderId}.", orderId);
                 return StatusCode(500, new
                 {
-                    message = "Error al guardar la factura de la orden.",
-                    error = ex.Message
+                    message = "Error al guardar la factura de la orden."
                 });
             }
         }
@@ -957,23 +963,36 @@ namespace BioFXAPI.Controllers
             return (false, 0, Unauthorized(new { message = "Usuario no identificado." }));
         }
 
-        private static bool EsAdjuntoValido(string fileName, string contentType)
+        private static bool EsAdjuntoValido(string fileName, string contentType, ReadOnlySpan<byte> magicBytes)
         {
             if (string.IsNullOrWhiteSpace(fileName) && string.IsNullOrWhiteSpace(contentType))
+                return false;
+
+            if (magicBytes.Length < 4)
                 return false;
 
             var name = fileName?.ToLowerInvariant() ?? string.Empty;
             var type = contentType?.ToLowerInvariant() ?? string.Empty;
 
-            var isPdf = type == "application/pdf" || name.EndsWith(".pdf");
+            bool isPdf = type == "application/pdf" || name.EndsWith(".pdf");
+            bool isImage = type.StartsWith("image/") || name.EndsWith(".png") || name.EndsWith(".jpg") || name.EndsWith(".jpeg");
 
-            var isImage =
-                type.StartsWith("image/") ||
-                name.EndsWith(".png") ||
-                name.EndsWith(".jpg") ||
-                name.EndsWith(".jpeg");
+            if (!isPdf && !isImage)
+                return false;
 
-            return isPdf || isImage;
+            // PDF: %PDF (25 50 44 46)
+            if (isPdf && magicBytes[0] == 0x25 && magicBytes[1] == 0x50 && magicBytes[2] == 0x44 && magicBytes[3] == 0x46)
+                return true;
+
+            // PNG: 89 50 4E 47
+            if (isImage && magicBytes[0] == 0x89 && magicBytes[1] == 0x50 && magicBytes[2] == 0x4E && magicBytes[3] == 0x47)
+                return true;
+
+            // JPEG: FF D8 FF
+            if (isImage && magicBytes[0] == 0xFF && magicBytes[1] == 0xD8 && magicBytes[2] == 0xFF)
+                return true;
+
+            return false;
         }
 
         private object BuildPlacetoPayAuth()
